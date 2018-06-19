@@ -7,10 +7,14 @@
 struct Parser {
     std::vector<Token *> tokens;
     Token::Type stop_type;
+    Token *current_token;
+    int position;
 
     Parser(std::vector<Token *> tokens, Token::Type stop_type) {
         this->tokens = tokens;
         this->stop_type = stop_type;
+        this->current_token = tokens[0];
+        this->position = 0;
     }
 };
 
@@ -39,6 +43,10 @@ struct Number_Node : Ast_Node {
     }
 };
 
+Ast_Node *factor(Parser *parser, Token *token);
+Ast_Node *term(Parser *parser, Token *token);
+Ast_Node *expr(Parser *parser);
+void eat(Parser *parser, Token::Type type);
 void parse(Parser *parser);
 
 #endif
