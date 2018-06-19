@@ -19,6 +19,12 @@ struct Parser {
 };
 
 struct Ast_Node {
+    enum Type {
+        BINARY_OP,
+        NUMBER
+    };
+
+    Type node_type;
 };
 
 struct Binary_Op_Node : Ast_Node {
@@ -30,6 +36,7 @@ struct Binary_Op_Node : Ast_Node {
         this->left = left;
         this->right = right;
         this->op = op;
+        this->node_type = Ast_Node::Type::BINARY_OP;
     }
 };
 
@@ -40,13 +47,14 @@ struct Number_Node : Ast_Node {
     Number_Node(Token *token) {
         this->token = token;
         this->value = std::atof(token->value.c_str());
+        this->node_type = Ast_Node::Type::NUMBER;
     }
 };
 
-Ast_Node *factor(Parser *parser, Token *token);
+void eat(Parser *parser, Token::Type type);
+Ast_Node *factor(Parser *parser);
 Ast_Node *term(Parser *parser, Token *token);
 Ast_Node *expr(Parser *parser);
-void eat(Parser *parser, Token::Type type);
-void parse(Parser *parser);
+Ast_Node *parse(Parser *parser);
 
 #endif

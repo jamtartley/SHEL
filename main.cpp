@@ -4,6 +4,7 @@
 
 #include "lexer.h"
 #include "parser.h"
+#include "interp.h"
 
 std::string file_to_string(std::ifstream &in) {
     std::stringstream sstr;
@@ -23,5 +24,6 @@ int main() {
     std::vector<Token *> tokens = lex(file_to_string(in_file));
     Parser *parser = new Parser(tokens, Token::Type::END_OF_FILE);
 
-    parse(parser);
+    Ast_Node *root = parse(parser);
+    std::cout << "RESULT: " << walk_from_root(root) << std::endl;
 }
