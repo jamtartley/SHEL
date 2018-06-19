@@ -6,6 +6,9 @@ struct Token {
     enum Type {
         NUMBER,
         STRING,
+        OPEN_PARENTHESES,
+        CLOSE_PARENTHESES,
+        STATEMENT_END,
         OPERATION
     };
 
