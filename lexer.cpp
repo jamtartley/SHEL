@@ -14,6 +14,7 @@ std::vector<Token *> lex(std::string source) {
     std::vector<Token *> ret_tokens;
     std::map<std::string, Token::Type> special_char_map;
 
+    special_char_map.insert(std::make_pair("=", Token::Type::EQUALS));
     special_char_map.insert(std::make_pair("(", Token::Type::OPEN_PARENTHESES));
     special_char_map.insert(std::make_pair(")", Token::Type::CLOSE_PARENTHESES));
     special_char_map.insert(std::make_pair(";", Token::Type::STATEMENT_END));
@@ -50,7 +51,7 @@ std::vector<Token *> lex(std::string source) {
         }
 
         std::cerr << "Cannot lex character: " << current << std::endl;
-
+        i++;
     }
 
     return ret_tokens;

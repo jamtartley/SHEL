@@ -7,6 +7,7 @@ struct Token {
         SYMBOL,
         NUMBER,
         STRING,
+        EQUALS,
         OPEN_PARENTHESES,
         CLOSE_PARENTHESES,
         STATEMENT_END,
