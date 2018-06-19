@@ -4,6 +4,7 @@
 
 struct Token {
     enum Type {
+        SYMBOL,
         NUMBER,
         STRING,
         OPEN_PARENTHESES,
@@ -22,5 +23,5 @@ struct Token {
 };
 
 std::vector<Token *> lex(std::string source);
-// @CLEANUP(LOW) Don't reference index directly, bit messy
-std::string read_multi_character(std::string input, int &index, std::regex end_match);
+std::string scan_string(std::string input, int &index, std::regex end_match);
+std::string scan_other(std::string input, int &index, std::regex end_match);
