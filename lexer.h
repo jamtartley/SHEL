@@ -17,6 +17,6 @@ struct Token {
     }
 };
 
-float read_number(std::string input);
-std::string read_string(std::string input);
 std::vector<Token *> lex(std::string source);
+std::string read_number(std::string input);
+std::string read_string(std::string input);
