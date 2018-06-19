@@ -23,7 +23,7 @@ int main() {
 
     std::vector<Token *> tokens = lex(file_to_string(in_file));
     Parser *parser = new Parser(tokens, Token::Type::END_OF_FILE);
+    Interpreter *interp = new Interpreter(parser);
 
-    Ast_Node *root = parse(parser);
-    std::cout << "RESULT: " << walk_from_root(root) << std::endl;
+    std::cout << "RESULT: " << interpret(interp) << std::endl;
 }

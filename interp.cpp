@@ -26,3 +26,8 @@ float walk_from_root(Ast_Node *root) {
         return visit_number_node(static_cast<Number_Node *>(root));
     }
 }
+
+float interpret(Interpreter *interp) {
+    Ast_Node *root = parse(interp->parser);
+    return walk_from_root(root);
+}
