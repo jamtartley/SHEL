@@ -3,7 +3,7 @@
 #include "lexer.h"
 
 int main() {
-    std::string source = "3 * 4";
+    std::string source = "3 * \"test\"";
     std::vector<Token *> tokens = lex(source);
 
     for (Token *token : tokens) {

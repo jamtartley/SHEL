@@ -1,3 +1,4 @@
+#include <regex>
 #include <string>
 #include <vector>
 
@@ -18,5 +19,5 @@ struct Token {
 };
 
 std::vector<Token *> lex(std::string source);
-std::string read_number(std::string input);
-std::string read_string(std::string input);
+// @CLEANUP(LOW) Don't reference index directly, bit messy
+std::string read_multi_character(std::string input, int &index, std::regex end_match);

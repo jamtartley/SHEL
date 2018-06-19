@@ -1,0 +1,23 @@
+{
+    "tag_marker": "@",
+    "tags": [
+        "TODO",
+        "HACK",
+        "SPEED",
+        "EFFICIENCY",
+        "BUG",
+        "USABILITY",
+        "ROBUSTNESS",
+        "CLEANUP"
+    ],
+    "priorities": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+    ],
+    "extensions": [
+        "cpp"
+    ],
+    "ignore": "IGNORE",
+    "exclude": []
+}
