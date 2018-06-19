@@ -1,17 +1,24 @@
+#ifndef LEXER_H
+#define LEXER_H
+
 #include <regex>
 #include <string>
 #include <vector>
 
 struct Token {
     enum Type {
-        SYMBOL,
+        IDENT,
         NUMBER,
         STRING,
         EQUALS,
-        OPEN_PARENTHESES,
-        CLOSE_PARENTHESES,
-        STATEMENT_END,
-        OPERATION
+        L_PAREN,
+        R_PAREN,
+        TERMINATOR,
+        PLUS,
+        MINUS,
+        MULTIPLY,
+        DIVIDE,
+        END_OF_FILE
     };
 
     Token::Type type;
@@ -26,3 +33,5 @@ struct Token {
 std::vector<Token *> lex(std::string source);
 std::string scan_string(std::string input, int &index, std::regex end_match);
 std::string scan_other(std::string input, int &index, std::regex end_match);
+
+#endif

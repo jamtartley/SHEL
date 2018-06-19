@@ -4,8 +4,8 @@
 #include "lexer.h"
 
 static const std::regex string_regex("[\"]");
-static const std::regex sym_start_regex("[_a-zA-Z]");
-static const std::regex sym_end_regex("[^_a-zA-Z0-9]");
+static const std::regex ident_start_regex("[_a-zA-Z]");
+static const std::regex ident_end_regex("[^_a-zA-Z0-9]");
 static const std::regex num_start_regex("[.0-9]");
 static const std::regex num_end_regex("[^.0-9]");
 static const std::regex op_regex("[+\\-*\\/]");
@@ -15,13 +15,13 @@ std::vector<Token *> lex(std::string source) {
     std::map<std::string, Token::Type> special_char_map;
 
     special_char_map.insert(std::make_pair("=", Token::Type::EQUALS));
-    special_char_map.insert(std::make_pair("(", Token::Type::OPEN_PARENTHESES));
-    special_char_map.insert(std::make_pair(")", Token::Type::CLOSE_PARENTHESES));
-    special_char_map.insert(std::make_pair(";", Token::Type::STATEMENT_END));
-    special_char_map.insert(std::make_pair("+", Token::Type::OPERATION));
-    special_char_map.insert(std::make_pair("-", Token::Type::OPERATION));
-    special_char_map.insert(std::make_pair("/", Token::Type::OPERATION));
-    special_char_map.insert(std::make_pair("*", Token::Type::OPERATION));
+    special_char_map.insert(std::make_pair("(", Token::Type::L_PAREN));
+    special_char_map.insert(std::make_pair(")", Token::Type::R_PAREN));
+    special_char_map.insert(std::make_pair(";", Token::Type::TERMINATOR));
+    special_char_map.insert(std::make_pair("+", Token::Type::PLUS));
+    special_char_map.insert(std::make_pair("-", Token::Type::MINUS));
+    special_char_map.insert(std::make_pair("*", Token::Type::MULTIPLY));
+    special_char_map.insert(std::make_pair("/", Token::Type::DIVIDE));
 
     int i = 0;
 
@@ -45,14 +45,16 @@ std::vector<Token *> lex(std::string source) {
             ret_tokens.push_back(new Token(Token::Type::NUMBER, scan_other(source.substr(i), i, num_end_regex)));
             continue;
         }
-        if (std::regex_match(current, sym_start_regex)) {
-            ret_tokens.push_back(new Token(Token::Type::SYMBOL, scan_other(source.substr(i), i, sym_end_regex)));
+        if (std::regex_match(current, ident_start_regex)) {
+            ret_tokens.push_back(new Token(Token::Type::IDENT, scan_other(source.substr(i), i, ident_end_regex)));
             continue;
         }
 
         std::cerr << "Cannot lex character: " << current << std::endl;
         i++;
     }
+
+    ret_tokens.push_back(new Token(Token::Type::END_OF_FILE, "EOF"));
 
     return ret_tokens;
 }
