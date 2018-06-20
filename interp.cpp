@@ -18,6 +18,7 @@ float walk_unary_op_node(Interpreter *interp, Unary_Op_Node *node) {
 }
 
 float walk_binary_op_node(Interpreter *interp, Binary_Op_Node *node) {
+    // @TODO(LOW) Handle string concatenation here
     if (node->op->type == Token::Type::OP_PLUS) {
         return walk_from_arithmetic_root(interp, node->left) + walk_from_arithmetic_root(interp, node->right);
     } else if (node->op->type == Token::Type::OP_MINUS) {
@@ -56,7 +57,7 @@ void walk_empty_node(Empty_Node *node) {
 }
 
 float walk_num_variable_node(Interpreter *interp, std::string name) {
-    if (interp->global_str_map.find(name) != interp->global_str_map.end()) {
+    if (interp->global_num_map.find(name) != interp->global_num_map.end()) {
         return interp->global_num_map[name];
     } else {
         std::cerr << "Use of unassigned num variable: " << name << std::endl;
@@ -77,12 +78,10 @@ void walk_assignment_node(Interpreter *interp, Assignment_Node *node) {
     std::string name = node->left->value;
     Ast_Node::Type type = node->right->node_type;
 
-    if (type == Ast_Node::Type::NUMBER) {
-        interp->global_num_map[name] = walk_from_arithmetic_root(interp, node->right);
-    } else if (type == Ast_Node::Type::VARIABLE) {
-        interp->global_num_map[name] = walk_num_variable_node(interp, static_cast<Variable_Node *>(node->right)->value);
-    } else if (node->right->node_type == Ast_Node::Type::STRING) {
+    if (node->right->node_type == Ast_Node::Type::STRING) {
         interp->global_str_map[name] = static_cast<String_Node *>(node->right)->value;
+    } else {
+        interp->global_num_map[name] = walk_from_arithmetic_root(interp, node->right);
     }
 }
 
@@ -98,10 +97,7 @@ void walk_from_root(Interpreter *interp, Ast_Node *root) {
 
 void interpret(Interpreter *interp) {
     Compound_Node *root = parse(interp->parser);
-
-    for (Ast_Node *node : root->statements) {
-        walk_from_root(interp, root);
-    }
+    walk_from_root(interp, root);
 
     for (auto const &k : interp->global_num_map) {
         std::cout << k.first << ": " << k.second << std::endl;
