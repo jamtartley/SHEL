@@ -61,13 +61,9 @@ Ast_Node *parse_arithmetic_expression(Parser *parser) {
 }
 
 Variable_Node *parse_variable(Parser *parser) {
-    Token::Type type = parser->current_token->type; // num/str
+    Token::Type type = parser->current_token->type;
 
-    if (parser->current_token->type == Token::Type::KEYWORD_NUM) {
-        eat(parser, Token::Type::KEYWORD_NUM);
-    } else if (parser->current_token->type == Token::Type::KEYWORD_STR) {
-        eat(parser, Token::Type::KEYWORD_STR);
-    }
+    if (type == Token::Type::KEYWORD_NUM || type == Token::Type::KEYWORD_STR) eat(parser, type);
 
     Variable_Node *var = new Variable_Node(type, parser->current_token->value);
     eat(parser, Token::Type::IDENT);
@@ -121,7 +117,7 @@ Ast_Node *parse_statement(Parser *parser) {
     }
 }
 
-Ast_Node *parse(Parser *parser) {
+Compound_Node *parse(Parser *parser) {
     if (parser->tokens.size() == 0) return nullptr;
     return parse_compound_statement(parser);
 }

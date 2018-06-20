@@ -131,6 +131,6 @@ Empty_Node *parse_empty(Parser *parser);
 Compound_Node *parse_compound_statement(Parser *parser);
 std::vector<Ast_Node *> parse_statements(Parser *parser);
 Ast_Node *parse_statement(Parser *parser);
-Ast_Node *parse(Parser *parser);
+Compound_Node *parse(Parser *parser);
 
 #endif
