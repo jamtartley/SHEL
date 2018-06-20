@@ -14,7 +14,7 @@ void eat(Parser *parser, Token::Type type) {
 Ast_Node *factor(Parser *parser) {
     Token *token = parser->current_token;
 
-    if (token->type == Token::Type::PLUS || token->type == Token::Type::MINUS) {
+    if (token->type == Token::Type::OP_PLUS || token->type == Token::Type::OP_MINUS) {
         eat(parser, token->type);
         return new Unary_Op_Node(token, factor(parser));
     } else if (token->type == Token::Type::NUMBER) {
@@ -33,7 +33,7 @@ Ast_Node *factor(Parser *parser) {
 Ast_Node *term(Parser *parser, Token *token) {
     Ast_Node *node = factor(parser);
 
-    while (parser->current_token->type == Token::Type::MULTIPLY || parser->current_token->type == Token::Type::DIVIDE) {
+    while (parser->current_token->type == Token::Type::OP_MULTIPLY || parser->current_token->type == Token::Type::OP_DIVIDE) {
         Token *token = parser->current_token;
         eat(parser, parser->current_token->type);
 
@@ -46,7 +46,7 @@ Ast_Node *term(Parser *parser, Token *token) {
 Ast_Node *expr(Parser *parser) {
     Ast_Node *node = term(parser, parser->current_token);
 
-    while (parser->current_token->type == Token::Type::PLUS || parser->current_token->type == Token::Type::MINUS) {
+    while (parser->current_token->type == Token::Type::OP_PLUS || parser->current_token->type == Token::Type::OP_MINUS) {
         Token *token = parser->current_token;
         eat(parser, parser->current_token->type);
 

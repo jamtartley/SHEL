@@ -7,26 +7,28 @@
 
 struct Token {
     enum Type {
-        IDENT,
-        NUMBER,
-        STRING,
         KEYWORD_IF,
         KEYWORD_ELSE,
         KEYWORD_FOR,
         KEYWORD_WHILE,
         KEYWORD_NUM,
         KEYWORD_STR,
-        EQUALS,
-        ASSIGNMENT,
+        KEYWORD_STRUCT,
+        KEYWORD_FUNCTION,
         L_PAREN,
         R_PAREN,
         L_CURLY_BRACE,
         R_CURLY_BRACE,
+        OP_PLUS,
+        OP_MINUS,
+        OP_MULTIPLY,
+        OP_DIVIDE,
+        IDENT,
+        NUMBER,
+        STRING,
+        EQUALS,
+        ASSIGNMENT,
         TERMINATOR,
-        PLUS,
-        MINUS,
-        MULTIPLY,
-        DIVIDE,
         END_OF_FILE
     };
 
@@ -44,5 +46,37 @@ std::string scan_string(const std::string input, int &index, const std::regex en
 std::string scan_other(const std::string input, int &index, const std::regex end_match);
 Token *scan_ident(const std::string input, int &index, const std::regex end_match);
 std::string peek(const std::string input, const int index);
+
+// @ROBUSTNESS(MEDIUM) @HACK Token::Type name maintenance nightmare
+// This is a horrible way of doing this but it's not mission critical
+// and it shoudn't change all that much.
+inline const std::string type_to_string(Token::Type type) {
+    switch (type) {
+        case Token::Type::KEYWORD_IF: return "KEYWORD_IF";
+        case Token::Type::KEYWORD_ELSE: return "KEYWORD_ELSE";
+        case Token::Type::KEYWORD_FOR: return "KEYWORD_FOR";
+        case Token::Type::KEYWORD_WHILE: return "KEYWORD_WHILE";
+        case Token::Type::KEYWORD_NUM: return "KEYWORD_NUM";
+        case Token::Type::KEYWORD_STR: return "KEYWORD_STR";
+        case Token::Type::KEYWORD_STRUCT: return "KEYWORD_STRUCT";
+        case Token::Type::KEYWORD_FUNCTION: return "KEYWORD_FUNCTION";
+        case Token::Type::L_PAREN: return "L_PAREN";
+        case Token::Type::R_PAREN: return "R_PAREN";
+        case Token::Type::L_CURLY_BRACE: return "L_CURLY_BRACE";
+        case Token::Type::R_CURLY_BRACE: return "R_CURLY_BRACE";
+        case Token::Type::OP_PLUS: return "OP_PLUS";
+        case Token::Type::OP_MINUS: return "OP_MINUS";
+        case Token::Type::OP_MULTIPLY: return "OP_MULTIPLY";
+        case Token::Type::OP_DIVIDE: return "OP_DIVIDE";
+        case Token::Type::IDENT: return "IDENT";
+        case Token::Type::NUMBER: return "NUMBER";
+        case Token::Type::STRING: return "STRING";
+        case Token::Type::EQUALS: return "EQUALS";
+        case Token::Type::ASSIGNMENT: return "ASSIGNMENT";
+        case Token::Type::TERMINATOR: return "TERMINATOR";
+        case Token::Type::END_OF_FILE: return "END_OF_FILE";
+        default: return "INVALID TOKEN TYPE";
+    }
+}
 
 #endif

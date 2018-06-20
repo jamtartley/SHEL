@@ -14,16 +14,16 @@ std::vector<Token *> lex(const std::string source) {
     static std::map<std::string, Token::Type> special_char_map;
     std::vector<Token *> ret_tokens;
 
-    special_char_map.insert(std::make_pair("=", Token::Type::EQUALS));
+    special_char_map.insert(std::make_pair("=", Token::Type::ASSIGNMENT));
     special_char_map.insert(std::make_pair("(", Token::Type::L_PAREN));
     special_char_map.insert(std::make_pair(")", Token::Type::R_PAREN));
     special_char_map.insert(std::make_pair("{", Token::Type::L_CURLY_BRACE));
     special_char_map.insert(std::make_pair("}", Token::Type::R_CURLY_BRACE));
     special_char_map.insert(std::make_pair(";", Token::Type::TERMINATOR));
-    special_char_map.insert(std::make_pair("+", Token::Type::PLUS));
-    special_char_map.insert(std::make_pair("-", Token::Type::MINUS));
-    special_char_map.insert(std::make_pair("*", Token::Type::MULTIPLY));
-    special_char_map.insert(std::make_pair("/", Token::Type::DIVIDE));
+    special_char_map.insert(std::make_pair("+", Token::Type::OP_PLUS));
+    special_char_map.insert(std::make_pair("-", Token::Type::OP_MINUS));
+    special_char_map.insert(std::make_pair("*", Token::Type::OP_MULTIPLY));
+    special_char_map.insert(std::make_pair("/", Token::Type::OP_DIVIDE));
 
     int i = 0;
 
@@ -35,7 +35,7 @@ std::vector<Token *> lex(const std::string source) {
             continue;
         }
         if (current == "=" && peek(source, i) == "=") {
-            ret_tokens.push_back(new Token(Token::Type::ASSIGNMENT, "=="));
+            ret_tokens.push_back(new Token(Token::Type::EQUALS, "=="));
             i += 2;
             continue;
         }
@@ -106,6 +106,8 @@ Token *scan_ident(const std::string input, int &index, const std::regex end_matc
     keyword_map.insert(std::make_pair("while", new Token(Token::Type::KEYWORD_WHILE, "while")));
     keyword_map.insert(std::make_pair("num", new Token(Token::Type::KEYWORD_NUM, "num")));
     keyword_map.insert(std::make_pair("str", new Token(Token::Type::KEYWORD_STR, "str")));
+    keyword_map.insert(std::make_pair("shel", new Token(Token::Type::KEYWORD_STRUCT, "shel")));
+    keyword_map.insert(std::make_pair("bug", new Token(Token::Type::KEYWORD_FUNCTION, "bug")));
 
     std::string raw = scan_other(input, index, end_match);
 

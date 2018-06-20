@@ -6,7 +6,7 @@
 float visit_unary_op_node(Unary_Op_Node *node) {
     Token::Type type = node->op->type;
 
-    if (type == Token::Type::PLUS) {
+    if (type == Token::Type::OP_PLUS) {
         return +walk_from_root(node->node);
     } else {
         return -walk_from_root(node->node);
@@ -14,11 +14,11 @@ float visit_unary_op_node(Unary_Op_Node *node) {
 }
 
 float visit_binary_op_node(Binary_Op_Node *node) {
-    if (node->op->type == Token::Type::PLUS) {
+    if (node->op->type == Token::Type::OP_PLUS) {
         return walk_from_root(node->left) + walk_from_root(node->right);
-    } else if (node->op->type == Token::Type::MINUS) {
+    } else if (node->op->type == Token::Type::OP_MINUS) {
         return walk_from_root(node->left) - walk_from_root(node->right);
-    } else if (node->op->type == Token::Type::MULTIPLY) {
+    } else if (node->op->type == Token::Type::OP_MULTIPLY) {
         return walk_from_root(node->left) * walk_from_root(node->right);
     } else {
         return walk_from_root(node->left) / walk_from_root(node->right);

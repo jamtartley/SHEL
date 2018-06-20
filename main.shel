@@ -1,0 +1,17 @@
+shel pair {
+    num y;
+    str z;
+}
+
+bug test_fun() {
+    
+}
+
+num x = 5;
+str s = "sam";
+
+if x == 5 {
+    x = 1;
+} else {
+    x = 2;
+}
