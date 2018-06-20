@@ -25,5 +25,9 @@ int main() {
     Parser *parser = new Parser(tokens, Token::Type::END_OF_FILE);
     Interpreter *interp = new Interpreter(parser);
 
-    std::cout << "RESULT: " << interpret(interp) << std::endl;
+    for (Token *token : tokens) {
+        std::cout << "TYPE: " << token->type << " VALUE: " << token->value << std::endl;
+    }
+
+    //std::cout << "RESULT: " << interpret(interp) << std::endl;
 }

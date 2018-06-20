@@ -10,13 +10,15 @@ static const std::regex num_start_regex("[.0-9]");
 static const std::regex num_end_regex("[^.0-9]");
 static const std::regex op_regex("[+\\-*\\/]");
 
-std::vector<Token *> lex(std::string source) {
+std::vector<Token *> lex(const std::string source) {
+    static std::map<std::string, Token::Type> special_char_map;
     std::vector<Token *> ret_tokens;
-    std::map<std::string, Token::Type> special_char_map;
 
     special_char_map.insert(std::make_pair("=", Token::Type::EQUALS));
     special_char_map.insert(std::make_pair("(", Token::Type::L_PAREN));
     special_char_map.insert(std::make_pair(")", Token::Type::R_PAREN));
+    special_char_map.insert(std::make_pair("{", Token::Type::L_CURLY_BRACE));
+    special_char_map.insert(std::make_pair("}", Token::Type::R_CURLY_BRACE));
     special_char_map.insert(std::make_pair(";", Token::Type::TERMINATOR));
     special_char_map.insert(std::make_pair("+", Token::Type::PLUS));
     special_char_map.insert(std::make_pair("-", Token::Type::MINUS));
@@ -32,9 +34,9 @@ std::vector<Token *> lex(std::string source) {
             i++;
             continue;
         }
-        if (special_char_map.find(current) != special_char_map.end()) {
-            i++;
-            ret_tokens.push_back(new Token(special_char_map[current], current));
+        if (current == "=" && peek(source, i) == "=") {
+            ret_tokens.push_back(new Token(Token::Type::ASSIGNMENT, "=="));
+            i += 2;
             continue;
         }
         if (std::regex_match(current, string_regex)) {
@@ -46,7 +48,12 @@ std::vector<Token *> lex(std::string source) {
             continue;
         }
         if (std::regex_match(current, ident_start_regex)) {
-            ret_tokens.push_back(new Token(Token::Type::IDENT, scan_other(source.substr(i), i, ident_end_regex)));
+            ret_tokens.push_back(scan_ident(source.substr(i), i, ident_end_regex));
+            continue;
+        }
+        if (special_char_map.find(current) != special_char_map.end()) {
+            i++;
+            ret_tokens.push_back(new Token(special_char_map[current], current));
             continue;
         }
 
@@ -59,7 +66,7 @@ std::vector<Token *> lex(std::string source) {
     return ret_tokens;
 }
 
-std::string scan_string(std::string input, int &index, std::regex end_match) {
+std::string scan_string(const std::string input, int &index, const std::regex end_match) {
     std::string ret = "";
     int i = 1; // Skip first "
 
@@ -76,7 +83,7 @@ std::string scan_string(std::string input, int &index, std::regex end_match) {
     return ret;
 }
 
-std::string scan_other(std::string input, int &index, std::regex end_match) {
+std::string scan_other(const std::string input, int &index, const std::regex end_match) {
     std::string ret = "";
     int i = 0;
 
@@ -89,3 +96,26 @@ std::string scan_other(std::string input, int &index, std::regex end_match) {
 
     return ret;
 } 
+
+Token *scan_ident(const std::string input, int &index, const std::regex end_match) {
+    static std::map<std::string, Token *> keyword_map;
+    // @CLEANUP(LOW) Keyword map identifier redundancies
+    keyword_map.insert(std::make_pair("if", new Token(Token::Type::KEYWORD_IF, "if")));
+    keyword_map.insert(std::make_pair("else", new Token(Token::Type::KEYWORD_ELSE, "else")));
+    keyword_map.insert(std::make_pair("for", new Token(Token::Type::KEYWORD_FOR, "for")));
+    keyword_map.insert(std::make_pair("while", new Token(Token::Type::KEYWORD_WHILE, "while")));
+    keyword_map.insert(std::make_pair("num", new Token(Token::Type::KEYWORD_NUM, "num")));
+    keyword_map.insert(std::make_pair("str", new Token(Token::Type::KEYWORD_STR, "str")));
+
+    std::string raw = scan_other(input, index, end_match);
+
+    if (keyword_map.find(raw) != keyword_map.end()) return keyword_map[raw];
+    return new Token(Token::Type::IDENT, raw);
+}
+
+std::string peek(const std::string input, const int index) {
+    int next = index + 1;
+
+    if (index >= input.size()) return nullptr;
+    return std::string(1, input.at(next));
+}

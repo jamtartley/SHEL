@@ -10,9 +10,18 @@ struct Token {
         IDENT,
         NUMBER,
         STRING,
+        KEYWORD_IF,
+        KEYWORD_ELSE,
+        KEYWORD_FOR,
+        KEYWORD_WHILE,
+        KEYWORD_NUM,
+        KEYWORD_STR,
         EQUALS,
+        ASSIGNMENT,
         L_PAREN,
         R_PAREN,
+        L_CURLY_BRACE,
+        R_CURLY_BRACE,
         TERMINATOR,
         PLUS,
         MINUS,
@@ -30,8 +39,10 @@ struct Token {
     }
 };
 
-std::vector<Token *> lex(std::string source);
-std::string scan_string(std::string input, int &index, std::regex end_match);
-std::string scan_other(std::string input, int &index, std::regex end_match);
+std::vector<Token *> lex(const std::string source);
+std::string scan_string(const std::string input, int &index, const std::regex end_match);
+std::string scan_other(const std::string input, int &index, const std::regex end_match);
+Token *scan_ident(const std::string input, int &index, const std::regex end_match);
+std::string peek(const std::string input, const int index);
 
 #endif
