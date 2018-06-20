@@ -123,6 +123,7 @@ Token *scan_ident(const std::string input, int &index, const std::regex end_matc
     keyword_map.insert(std::make_pair("while", new Token(Token::Type::KEYWORD_WHILE, "while")));
     keyword_map.insert(std::make_pair("num", new Token(Token::Type::KEYWORD_NUM, "num")));
     keyword_map.insert(std::make_pair("str", new Token(Token::Type::KEYWORD_STR, "str")));
+    keyword_map.insert(std::make_pair("return", new Token(Token::Type::KEYWORD_RETURN, "return")));
     keyword_map.insert(std::make_pair("shel", new Token(Token::Type::KEYWORD_STRUCT, "shel")));
     keyword_map.insert(std::make_pair("bug", new Token(Token::Type::KEYWORD_FUNCTION, "bug")));
 

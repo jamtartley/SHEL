@@ -3,6 +3,7 @@
 #include "parser.h"
 
 void eat(Parser *parser, Token::Type type) {
+    if (parser->position == parser->tokens.size() - 1) std::cerr << "Reached last token and attempted further eat" << std::endl;
     if (parser->current_token->type == type) {
         parser->position++;
         parser->current_token = parser->tokens[parser->position];
@@ -56,7 +57,27 @@ Ast_Node *expr(Parser *parser) {
     return node;
 }
 
+Variable_Node *parse_variable(Parser *parser) {
+    Variable_Node *var = new Variable_Node(parser->current_token);
+    eat(parser, Token::Type::IDENT);
+
+    return var;
+}
+
+Assignment_Node *parse_assignment(Parser *parser) {
+    Variable_Node *var = parse_variable(parser); 
+    Token *token = parser->current_token;
+    eat(parser, Token::Type::ASSIGNMENT);
+    Ast_Node *right = expr(parser);
+
+    return new Assignment_Node(var, right, token);
+}
+
 Ast_Node *parse(Parser *parser) {
     if (parser->tokens.size() == 0) return nullptr;
-    return expr(parser);
+    Assignment_Node *ass = parse_assignment(parser);
+    std::cout << ass->left->value << std::endl;
+    std::cout << static_cast<Number_Node *>(ass->right)->value << std::endl;
+
+    return ass;
 }

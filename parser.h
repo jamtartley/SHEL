@@ -26,7 +26,7 @@ struct Ast_Node {
         BINARY_OP,
         UNARY_OP,
         COMPOUND,
-        ASSIGN,
+        ASSIGNMENT,
         VARIABLE,
         EMPTY,
         NUMBER
@@ -90,16 +90,16 @@ struct Variable_Node : Ast_Node {
     }
 };
 
-struct Assign_Node : Ast_Node {
+struct Assignment_Node : Ast_Node {
     Variable_Node *left;
     Ast_Node *right;
     Token *token;
 
-    Assign_Node(Variable_Node *left, Ast_Node *right, Token *token) {
+    Assignment_Node(Variable_Node *left, Ast_Node *right, Token *token) {
         this->left = left;
         this->right = right;
         this->token = token;
-        this->node_type = Ast_Node::Type::ASSIGN;
+        this->node_type = Ast_Node::Type::ASSIGNMENT;
     }
 };
 
@@ -113,6 +113,8 @@ void eat(Parser *parser, Token::Type type);
 Ast_Node *factor(Parser *parser);
 Ast_Node *term(Parser *parser, Token *token);
 Ast_Node *expr(Parser *parser);
+Variable_Node *parse_variable(Parser *parser);
+Assignment_Node *parse_assignment(Parser *parser);
 Ast_Node *parse(Parser *parser);
 
 #endif

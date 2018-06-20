@@ -13,6 +13,7 @@ struct Token {
         KEYWORD_WHILE,
         KEYWORD_NUM,
         KEYWORD_STR,
+        KEYWORD_RETURN,
         KEYWORD_STRUCT,
         KEYWORD_FUNCTION,
         L_PAREN,
@@ -63,6 +64,7 @@ inline const std::string type_to_string(Token::Type type) {
         case Token::Type::KEYWORD_WHILE: return "KEYWORD_WHILE";
         case Token::Type::KEYWORD_NUM: return "KEYWORD_NUM";
         case Token::Type::KEYWORD_STR: return "KEYWORD_STR";
+        case Token::Type::KEYWORD_RETURN: return "KEYWORD_RETURN";
         case Token::Type::KEYWORD_STRUCT: return "KEYWORD_STRUCT";
         case Token::Type::KEYWORD_FUNCTION: return "KEYWORD_FUNCTION";
         case Token::Type::L_PAREN: return "L_PAREN";
