@@ -21,6 +21,7 @@ struct Parser {
 struct Ast_Node {
     enum Type {
         BINARY_OP,
+        UNARY_OP,
         NUMBER
     };
 
@@ -37,6 +38,17 @@ struct Binary_Op_Node : Ast_Node {
         this->right = right;
         this->op = op;
         this->node_type = Ast_Node::Type::BINARY_OP;
+    }
+};
+
+struct Unary_Op_Node : Ast_Node {
+    Token *op;
+    Ast_Node *node;
+
+    Unary_Op_Node(Token *op, Ast_Node *node) {
+        this->op = op;
+        this->node = node;
+        this->node_type = Ast_Node::Type::UNARY_OP;
     }
 };
 

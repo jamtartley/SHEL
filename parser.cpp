@@ -14,7 +14,10 @@ void eat(Parser *parser, Token::Type type) {
 Ast_Node *factor(Parser *parser) {
     Token *token = parser->current_token;
 
-    if (token->type == Token::Type::NUMBER) {
+    if (token->type == Token::Type::PLUS || token->type == Token::Type::MINUS) {
+        eat(parser, token->type);
+        return new Unary_Op_Node(token, factor(parser));
+    } else if (token->type == Token::Type::NUMBER) {
         eat(parser, Token::Type::NUMBER);
         return new Number_Node(token); 
     } else if (token->type == Token::Type::L_PAREN) {
