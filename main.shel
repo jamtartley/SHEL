@@ -1,2 +1,2 @@
 num x = 3;
-str z = "test";
+str s = "test";

@@ -44,5 +44,5 @@ int main() {
     Interpreter *interp = new Interpreter(parser);
 
     print_tokens(tokens);
-    parse(interp->parser);
+    interpret(interp);
 }
