@@ -10,6 +10,8 @@ bug test_fun() {
 num x = 5;
 str s = "sam";
 
+if (x <> 10) { x = 5; }
+
 if x == 5 {
     x = 1;
 } else {

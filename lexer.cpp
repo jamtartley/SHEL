@@ -24,6 +24,8 @@ std::vector<Token *> lex(const std::string source) {
     special_char_map.insert(std::make_pair("-", Token::Type::OP_MINUS));
     special_char_map.insert(std::make_pair("*", Token::Type::OP_MULTIPLY));
     special_char_map.insert(std::make_pair("/", Token::Type::OP_DIVIDE));
+    special_char_map.insert(std::make_pair("<", Token::Type::COMPARE_LESS_THAN));
+    special_char_map.insert(std::make_pair(">", Token::Type::COMPARE_GREATER_THAN));
 
     int i = 0;
 
@@ -35,7 +37,22 @@ std::vector<Token *> lex(const std::string source) {
             continue;
         }
         if (current == "=" && peek(source, i) == "=") {
-            ret_tokens.push_back(new Token(Token::Type::EQUALS, "=="));
+            ret_tokens.push_back(new Token(Token::Type::COMPARE_EQUALS, "=="));
+            i += 2;
+            continue;
+        }
+        if (current == "<" && peek(source, i) == "=") {
+            ret_tokens.push_back(new Token(Token::Type::COMPARE_LESS_THAN_EQUALS, "<="));
+            i += 2;
+            continue;
+        }
+        if (current == ">" && peek(source, i) == "=") {
+            ret_tokens.push_back(new Token(Token::Type::COMPARE_GREATER_THAN_EQUALS, ">="));
+            i += 2;
+            continue;
+        }
+        if (current == "<" && peek(source, i) == ">") {
+            ret_tokens.push_back(new Token(Token::Type::COMPARE_NOT_EQUALS, "<>"));
             i += 2;
             continue;
         }

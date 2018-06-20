@@ -19,9 +19,16 @@ struct Parser {
 };
 
 struct Ast_Node {
+    // @ROBUSTNESS(MEDIUM) @CLEANUP Storing type enum value in Ast_Node
+    // This is a bit of a workaround for determining the type of a node
+    // when only given a Ast_Node*
     enum Type {
         BINARY_OP,
         UNARY_OP,
+        COMPOUND,
+        ASSIGN,
+        VARIABLE,
+        EMPTY,
         NUMBER
     };
 
@@ -60,6 +67,45 @@ struct Number_Node : Ast_Node {
         this->token = token;
         this->value = std::atof(token->value.c_str());
         this->node_type = Ast_Node::Type::NUMBER;
+    }
+};
+
+struct Compound_Node : Ast_Node {
+    std::vector<Ast_Node *> statements;
+
+    Compound_Node(std::vector<Ast_Node *> statements) {
+        this->statements = statements;
+        this->node_type = Ast_Node::Type::COMPOUND;
+    }
+};
+
+struct Variable_Node : Ast_Node {
+    Token *token;
+    std::string value;
+
+    Variable_Node(Token *token) {
+        this->token = token;
+        this->value = token->value;
+        this->node_type = Ast_Node::Type::VARIABLE;
+    }
+};
+
+struct Assign_Node : Ast_Node {
+    Variable_Node *left;
+    Ast_Node *right;
+    Token *token;
+
+    Assign_Node(Variable_Node *left, Ast_Node *right, Token *token) {
+        this->left = left;
+        this->right = right;
+        this->token = token;
+        this->node_type = Ast_Node::Type::ASSIGN;
+    }
+};
+
+struct Empty_Node : Ast_Node {
+    Empty_Node() {
+        this->node_type = Ast_Node::Type::EMPTY;
     }
 };
 

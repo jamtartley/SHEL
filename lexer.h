@@ -26,7 +26,12 @@ struct Token {
         IDENT,
         NUMBER,
         STRING,
-        EQUALS,
+        COMPARE_EQUALS,
+        COMPARE_NOT_EQUALS,
+        COMPARE_LESS_THAN,
+        COMPARE_GREATER_THAN,
+        COMPARE_LESS_THAN_EQUALS,
+        COMPARE_GREATER_THAN_EQUALS,
         ASSIGNMENT,
         TERMINATOR,
         END_OF_FILE
@@ -71,7 +76,12 @@ inline const std::string type_to_string(Token::Type type) {
         case Token::Type::IDENT: return "IDENT";
         case Token::Type::NUMBER: return "NUMBER";
         case Token::Type::STRING: return "STRING";
-        case Token::Type::EQUALS: return "EQUALS";
+        case Token::Type::COMPARE_EQUALS: return "COMPARE_EQUALS";
+        case Token::Type::COMPARE_NOT_EQUALS: return "COMPARE_NOT_EQUALS";
+        case Token::Type::COMPARE_LESS_THAN: return "COMPARE_LESS_THAN";
+        case Token::Type::COMPARE_GREATER_THAN: return "COMPARE_GREATER_THAN";
+        case Token::Type::COMPARE_LESS_THAN_EQUALS: return "COMPARE_LESS_THAN_EQUALS";
+        case Token::Type::COMPARE_GREATER_THAN_EQUALS: return "COMPARE_GREATER_THAN_EQUALS";
         case Token::Type::ASSIGNMENT: return "ASSIGNMENT";
         case Token::Type::TERMINATOR: return "TERMINATOR";
         case Token::Type::END_OF_FILE: return "END_OF_FILE";
