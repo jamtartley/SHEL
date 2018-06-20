@@ -29,7 +29,8 @@ struct Ast_Node {
         ASSIGNMENT,
         VARIABLE,
         EMPTY,
-        NUMBER
+        NUMBER,
+        STRING
     };
 
     Type node_type;
@@ -70,6 +71,17 @@ struct Number_Node : Ast_Node {
     }
 };
 
+struct String_Node : Ast_Node {
+    Token *token;
+    std::string value;
+
+    String_Node(Token *token) {
+        this->token = token;
+        this->value = token->value;
+        this->node_type = Ast_Node::Type::STRING;
+    }
+};
+
 struct Compound_Node : Ast_Node {
     std::vector<Ast_Node *> statements;
 
@@ -80,12 +92,12 @@ struct Compound_Node : Ast_Node {
 };
 
 struct Variable_Node : Ast_Node {
-    Token *token;
+    Token::Type type;
     std::string value;
 
-    Variable_Node(Token *token) {
-        this->token = token;
-        this->value = token->value;
+    Variable_Node(Token::Type type, std::string value) {
+        this->type = type;
+        this->value = value;
         this->node_type = Ast_Node::Type::VARIABLE;
     }
 };
@@ -115,6 +127,10 @@ Ast_Node *term(Parser *parser, Token *token);
 Ast_Node *expr(Parser *parser);
 Variable_Node *parse_variable(Parser *parser);
 Assignment_Node *parse_assignment(Parser *parser);
+Empty_Node *parse_empty(Parser *parser);
+Compound_Node *parse_compound_statement(Parser *parser);
+std::vector<Ast_Node *> parse_statements(Parser *parser);
+Ast_Node *parse_statement(Parser *parser);
 Ast_Node *parse(Parser *parser);
 
 #endif

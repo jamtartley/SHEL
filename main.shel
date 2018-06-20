@@ -1,1 +1,2 @@
-x = 5
+num x = 5;
+str y = "test";

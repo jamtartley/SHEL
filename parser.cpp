@@ -4,6 +4,7 @@
 
 void eat(Parser *parser, Token::Type type) {
     if (parser->position == parser->tokens.size() - 1) std::cerr << "Reached last token and attempted further eat" << std::endl;
+
     if (parser->current_token->type == type) {
         parser->position++;
         parser->current_token = parser->tokens[parser->position];
@@ -20,7 +21,7 @@ Ast_Node *factor(Parser *parser) {
         return new Unary_Op_Node(token, factor(parser));
     } else if (token->type == Token::Type::NUMBER) {
         eat(parser, Token::Type::NUMBER);
-        return new Number_Node(token); 
+        return new Number_Node(token);
     } else if (token->type == Token::Type::L_PAREN) {
         eat(parser, Token::Type::L_PAREN);
         Ast_Node *node = expr(parser);
@@ -58,26 +59,69 @@ Ast_Node *expr(Parser *parser) {
 }
 
 Variable_Node *parse_variable(Parser *parser) {
-    Variable_Node *var = new Variable_Node(parser->current_token);
+    Token::Type type = parser->current_token->type; // num/str
+
+    if (parser->current_token->type == Token::Type::KEYWORD_NUM) {
+        eat(parser, Token::Type::KEYWORD_NUM);
+    } else if (parser->current_token->type == Token::Type::KEYWORD_STR) {
+        eat(parser, Token::Type::KEYWORD_STR);
+    }
+
+    Variable_Node *var = new Variable_Node(type, parser->current_token->value);
     eat(parser, Token::Type::IDENT);
 
     return var;
 }
 
 Assignment_Node *parse_assignment(Parser *parser) {
-    Variable_Node *var = parse_variable(parser); 
+    Variable_Node *var = parse_variable(parser);
     Token *token = parser->current_token;
     eat(parser, Token::Type::ASSIGNMENT);
-    Ast_Node *right = expr(parser);
+
+    Ast_Node *right;
+    std::cout << type_to_string(var->type) << std::endl;
+    if (var->type == Token::Type::KEYWORD_NUM) {
+        right = expr(parser);
+    } else {
+        // @ROBUSTNESS(LOW) This might not be a string? ...
+        right = new String_Node(parser->current_token);
+        eat(parser, Token::Type::STRING);
+    }
+
+    eat(parser, Token::Type::TERMINATOR);
 
     return new Assignment_Node(var, right, token);
 }
 
+Empty_Node *parse_empty(Parser *parser) {
+    return new Empty_Node();
+}
+
+Compound_Node *parse_compound_statement(Parser *parser) {
+    std::vector<Ast_Node *> nodes = parse_statements(parser);
+    return new Compound_Node(nodes);
+}
+
+std::vector<Ast_Node *> parse_statements(Parser *parser) {
+    std::vector<Ast_Node *> nodes;
+
+    while (parser->current_token->type != Token::Type::END_OF_FILE) nodes.push_back(parse_statement(parser));
+    if (parser->current_token->type == Token::Type::IDENT) std::cerr << "Unexpected identifier" << std::endl;
+
+    return nodes;
+}
+
+Ast_Node *parse_statement(Parser *parser) {
+    if (parser->current_token->type == Token::Type::KEYWORD_NUM || parser->current_token->type == Token::Type::KEYWORD_STR) {
+        return parse_assignment(parser);
+    } else {
+        return parse_empty(parser);
+    }
+}
+
 Ast_Node *parse(Parser *parser) {
     if (parser->tokens.size() == 0) return nullptr;
-    Assignment_Node *ass = parse_assignment(parser);
-    std::cout << ass->left->value << std::endl;
-    std::cout << static_cast<Number_Node *>(ass->right)->value << std::endl;
+    Compound_Node *root = parse_compound_statement(parser);
 
-    return ass;
+    return root;
 }
