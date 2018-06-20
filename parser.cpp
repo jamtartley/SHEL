@@ -13,46 +13,48 @@ void eat(Parser *parser, Token::Type type) {
     }
 }
 
-Ast_Node *factor(Parser *parser) {
+Ast_Node *parse_arithmetic_factor(Parser *parser) {
     Token *token = parser->current_token;
 
     if (token->type == Token::Type::OP_PLUS || token->type == Token::Type::OP_MINUS) {
         eat(parser, token->type);
-        return new Unary_Op_Node(token, factor(parser));
+        return new Unary_Op_Node(token, parse_arithmetic_factor(parser));
     } else if (token->type == Token::Type::NUMBER) {
         eat(parser, Token::Type::NUMBER);
         return new Number_Node(token);
     } else if (token->type == Token::Type::L_PAREN) {
         eat(parser, Token::Type::L_PAREN);
-        Ast_Node *node = expr(parser);
+        Ast_Node *node = parse_arithmetic_expression(parser);
         eat(parser, Token::Type::R_PAREN);
         return node;
+    } else {
+        return parse_variable(parser);
     }
 
     return nullptr;
 }
 
-Ast_Node *term(Parser *parser, Token *token) {
-    Ast_Node *node = factor(parser);
+Ast_Node *parse_arithmetic_term(Parser *parser, Token *token) {
+    Ast_Node *node = parse_arithmetic_factor(parser);
 
     while (parser->current_token->type == Token::Type::OP_MULTIPLY || parser->current_token->type == Token::Type::OP_DIVIDE) {
         Token *token = parser->current_token;
         eat(parser, parser->current_token->type);
 
-        node = new Binary_Op_Node(node, factor(parser), token);
+        node = new Binary_Op_Node(node, parse_arithmetic_factor(parser), token);
     }
 
     return node;
 }
 
-Ast_Node *expr(Parser *parser) {
-    Ast_Node *node = term(parser, parser->current_token);
+Ast_Node *parse_arithmetic_expression(Parser *parser) {
+    Ast_Node *node = parse_arithmetic_term(parser, parser->current_token);
 
     while (parser->current_token->type == Token::Type::OP_PLUS || parser->current_token->type == Token::Type::OP_MINUS) {
         Token *token = parser->current_token;
         eat(parser, parser->current_token->type);
 
-        node = new Binary_Op_Node(node, term(parser, token), token);
+        node = new Binary_Op_Node(node, parse_arithmetic_term(parser, token), token);
     }
 
     return node;
@@ -79,9 +81,9 @@ Assignment_Node *parse_assignment(Parser *parser) {
     eat(parser, Token::Type::ASSIGNMENT);
 
     Ast_Node *right;
-    std::cout << type_to_string(var->type) << std::endl;
+
     if (var->type == Token::Type::KEYWORD_NUM) {
-        right = expr(parser);
+        right = parse_arithmetic_expression(parser);
     } else {
         // @ROBUSTNESS(LOW) This might not be a string? ...
         right = new String_Node(parser->current_token);
@@ -121,7 +123,5 @@ Ast_Node *parse_statement(Parser *parser) {
 
 Ast_Node *parse(Parser *parser) {
     if (parser->tokens.size() == 0) return nullptr;
-    Compound_Node *root = parse_compound_statement(parser);
-
-    return root;
+    return parse_compound_statement(parser);
 }

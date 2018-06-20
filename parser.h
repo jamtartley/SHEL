@@ -122,9 +122,9 @@ struct Empty_Node : Ast_Node {
 };
 
 void eat(Parser *parser, Token::Type type);
-Ast_Node *factor(Parser *parser);
-Ast_Node *term(Parser *parser, Token *token);
-Ast_Node *expr(Parser *parser);
+Ast_Node *parse_arithmetic_factor(Parser *parser);
+Ast_Node *parse_arithmetic_term(Parser *parser, Token *token);
+Ast_Node *parse_arithmetic_expression(Parser *parser);
 Variable_Node *parse_variable(Parser *parser);
 Assignment_Node *parse_assignment(Parser *parser);
 Empty_Node *parse_empty(Parser *parser);

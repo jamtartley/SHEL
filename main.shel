@@ -1,2 +1,2 @@
-num x = 5;
-str y = "test";
+num x = 3;
+str z = "test";
