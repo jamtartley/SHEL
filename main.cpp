@@ -43,6 +43,6 @@ int main() {
     Parser *parser = new Parser(tokens, Token::Type::END_OF_FILE);
     Interpreter *interp = new Interpreter(parser);
 
-    print_tokens(tokens);
+    //print_tokens(tokens);
     interpret(interp);
 }

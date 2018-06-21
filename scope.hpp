@@ -2,15 +2,27 @@
 #define SCOPE_H
 
 #include <map>
+#include "parser.hpp"
 
 struct Scope {
     int depth; // @CLEANUP Does scope need depth?
     Scope *parent;
     std::map<std::string, std::string> variables;
+    std::map<std::string, Function_Definition_Node *> functions;
 
     Scope(Scope *parent) {
         this->parent = parent;
         this->depth = parent == nullptr ? 0 : parent->depth + 1;
+    }
+};
+
+struct Func_With_Success {
+    Function_Definition_Node *body;
+    bool was_success;
+
+    Func_With_Success(Function_Definition_Node *body, bool was_success) {
+        this->body = body;
+        this->was_success = was_success;
     }
 };
 
@@ -27,8 +39,11 @@ struct Var_With_Success {
 };
 
 Var_With_Success *get_var(Scope *scope, std::string name); 
+Func_With_Success *get_func(Scope *scope, std::string name); 
 void set_var(Scope *scope, std::string name, std::string value); 
-bool is_in_scope(Scope *scope, std::string name);
+void set_func(Scope *scope, std::string name, Function_Definition_Node *func); 
+bool is_var_in_scope(Scope *scope, std::string name);
+bool is_func_in_scope(Scope *scope, std::string name);
 void print_contents(Scope *scope);
 
 #endif

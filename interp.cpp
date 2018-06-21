@@ -90,9 +90,13 @@ std::string walk_str_variable_node(Interpreter *interp, Scope *scope, Variable_N
     }
 }
 
+void add_function_def_to_scope(Interpreter *interp, Scope *scope, Function_Definition_Node *def) {
+    set_func(scope, def->name, def);
+}
+
 void walk_function_call(Interpreter *interp, Scope *scope, Function_Call_Node *call) {
-    // @TODO(HIGH) Actually evaluate function call
-    std::cout << call->name << std::endl;
+    Func_With_Success *fs = get_func(scope, call->name);
+    if (fs->was_success) walk_block_node(interp, scope, fs->body->block);
 }
 
 void walk_assignment_node(Interpreter *interp, Scope *scope, Assignment_Node *node) {
@@ -110,8 +114,9 @@ void walk_assignment_node(Interpreter *interp, Scope *scope, Assignment_Node *no
 void walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) {
     if (root->node_type == Ast_Node::Type::BLOCK) {
         walk_block_node(interp, scope, static_cast<Block_Node *>(root));
+    } else if (root->node_type == Ast_Node::Type::FUNCTION_DEFINITION) {
+        add_function_def_to_scope(interp, scope, static_cast<Function_Definition_Node *>(root));
     } else if (root->node_type == Ast_Node::Type::FUNCTION_CALL) {
-        // Variable_Node holds name of function to look up in scope
         walk_function_call(interp, scope, static_cast<Function_Call_Node *>(root));
     } else if (root->node_type == Ast_Node::Type::ASSIGNMENT) {
         walk_assignment_node(interp, scope, static_cast<Assignment_Node *>(root));
