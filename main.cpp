@@ -2,9 +2,9 @@
 #include <fstream>
 #include <sstream>
 
-#include "lexer.h"
-#include "parser.h"
-#include "interp.h"
+#include "lexer.hpp"
+#include "parser.hpp"
+#include "interp.hpp"
 
 std::string file_to_string(std::ifstream &in) {
     std::stringstream sstr;

@@ -1,6 +1,6 @@
 #include <iostream>
-#include "lexer.h"
-#include "parser.h"
+#include "lexer.hpp"
+#include "parser.hpp"
 
 void eat(Parser *parser, Token::Type type) {
     if (parser->position == parser->tokens.size() - 1) std::cerr << "Reached last token and attempted further eat" << std::endl;
@@ -65,7 +65,7 @@ Variable_Node *parse_variable(Parser *parser) {
 
     if (type == Token::Type::KEYWORD_NUM || type == Token::Type::KEYWORD_STR) eat(parser, type);
 
-    Variable_Node *var = new Variable_Node(type, parser->current_token->value);
+    Variable_Node *var = new Variable_Node(parser->current_token, type);
     eat(parser, Token::Type::IDENT);
 
     return var;
@@ -73,12 +73,11 @@ Variable_Node *parse_variable(Parser *parser) {
 
 Assignment_Node *parse_assignment(Parser *parser) {
     Variable_Node *var = parse_variable(parser);
-    Token *token = parser->current_token;
     eat(parser, Token::Type::ASSIGNMENT);
 
     Ast_Node *right;
 
-    if (var->type == Token::Type::KEYWORD_NUM) {
+    if (var->type_at_instantiation == Token::Type::KEYWORD_NUM) {
         right = parse_arithmetic_expression(parser);
     } else {
         // @ROBUSTNESS(LOW) This might not be a string? ...
@@ -88,16 +87,16 @@ Assignment_Node *parse_assignment(Parser *parser) {
 
     eat(parser, Token::Type::TERMINATOR);
 
-    return new Assignment_Node(var, right, token);
+    return new Assignment_Node(var, right);
 }
 
 Empty_Node *parse_empty(Parser *parser) {
     return new Empty_Node();
 }
 
-Compound_Node *parse_compound_statement(Parser *parser) {
+Block_Node *parse_compound_statement(Parser *parser) {
     std::vector<Ast_Node *> nodes = parse_statements(parser);
-    return new Compound_Node(nodes);
+    return new Block_Node(nodes);
 }
 
 std::vector<Ast_Node *> parse_statements(Parser *parser) {
@@ -117,7 +116,7 @@ Ast_Node *parse_statement(Parser *parser) {
     }
 }
 
-Compound_Node *parse(Parser *parser) {
+Block_Node *parse(Parser *parser) {
     if (parser->tokens.size() == 0) return nullptr;
     return parse_compound_statement(parser);
 }

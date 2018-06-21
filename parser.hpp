@@ -2,7 +2,7 @@
 #define PARSER_H
 
 #include <vector>
-#include "lexer.h"
+#include "lexer.hpp"
 
 struct Parser {
     std::vector<Token *> tokens;
@@ -25,7 +25,7 @@ struct Ast_Node {
     enum Type {
         BINARY_OP,
         UNARY_OP,
-        COMPOUND,
+        BLOCK,
         ASSIGNMENT,
         VARIABLE,
         EMPTY,
@@ -82,22 +82,24 @@ struct String_Node : Ast_Node {
     }
 };
 
-struct Compound_Node : Ast_Node {
+struct Block_Node : Ast_Node {
     std::vector<Ast_Node *> statements;
 
-    Compound_Node(std::vector<Ast_Node *> statements) {
+    Block_Node(std::vector<Ast_Node *> statements) {
         this->statements = statements;
-        this->node_type = Ast_Node::Type::COMPOUND;
+        this->node_type = Ast_Node::Type::BLOCK;
     }
 };
 
 struct Variable_Node : Ast_Node {
-    Token::Type type;
-    std::string value;
+    Token *token;
+    Token::Type type_at_instantiation;
+    std::string name;
 
-    Variable_Node(Token::Type type, std::string value) {
-        this->type = type;
-        this->value = value;
+    Variable_Node(Token *token, Token::Type type_at_instantiation) {
+        this->token = token;
+        this->type_at_instantiation = type_at_instantiation;
+        this->name = token->value;
         this->node_type = Ast_Node::Type::VARIABLE;
     }
 };
@@ -105,12 +107,10 @@ struct Variable_Node : Ast_Node {
 struct Assignment_Node : Ast_Node {
     Variable_Node *left;
     Ast_Node *right;
-    Token *token;
 
-    Assignment_Node(Variable_Node *left, Ast_Node *right, Token *token) {
+    Assignment_Node(Variable_Node *left, Ast_Node *right) {
         this->left = left;
         this->right = right;
-        this->token = token;
         this->node_type = Ast_Node::Type::ASSIGNMENT;
     }
 };
@@ -128,9 +128,9 @@ Ast_Node *parse_arithmetic_expression(Parser *parser);
 Variable_Node *parse_variable(Parser *parser);
 Assignment_Node *parse_assignment(Parser *parser);
 Empty_Node *parse_empty(Parser *parser);
-Compound_Node *parse_compound_statement(Parser *parser);
+Block_Node *parse_compound_statement(Parser *parser);
 std::vector<Ast_Node *> parse_statements(Parser *parser);
 Ast_Node *parse_statement(Parser *parser);
-Compound_Node *parse(Parser *parser);
+Block_Node *parse(Parser *parser);
 
 #endif
