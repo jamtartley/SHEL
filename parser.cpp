@@ -9,7 +9,8 @@ void eat(Parser *parser, Token::Type type) {
         parser->position++;
         parser->current_token = parser->tokens[parser->position];
     } else {
-        std::cerr << "Invalid syntax" << std::endl;
+        // @TODO(LOW) Exit on invalid syntax
+        std::cerr << "Invalid syntax on line: " << parser->current_token->line_number << std::endl;
     }
 }
 
@@ -77,7 +78,7 @@ Assignment_Node *parse_assignment(Parser *parser) {
 
     Ast_Node *right;
 
-    if (var->type_at_instantiation == Token::Type::KEYWORD_NUM) {
+    if (var->type == Variable_Node::Type::NUM) {
         right = parse_arithmetic_expression(parser);
     } else {
         // @ROBUSTNESS(LOW) This might not be a string? ...

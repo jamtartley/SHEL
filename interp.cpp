@@ -59,8 +59,9 @@ void walk_empty_node(Empty_Node *node) {
 float walk_num_variable_node(Interpreter *interp, Variable_Node *node) {
     std::string name = node->name;
 
-    if (interp->global_num_map.find(name) != interp->global_num_map.end()) {
-        return interp->global_num_map[name];
+    if (interp->variable_map.find(name) != interp->variable_map.end()) {
+        // Variables stored as maps of string name to string value so need to convert to float
+        return std::atof(interp->variable_map[name].c_str());
     } else {
         std::cerr << "Use of unassigned num variable '" << name << "' at line: " << node->token->line_number << std::endl;
         return 0;
@@ -70,8 +71,8 @@ float walk_num_variable_node(Interpreter *interp, Variable_Node *node) {
 std::string walk_str_variable_node(Interpreter *interp, Variable_Node *node) {
     std::string name = node->name;
 
-    if (interp->global_str_map.find(name) != interp->global_str_map.end()) {
-        return interp->global_str_map[name];
+    if (interp->variable_map.find(name) != interp->variable_map.end()) {
+        return interp->variable_map[name];
     } else {
         std::cerr << "Use of unassigned str variable '" << name << "' at line: " << node->token->line_number << std::endl;
         return "";
@@ -83,9 +84,9 @@ void walk_assignment_node(Interpreter *interp, Assignment_Node *node) {
     Ast_Node::Type type = node->right->node_type;
 
     if (node->right->node_type == Ast_Node::Type::STRING) {
-        interp->global_str_map[name] = static_cast<String_Node *>(node->right)->value;
+        interp->variable_map[name] = static_cast<String_Node *>(node->right)->value;
     } else {
-        interp->global_num_map[name] = walk_from_arithmetic_root(interp, node->right);
+        interp->variable_map[name] = std::to_string(walk_from_arithmetic_root(interp, node->right));
     }
 }
 
@@ -103,11 +104,7 @@ void interpret(Interpreter *interp) {
     Block_Node *root = parse(interp->parser);
     walk_from_root(interp, root);
 
-    for (auto const &k : interp->global_num_map) {
-        std::cout << k.first << ": " << k.second << std::endl;
-    }
-
-    for (auto const &k : interp->global_str_map) {
+    for (auto const &k : interp->variable_map) {
         std::cout << k.first << ": " << k.second << std::endl;
     }
 }

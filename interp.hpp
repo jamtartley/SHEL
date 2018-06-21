@@ -5,8 +5,7 @@
 
 struct Interpreter {
     Parser *parser;
-    std::map<std::string, float> global_num_map;
-    std::map<std::string, std::string> global_str_map;
+    std::map<std::string, std::string> variable_map;
 
     Interpreter(Parser *parser) {
         this->parser = parser;

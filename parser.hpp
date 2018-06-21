@@ -92,13 +92,18 @@ struct Block_Node : Ast_Node {
 };
 
 struct Variable_Node : Ast_Node {
+    enum Type {
+        NUM,
+        STR
+    };
+
     Token *token;
-    Token::Type type_at_instantiation;
+    Variable_Node::Type type;
     std::string name;
 
-    Variable_Node(Token *token, Token::Type type_at_instantiation) {
+    Variable_Node(Token *token, Token::Type token_type) {
         this->token = token;
-        this->type_at_instantiation = type_at_instantiation;
+        this->type = token_type == Token::Type::KEYWORD_NUM ? Variable_Node::Type::NUM : Variable_Node::Type::STR;
         this->name = token->value;
         this->node_type = Ast_Node::Type::VARIABLE;
     }
