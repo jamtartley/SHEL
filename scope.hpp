@@ -27,7 +27,7 @@ struct Var_With_Success {
 };
 
 Var_With_Success *get_var(Scope *scope, std::string name); 
-void set(Scope *scope, std::string name, std::string value); 
+void set_var(Scope *scope, std::string name, std::string value); 
 bool is_in_scope(Scope *scope, std::string name);
 void print_contents(Scope *scope);
 

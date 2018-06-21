@@ -1,5 +1,5 @@
-#include "scope.hpp"
 #include <iostream>
+#include "scope.hpp"
 
 Var_With_Success *get_var(Scope *scope, std::string name) {
     if (is_in_scope(scope, name)) return new Var_With_Success(scope->variables[name], true);
@@ -7,7 +7,7 @@ Var_With_Success *get_var(Scope *scope, std::string name) {
     return nullptr;
 }
 
-void set(Scope *scope, std::string name, std::string value) {
+void set_var(Scope *scope, std::string name, std::string value) {
     scope->variables[name] = value;
 }
 
@@ -16,6 +16,8 @@ bool is_in_scope(Scope *scope, std::string name) {
 }
 
 void print_contents(Scope *scope) {
+    std::cout << "SCOPE (DEPTH - " << scope->depth << ")" << std::endl;
+
     for (auto const &k : scope->variables) {
         std::cout << k.first << ": " << k.second << std::endl;
     }

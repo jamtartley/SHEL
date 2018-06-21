@@ -133,7 +133,7 @@ Ast_Node *parse_arithmetic_expression(Parser *parser);
 Variable_Node *parse_variable(Parser *parser);
 Assignment_Node *parse_assignment(Parser *parser);
 Empty_Node *parse_empty(Parser *parser);
-Block_Node *parse_compound_statement(Parser *parser);
+Block_Node *parse_block_statement(Parser *parser);
 std::vector<Ast_Node *> parse_statements(Parser *parser);
 Ast_Node *parse_statement(Parser *parser);
 Block_Node *parse(Parser *parser);

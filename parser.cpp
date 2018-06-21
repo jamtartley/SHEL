@@ -95,7 +95,7 @@ Empty_Node *parse_empty(Parser *parser) {
     return new Empty_Node();
 }
 
-Block_Node *parse_compound_statement(Parser *parser) {
+Block_Node *parse_block_statement(Parser *parser) {
     std::vector<Ast_Node *> nodes = parse_statements(parser);
     return new Block_Node(nodes);
 }
@@ -119,5 +119,5 @@ Ast_Node *parse_statement(Parser *parser) {
 
 Block_Node *parse(Parser *parser) {
     if (parser->tokens.size() == 0) return nullptr;
-    return parse_compound_statement(parser);
+    return parse_block_statement(parser);
 }
