@@ -18,6 +18,11 @@ struct Parser {
     }
 };
 
+enum Data_Type {
+    NUM,
+    STR
+};
+
 struct Ast_Node {
     // @ROBUSTNESS(MEDIUM) @CLEANUP Storing type enum value in Ast_Node
     // This is a bit of a workaround for determining the type of a node
@@ -28,6 +33,8 @@ struct Ast_Node {
         BLOCK,
         ASSIGNMENT,
         VARIABLE,
+        FUNCTION_DEFINITION,
+        FUNCTION_CALL,
         EMPTY,
         NUMBER,
         STRING
@@ -91,21 +98,41 @@ struct Block_Node : Ast_Node {
     }
 };
 
-struct Variable_Node : Ast_Node {
-    enum Type {
-        NUM,
-        STR
-    };
+struct Function_Definition_Node : Ast_Node {
+    Block_Node *block;
+    std::string name;
 
+    Function_Definition_Node(Block_Node *block, std::string name) {
+        this->block = block;
+        this->name = name;
+        this->node_type = Ast_Node::Type::FUNCTION_DEFINITION;
+    }
+};
+
+struct Function_Call_Node : Ast_Node {
+    std::string name;
+
+    Function_Call_Node(std::string name) {
+        this->name = name;
+        this->node_type = Ast_Node::Type::FUNCTION_CALL;
+    }
+};
+
+struct Variable_Node : Ast_Node {
     Token *token;
-    Variable_Node::Type type;
+    Data_Type type;
     std::string name;
 
     Variable_Node(Token *token, Token::Type token_type) {
         this->token = token;
-        this->type = token_type == Token::Type::KEYWORD_NUM ? Variable_Node::Type::NUM : Variable_Node::Type::STR;
         this->name = token->value;
         this->node_type = Ast_Node::Type::VARIABLE;
+
+        switch (token_type) {
+            default: 
+            case Token::Type::KEYWORD_NUM: this->type = Data_Type::NUM; break;
+            case Token::Type::KEYWORD_STR: this->type = Data_Type::STR; break;
+        }
     }
 };
 
@@ -131,11 +158,15 @@ Ast_Node *parse_arithmetic_factor(Parser *parser);
 Ast_Node *parse_arithmetic_term(Parser *parser, Token *token);
 Ast_Node *parse_arithmetic_expression(Parser *parser);
 Variable_Node *parse_variable(Parser *parser);
+Function_Definition_Node *parse_function_definition(Parser *parser);
+Function_Call_Node *parse_function_call(Parser *parser);
 Assignment_Node *parse_assignment(Parser *parser);
+std::string parse_ident(Parser *parser);
 Empty_Node *parse_empty(Parser *parser);
 Block_Node *parse_block(Parser *parser, bool is_global_scope);
 std::vector<Ast_Node *> parse_statements(Parser *parser);
 Ast_Node *parse_statement(Parser *parser);
 Block_Node *parse(Parser *parser);
+Token *peek_next_token(Parser *parser);
 
 #endif

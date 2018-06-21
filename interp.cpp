@@ -5,7 +5,7 @@
 #include "scope.hpp"
 
 float walk_from_arithmetic_root(Interpreter *interp, Scope *scope, Ast_Node *node);
-float walk_number_variable_node(Interpreter *interp, Scope *scope,  std::string name);
+float walk_number_variable_node(Interpreter *interp, Scope *scope, std::string name);
 void walk_from_root(Interpreter *interp, Scope *scope,  Ast_Node *root);
 
 float walk_unary_op_node(Interpreter *interp, Scope *scope, Unary_Op_Node *node) {
@@ -47,6 +47,14 @@ float walk_from_arithmetic_root(Interpreter *interp, Scope *scope, Ast_Node *nod
     }
 }
 
+float walk_num_function_node(Interpreter *interp, Scope *scope, Function_Definition_Node *def) {
+    return 0;
+}
+
+std::string walk_str_function_node(Interpreter *interp, Scope *scope, Function_Definition_Node *def) {
+    return "";
+}
+
 void walk_block_node(Interpreter *interp, Scope *scope, Block_Node *root) {
     Scope *block_scope = new Scope(scope);
 
@@ -55,10 +63,6 @@ void walk_block_node(Interpreter *interp, Scope *scope, Block_Node *root) {
     }
 
     print_contents(block_scope);
-}
-
-void walk_empty_node(Scope *scope, Empty_Node *node) {
-
 }
 
 float walk_num_variable_node(Interpreter *interp, Scope *scope, Variable_Node *node) {
@@ -86,6 +90,11 @@ std::string walk_str_variable_node(Interpreter *interp, Scope *scope, Variable_N
     }
 }
 
+void walk_function_call(Interpreter *interp, Scope *scope, Function_Call_Node *call) {
+    // @TODO(HIGH) Actually evaluate function call
+    std::cout << call->name << std::endl;
+}
+
 void walk_assignment_node(Interpreter *interp, Scope *scope, Assignment_Node *node) {
     std::string name = node->left->name;
     Ast_Node::Type type = node->right->node_type;
@@ -101,8 +110,9 @@ void walk_assignment_node(Interpreter *interp, Scope *scope, Assignment_Node *no
 void walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) {
     if (root->node_type == Ast_Node::Type::BLOCK) {
         walk_block_node(interp, scope, static_cast<Block_Node *>(root));
-    } else if (root->node_type == Ast_Node::Type::EMPTY) {
-        walk_empty_node(scope, static_cast<Empty_Node *>(root));
+    } else if (root->node_type == Ast_Node::Type::FUNCTION_CALL) {
+        // Variable_Node holds name of function to look up in scope
+        walk_function_call(interp, scope, static_cast<Function_Call_Node *>(root));
     } else if (root->node_type == Ast_Node::Type::ASSIGNMENT) {
         walk_assignment_node(interp, scope, static_cast<Assignment_Node *>(root));
     }

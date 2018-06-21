@@ -49,12 +49,6 @@ struct Token {
     }
 };
 
-std::vector<Token *> lex(const std::string source);
-std::string scan_string(const std::string input, int &index, const std::regex end_match);
-std::string scan_other(const std::string input, int &index, const std::regex end_match);
-Token *scan_ident(const std::string input, int &index, const std::regex end_match, int line_number);
-std::string peek(const std::string input, const int index);
-
 // @ROBUSTNESS(MEDIUM) @HACK Token::Type name maintenance nightmare
 // This is a horrible way of doing this but it's not mission critical
 // and it shoudn't change all that much.
@@ -92,5 +86,11 @@ inline const std::string type_to_string(Token::Type type) {
         default: return "INVALID TOKEN TYPE";
     }
 }
+
+std::vector<Token *> lex(const std::string source);
+std::string scan_string(const std::string input, int &index, const std::regex end_match);
+std::string scan_other(const std::string input, int &index, const std::regex end_match);
+Token *scan_ident(const std::string input, int &index, const std::regex end_match, int line_number);
+std::string peek(const std::string input, const int index);
 
 #endif

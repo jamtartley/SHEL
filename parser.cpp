@@ -10,7 +10,7 @@ void eat(Parser *parser, Token::Type expected_type) {
         parser->current_token = parser->tokens[parser->position];
     } else {
         // @TODO(LOW) Exit on invalid syntax
-        std::cerr << "Invalid syntax on line: " << parser->current_token->line_number << std::endl;
+        std::cerr << "Invalid syntax on line " << parser->current_token->line_number << ", expected '" << type_to_string(expected_type) << "', found '" << type_to_string(parser->current_token->type) << "'." << std::endl;
     }
 }
 
@@ -72,18 +72,49 @@ Variable_Node *parse_variable(Parser *parser) {
     return var;
 }
 
+Function_Definition_Node *parse_function_definition(Parser *parser) {
+    eat(parser, Token::Type::KEYWORD_FUNCTION);
+    std::string name = parse_ident(parser);
+
+    // @TODO(MEDIUM) Parse function args
+    eat(parser, Token::Type::L_PAREN);
+    eat(parser, Token::Type::R_PAREN);
+
+    Block_Node *body = parse_block(parser, false);
+
+    return new Function_Definition_Node(body, name);
+}
+
+Function_Call_Node *parse_function_call(Parser *parser) {
+    std::string name = parse_ident(parser);
+    // @TODO(MEDIUM) Parse function args
+    eat(parser, Token::Type::L_PAREN);
+    eat(parser, Token::Type::R_PAREN);
+    eat(parser, Token::Type::TERMINATOR);
+
+    return new Function_Call_Node(name);
+}
+
+std::string parse_ident(Parser *parser) {
+    std::string name = parser->current_token->value;
+    eat(parser, Token::Type::IDENT);
+
+    return name;
+}
+
 Assignment_Node *parse_assignment(Parser *parser) {
     Variable_Node *var = parse_variable(parser);
     eat(parser, Token::Type::ASSIGNMENT);
 
     Ast_Node *right;
 
-    if (var->type == Variable_Node::Type::NUM) {
+    if (var->type == Data_Type::NUM) {
         right = parse_arithmetic_expression(parser);
-    } else {
-        // @ROBUSTNESS(LOW) This might not be a string? ...
+    } else if (var->type == Data_Type::STR) {
         right = new String_Node(parser->current_token);
         eat(parser, Token::Type::STRING);
+    } else {
+        // FUNCTION
     }
 
     eat(parser, Token::Type::TERMINATOR);
@@ -109,19 +140,27 @@ std::vector<Ast_Node *> parse_statements(Parser *parser) {
     while (current_type != Token::Type::END_OF_FILE && current_type != Token::Type::BLOCK_CLOSE) {
         nodes.push_back(parse_statement(parser));
         current_type = parser->current_token->type;
-
-        if (parser->current_token->type == Token::Type::IDENT) {
-            // @ROBUSTNESS(MEDIUM) Should fail on unexpected identifier
-            std::cerr << "Unexpected identifier" << std::endl;
-        }
     }
 
     return nodes;
 }
 
+Token *peek_next_token(Parser *parser) {
+    int next_pos = parser->position + 1;
+    int tokens_len = parser->tokens.size();
+
+    return next_pos < tokens_len ? parser->tokens[next_pos] : nullptr;
+}
+
 Ast_Node *parse_statement(Parser *parser) {
+    Token *next = peek_next_token(parser);
+
     if (parser->current_token->type == Token::Type::BLOCK_OPEN) {
         return parse_block(parser, false);
+    } else if (parser->current_token->type == Token::Type::KEYWORD_FUNCTION) {
+        return parse_function_definition(parser);
+    } else if (parser->current_token->type == Token::Type::IDENT && next != nullptr && next->type == Token::Type::L_PAREN) {
+        return parse_function_call(parser);
     } else if (parser->current_token->type == Token::Type::KEYWORD_NUM || parser->current_token->type == Token::Type::KEYWORD_STR) {
         return parse_assignment(parser);
     } else {

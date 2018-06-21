@@ -1,11 +1,18 @@
 num x = 3;
 num y = x + (3 * (x + 8));
 
-{
+bug test() {
+    num g = 1;
+}
+
+bug func() {
     num a = y;
     str z = "test";
+    test();
 
     {
         num b = a;
     }
 }
+
+func();
