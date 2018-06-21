@@ -20,7 +20,8 @@ struct Parser {
 
 enum Data_Type {
     NUM,
-    STR
+    STR,
+    NONE
 };
 
 struct Ast_Node {
@@ -100,10 +101,12 @@ struct Block_Node : Ast_Node {
 
 struct Function_Definition_Node : Ast_Node {
     Block_Node *block;
+    Data_Type return_type;
     std::string name;
 
-    Function_Definition_Node(Block_Node *block, std::string name) {
+    Function_Definition_Node(Block_Node *block, Data_Type return_type, std::string name) {
         this->block = block;
+        this->return_type = return_type;
         this->name = name;
         this->node_type = Ast_Node::Type::FUNCTION_DEFINITION;
     }
@@ -120,19 +123,12 @@ struct Function_Call_Node : Ast_Node {
 
 struct Variable_Node : Ast_Node {
     Token *token;
-    Data_Type type;
     std::string name;
 
-    Variable_Node(Token *token, Token::Type token_type) {
+    Variable_Node(Token *token) {
         this->token = token;
         this->name = token->value;
         this->node_type = Ast_Node::Type::VARIABLE;
-
-        switch (token_type) {
-            default: 
-            case Token::Type::KEYWORD_NUM: this->type = Data_Type::NUM; break;
-            case Token::Type::KEYWORD_STR: this->type = Data_Type::STR; break;
-        }
     }
 };
 
@@ -160,6 +156,8 @@ Ast_Node *parse_arithmetic_expression(Parser *parser);
 Variable_Node *parse_variable(Parser *parser);
 Function_Definition_Node *parse_function_definition(Parser *parser);
 Function_Call_Node *parse_function_call(Parser *parser);
+Ast_Node *parse_return_statement(Parser *parser);
+Data_Type get_return_type(Token::Type type);
 Assignment_Node *parse_assignment(Parser *parser);
 std::string parse_ident(Parser *parser);
 Empty_Node *parse_empty(Parser *parser);

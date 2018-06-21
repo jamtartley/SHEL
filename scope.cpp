@@ -1,16 +1,18 @@
 #include <iostream>
 #include "scope.hpp"
 
+// @CLEANUP(LOW) Lots of repetitions between vars/functions in scope.cpp
+
 Var_With_Success *get_var(Scope *scope, std::string name) {
     if (is_var_in_scope(scope, name)) return new Var_With_Success(scope->variables[name], true);
     if (scope->parent != nullptr) return get_var(scope->parent, name);
-    return nullptr;
+    return new Var_With_Success(nullptr, false);
 }
 
 Func_With_Success *get_func(Scope *scope, std::string name) {
     if (is_func_in_scope(scope, name)) return new Func_With_Success(scope->functions[name], true);
     if (scope->parent != nullptr) return get_func(scope->parent, name);
-    return nullptr;
+    return new Func_With_Success(nullptr, false);
 }
 
 void set_var(Scope *scope, std::string name, std::string value) {

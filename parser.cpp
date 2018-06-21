@@ -23,6 +23,9 @@ Ast_Node *parse_arithmetic_factor(Parser *parser) {
     } else if (token->type == Token::Type::NUMBER) {
         eat(parser, Token::Type::NUMBER);
         return new Number_Node(token);
+    } else if (token->type == Token::Type::STRING) {
+        eat(parser, Token::Type::STRING);
+        return new String_Node(token);
     } else if (token->type == Token::Type::L_PAREN) {
         eat(parser, Token::Type::L_PAREN);
         Ast_Node *node = parse_arithmetic_expression(parser);
@@ -66,7 +69,7 @@ Variable_Node *parse_variable(Parser *parser) {
 
     if (type == Token::Type::KEYWORD_NUM || type == Token::Type::KEYWORD_STR) eat(parser, type);
 
-    Variable_Node *var = new Variable_Node(parser->current_token, type);
+    Variable_Node *var = new Variable_Node(parser->current_token);
     eat(parser, Token::Type::IDENT);
 
     return var;
@@ -74,6 +77,15 @@ Variable_Node *parse_variable(Parser *parser) {
 
 Function_Definition_Node *parse_function_definition(Parser *parser) {
     eat(parser, Token::Type::KEYWORD_FUNCTION);
+    Token::Type ret_type = parser->current_token->type;
+    Data_Type return_type = get_return_type(ret_type);
+
+    if (ret_type == Token::Type::KEYWORD_NUM || ret_type == Token::Type::KEYWORD_STR || ret_type == Token::Type::KEYWORD_NONE) {
+        eat(parser, ret_type);
+    } else {
+        std::cerr << "No return type specified on line " << parser->current_token->line_number << std::endl;
+    }
+
     std::string name = parse_ident(parser);
 
     // @TODO(MEDIUM) Parse function args
@@ -82,7 +94,7 @@ Function_Definition_Node *parse_function_definition(Parser *parser) {
 
     Block_Node *body = parse_block(parser, false);
 
-    return new Function_Definition_Node(body, name);
+    return new Function_Definition_Node(body, return_type, name);
 }
 
 Function_Call_Node *parse_function_call(Parser *parser) {
@@ -93,6 +105,34 @@ Function_Call_Node *parse_function_call(Parser *parser) {
     eat(parser, Token::Type::TERMINATOR);
 
     return new Function_Call_Node(name);
+}
+
+Ast_Node *parse_return_statement(Parser *parser) {
+    eat(parser, Token::Type::KEYWORD_RETURN);
+
+    Token *value = parser->current_token;
+    Token *next = peek_next_token(parser);
+
+    if (next->type == Token::Type::L_PAREN) {
+        std::cout << "HERE FUNC" << std::endl;
+        return parse_function_call(parser);
+    } else {
+        std::cout << "HERE STANDARD" << std::endl;
+        Ast_Node *ret = parse_arithmetic_expression(parser);
+        eat(parser, Token::Type::TERMINATOR);
+        return ret;
+    }
+}
+
+Data_Type get_return_type(Token::Type type) {
+    switch (type) {
+        case Token::Type::KEYWORD_NUM: return Data_Type::NUM;
+        case Token::Type::KEYWORD_STR: return Data_Type::STR;
+        case Token::Type::KEYWORD_NONE: return Data_Type::NONE;
+        // @ROBUSTNESS(HIGH) Unrecognised return data type
+        // We should shout about this, not silently return NONE!
+        default: return Data_Type::NONE;
+    }
 }
 
 std::string parse_ident(Parser *parser) {
@@ -106,16 +146,7 @@ Assignment_Node *parse_assignment(Parser *parser) {
     Variable_Node *var = parse_variable(parser);
     eat(parser, Token::Type::ASSIGNMENT);
 
-    Ast_Node *right;
-
-    if (var->type == Data_Type::NUM) {
-        right = parse_arithmetic_expression(parser);
-    } else if (var->type == Data_Type::STR) {
-        right = new String_Node(parser->current_token);
-        eat(parser, Token::Type::STRING);
-    } else {
-        // FUNCTION
-    }
+    Ast_Node *right = parse_arithmetic_expression(parser);
 
     eat(parser, Token::Type::TERMINATOR);
 
@@ -161,6 +192,8 @@ Ast_Node *parse_statement(Parser *parser) {
         return parse_function_definition(parser);
     } else if (parser->current_token->type == Token::Type::IDENT && next != nullptr && next->type == Token::Type::L_PAREN) {
         return parse_function_call(parser);
+    } else if (parser->current_token->type == Token::Type::KEYWORD_RETURN) {
+        return parse_return_statement(parser);
     } else if (parser->current_token->type == Token::Type::KEYWORD_NUM || parser->current_token->type == Token::Type::KEYWORD_STR) {
         return parse_assignment(parser);
     } else {

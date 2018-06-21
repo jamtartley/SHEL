@@ -61,8 +61,6 @@ void walk_block_node(Interpreter *interp, Scope *scope, Block_Node *root) {
     for (Ast_Node *child : root->children) {
         walk_from_root(interp, block_scope, child);
     }
-
-    print_contents(block_scope);
 }
 
 float walk_num_variable_node(Interpreter *interp, Scope *scope, Variable_Node *node) {
@@ -73,7 +71,7 @@ float walk_num_variable_node(Interpreter *interp, Scope *scope, Variable_Node *n
         // Variables stored as maps of string name to string value so need to convert to float
         return var->num_value;
     } else {
-        std::cerr << "use of unassigned num variable '" << name << "' at line: " << node->token->line_number << std::endl;
+        std::cerr << "Use of unassigned num variable '" << name << "' at line: " << node->token->line_number << std::endl;
         return 0;
     }
 }
@@ -96,7 +94,12 @@ void add_function_def_to_scope(Interpreter *interp, Scope *scope, Function_Defin
 
 void walk_function_call(Interpreter *interp, Scope *scope, Function_Call_Node *call) {
     Func_With_Success *fs = get_func(scope, call->name);
-    if (fs->was_success) walk_block_node(interp, scope, fs->body->block);
+
+    if (fs->was_success) {
+        walk_block_node(interp, scope, fs->body->block);
+    } else {
+        std::cerr << "Attempted to call function: '" << call->name << "' without first defining it" << std::endl;
+    }
 }
 
 void walk_assignment_node(Interpreter *interp, Scope *scope, Assignment_Node *node) {
