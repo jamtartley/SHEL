@@ -17,8 +17,8 @@ std::vector<Token *> lex(const std::string source) {
     special_char_map.insert(std::make_pair("=", Token::Type::ASSIGNMENT));
     special_char_map.insert(std::make_pair("(", Token::Type::L_PAREN));
     special_char_map.insert(std::make_pair(")", Token::Type::R_PAREN));
-    special_char_map.insert(std::make_pair("{", Token::Type::L_CURLY_BRACE));
-    special_char_map.insert(std::make_pair("}", Token::Type::R_CURLY_BRACE));
+    special_char_map.insert(std::make_pair("{", Token::Type::BLOCK_OPEN));
+    special_char_map.insert(std::make_pair("}", Token::Type::BLOCK_CLOSE));
     special_char_map.insert(std::make_pair(";", Token::Type::TERMINATOR));
     special_char_map.insert(std::make_pair("+", Token::Type::OP_PLUS));
     special_char_map.insert(std::make_pair("-", Token::Type::OP_MINUS));

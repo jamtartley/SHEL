@@ -83,10 +83,10 @@ struct String_Node : Ast_Node {
 };
 
 struct Block_Node : Ast_Node {
-    std::vector<Ast_Node *> statements;
+    std::vector<Ast_Node *> children;
 
-    Block_Node(std::vector<Ast_Node *> statements) {
-        this->statements = statements;
+    Block_Node(std::vector<Ast_Node *> children) {
+        this->children = children;
         this->node_type = Ast_Node::Type::BLOCK;
     }
 };
@@ -126,14 +126,14 @@ struct Empty_Node : Ast_Node {
     }
 };
 
-void eat(Parser *parser, Token::Type type);
+void eat(Parser *parser, Token::Type expected_type);
 Ast_Node *parse_arithmetic_factor(Parser *parser);
 Ast_Node *parse_arithmetic_term(Parser *parser, Token *token);
 Ast_Node *parse_arithmetic_expression(Parser *parser);
 Variable_Node *parse_variable(Parser *parser);
 Assignment_Node *parse_assignment(Parser *parser);
 Empty_Node *parse_empty(Parser *parser);
-Block_Node *parse_block_statement(Parser *parser);
+Block_Node *parse_block(Parser *parser, bool is_global_scope);
 std::vector<Ast_Node *> parse_statements(Parser *parser);
 Ast_Node *parse_statement(Parser *parser);
 Block_Node *parse(Parser *parser);

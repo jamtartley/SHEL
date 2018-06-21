@@ -2,10 +2,10 @@
 #include "lexer.hpp"
 #include "parser.hpp"
 
-void eat(Parser *parser, Token::Type type) {
+void eat(Parser *parser, Token::Type expected_type) {
     if (parser->position == parser->tokens.size() - 1) std::cerr << "Reached last token and attempted further eat" << std::endl;
 
-    if (parser->current_token->type == type) {
+    if (parser->current_token->type == expected_type) {
         parser->position++;
         parser->current_token = parser->tokens[parser->position];
     } else {
@@ -95,22 +95,34 @@ Empty_Node *parse_empty(Parser *parser) {
     return new Empty_Node();
 }
 
-Block_Node *parse_block_statement(Parser *parser) {
+Block_Node *parse_block(Parser *parser, bool is_global_scope) {
+    if (is_global_scope == false) eat(parser, Token::Type::BLOCK_OPEN);
     std::vector<Ast_Node *> nodes = parse_statements(parser);
+    if (is_global_scope == false) eat(parser, Token::Type::BLOCK_CLOSE);
     return new Block_Node(nodes);
 }
 
 std::vector<Ast_Node *> parse_statements(Parser *parser) {
     std::vector<Ast_Node *> nodes;
+    Token::Type current_type = parser->current_token->type;
 
-    while (parser->current_token->type != Token::Type::END_OF_FILE) nodes.push_back(parse_statement(parser));
-    if (parser->current_token->type == Token::Type::IDENT) std::cerr << "Unexpected identifier" << std::endl;
+    while (current_type != Token::Type::END_OF_FILE && current_type != Token::Type::BLOCK_CLOSE) {
+        nodes.push_back(parse_statement(parser));
+        current_type = parser->current_token->type;
+
+        if (parser->current_token->type == Token::Type::IDENT) {
+            // @ROBUSTNESS(MEDIUM) Should fail on unexpected identifier
+            std::cerr << "Unexpected identifier" << std::endl;
+        }
+    }
 
     return nodes;
 }
 
 Ast_Node *parse_statement(Parser *parser) {
-    if (parser->current_token->type == Token::Type::KEYWORD_NUM || parser->current_token->type == Token::Type::KEYWORD_STR) {
+    if (parser->current_token->type == Token::Type::BLOCK_OPEN) {
+        return parse_block(parser, false);
+    } else if (parser->current_token->type == Token::Type::KEYWORD_NUM || parser->current_token->type == Token::Type::KEYWORD_STR) {
         return parse_assignment(parser);
     } else {
         return parse_empty(parser);
@@ -119,5 +131,5 @@ Ast_Node *parse_statement(Parser *parser) {
 
 Block_Node *parse(Parser *parser) {
     if (parser->tokens.size() == 0) return nullptr;
-    return parse_block_statement(parser);
+    return parse_block(parser, true);
 }

@@ -48,9 +48,13 @@ float walk_from_arithmetic_root(Interpreter *interp, Scope *scope, Ast_Node *nod
 }
 
 void walk_block_node(Interpreter *interp, Scope *scope, Block_Node *root) {
-    for (Ast_Node *child : root->statements) {
-        walk_from_root(interp, scope, child);
+    Scope *block_scope = new Scope(scope);
+
+    for (Ast_Node *child : root->children) {
+        walk_from_root(interp, block_scope, child);
     }
+
+    print_contents(block_scope);
 }
 
 void walk_empty_node(Scope *scope, Empty_Node *node) {
@@ -87,6 +91,7 @@ void walk_assignment_node(Interpreter *interp, Scope *scope, Assignment_Node *no
     Ast_Node::Type type = node->right->node_type;
 
     if (node->right->node_type == Ast_Node::Type::STRING) {
+        // @ROBUSTNESS(HIGH) Handle str b = a;
         set_var(scope, name, static_cast<String_Node *>(node->right)->value);
     } else {
         set_var(scope, name, std::to_string(walk_from_arithmetic_root(interp, scope, node->right)));
@@ -104,9 +109,6 @@ void walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) {
 }
 
 void interpret(Interpreter *interp) {
-    Scope *scope = new Scope(nullptr);
     Block_Node *root = parse(interp->parser);
-    walk_from_root(interp, scope, root);
-
-    print_contents(scope);
+    walk_from_root(interp, nullptr, root);
 }

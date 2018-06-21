@@ -1,3 +1,11 @@
 num x = 3;
 num y = x + (3 * (x + 8));
-str z = "test";
+
+{
+    num a = y;
+    str z = "test";
+
+    {
+        num b = a;
+    }
+}

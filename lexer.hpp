@@ -18,8 +18,8 @@ struct Token {
         KEYWORD_FUNCTION,
         L_PAREN,
         R_PAREN,
-        L_CURLY_BRACE,
-        R_CURLY_BRACE,
+        BLOCK_OPEN,
+        BLOCK_CLOSE,
         OP_PLUS,
         OP_MINUS,
         OP_MULTIPLY,
@@ -71,8 +71,8 @@ inline const std::string type_to_string(Token::Type type) {
         case Token::Type::KEYWORD_FUNCTION: return "KEYWORD_FUNCTION";
         case Token::Type::L_PAREN: return "L_PAREN";
         case Token::Type::R_PAREN: return "R_PAREN";
-        case Token::Type::L_CURLY_BRACE: return "L_CURLY_BRACE";
-        case Token::Type::R_CURLY_BRACE: return "R_CURLY_BRACE";
+        case Token::Type::BLOCK_OPEN: return "BLOCK_OPEN";
+        case Token::Type::BLOCK_CLOSE: return "BLOCK_CLOSE";
         case Token::Type::OP_PLUS: return "OP_PLUS";
         case Token::Type::OP_MINUS: return "OP_MINUS";
         case Token::Type::OP_MULTIPLY: return "OP_MULTIPLY";
