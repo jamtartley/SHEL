@@ -70,6 +70,8 @@ void walk_block_node(Interpreter *interp, Scope *scope, Ast_Block *root) {
     for (Ast_Node *child : root->children) {
         walk_from_root(interp, block_scope, child);
     }
+
+    print_contents(block_scope);
 }
 
 std::string get_string_variable(Interpreter *interp, Scope *scope, Ast_Variable *node) {

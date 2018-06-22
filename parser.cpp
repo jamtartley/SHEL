@@ -30,8 +30,10 @@ Ast_Node *parse_arithmetic_factor(Parser *parser) {
             return new Ast_Literal(token->value);
         }
         case Token::Type::IDENT: {
-            if (next->type == Token::Type::L_PAREN) 
+            if (next->type == Token::Type::L_PAREN) {
                 return parse_function_call(parser);
+            }
+            return parse_variable(parser);
         }
         case Token::Type::L_PAREN: {
             eat(parser, Token::Type::L_PAREN);
