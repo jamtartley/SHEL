@@ -26,6 +26,8 @@ Ast_Node *parse_arithmetic_factor(Parser *parser) {
     } else if (token->type == Token::Type::STRING) {
         eat(parser, Token::Type::STRING);
         return new String_Node(token);
+    } else if (token->type == Token::Type::IDENT && peek_next_token(parser)->type == Token::Type::L_PAREN) {
+        return parse_function_call(parser);
     } else if (token->type == Token::Type::L_PAREN) {
         eat(parser, Token::Type::L_PAREN);
         Ast_Node *node = parse_arithmetic_expression(parser);
@@ -102,7 +104,6 @@ Function_Call_Node *parse_function_call(Parser *parser) {
     // @TODO(MEDIUM) Parse function args
     eat(parser, Token::Type::L_PAREN);
     eat(parser, Token::Type::R_PAREN);
-    eat(parser, Token::Type::TERMINATOR);
 
     return new Function_Call_Node(name);
 }
@@ -110,18 +111,7 @@ Function_Call_Node *parse_function_call(Parser *parser) {
 Ast_Node *parse_return_statement(Parser *parser) {
     eat(parser, Token::Type::KEYWORD_RETURN);
 
-    Token *value = parser->current_token;
-    Token *next = peek_next_token(parser);
-
-    if (next->type == Token::Type::L_PAREN) {
-        std::cout << "HERE FUNC" << std::endl;
-        return parse_function_call(parser);
-    } else {
-        std::cout << "HERE STANDARD" << std::endl;
-        Ast_Node *ret = parse_arithmetic_expression(parser);
-        eat(parser, Token::Type::TERMINATOR);
-        return ret;
-    }
+    return parse_arithmetic_expression(parser);
 }
 
 Data_Type get_return_type(Token::Type type) {
@@ -129,8 +119,8 @@ Data_Type get_return_type(Token::Type type) {
         case Token::Type::KEYWORD_NUM: return Data_Type::NUM;
         case Token::Type::KEYWORD_STR: return Data_Type::STR;
         case Token::Type::KEYWORD_NONE: return Data_Type::NONE;
-        // @ROBUSTNESS(HIGH) Unrecognised return data type
-        // We should shout about this, not silently return NONE!
+                                        // @ROBUSTNESS(HIGH) Unrecognised return data type
+                                        // We should shout about this, not silently return NONE!
         default: return Data_Type::NONE;
     }
 }
@@ -147,8 +137,6 @@ Assignment_Node *parse_assignment(Parser *parser) {
     eat(parser, Token::Type::ASSIGNMENT);
 
     Ast_Node *right = parse_arithmetic_expression(parser);
-
-    eat(parser, Token::Type::TERMINATOR);
 
     return new Assignment_Node(var, right);
 }
@@ -184,21 +172,28 @@ Token *peek_next_token(Parser *parser) {
 }
 
 Ast_Node *parse_statement(Parser *parser) {
+    Token *curr = parser->current_token;
     Token *next = peek_next_token(parser);
+    Ast_Node *ret;
 
-    if (parser->current_token->type == Token::Type::BLOCK_OPEN) {
+    if (curr->type == Token::Type::BLOCK_OPEN) {
         return parse_block(parser, false);
-    } else if (parser->current_token->type == Token::Type::KEYWORD_FUNCTION) {
+    } else if (curr->type == Token::Type::KEYWORD_FUNCTION) {
         return parse_function_definition(parser);
-    } else if (parser->current_token->type == Token::Type::IDENT && next != nullptr && next->type == Token::Type::L_PAREN) {
-        return parse_function_call(parser);
-    } else if (parser->current_token->type == Token::Type::KEYWORD_RETURN) {
-        return parse_return_statement(parser);
-    } else if (parser->current_token->type == Token::Type::KEYWORD_NUM || parser->current_token->type == Token::Type::KEYWORD_STR) {
-        return parse_assignment(parser);
+    } else if (curr->type == Token::Type::IDENT && next != nullptr && next->type == Token::Type::L_PAREN) {
+        ret = parse_function_call(parser);
+        eat(parser, Token::Type::TERMINATOR);
+    } else if (curr->type == Token::Type::KEYWORD_RETURN) {
+        ret = parse_return_statement(parser);
+        eat(parser, Token::Type::TERMINATOR);
+    } else if (curr->type == Token::Type::KEYWORD_NUM || curr->type == Token::Type::KEYWORD_STR) {
+        ret = parse_assignment(parser);
+        eat(parser, Token::Type::TERMINATOR);
     } else {
         return parse_empty(parser);
     }
+
+    return ret;
 }
 
 Block_Node *parse(Parser *parser) {
