@@ -1,16 +1,2 @@
-num x = 3;
-num y = x + (3 * (x + 8));
-
-bug num test() {
-    num g = 1;
-}
-
-bug num func() {
-    num a = y;
-    str z = "test";
-    test();
-
-    return a + 2 * (3 + 3);
-}
-
-func();
+x = 3;
+y = x + (3 * (x + 8));

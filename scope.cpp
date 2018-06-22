@@ -19,7 +19,7 @@ void set_var(Scope *scope, std::string name, std::string value) {
     scope->variables[name] = value;
 }
 
-void set_func(Scope *scope, std::string name, Function_Definition_Node *func) {
+void set_func(Scope *scope, std::string name, Ast_Function_Definition *func) {
     scope->functions[name] = func;
 }
 

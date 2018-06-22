@@ -127,9 +127,6 @@ Token *scan_ident(const std::string input, int &index, const std::regex end_matc
     keyword_map.insert(std::make_pair("else", new Token(Token::Type::KEYWORD_ELSE, "else", line_number)));
     keyword_map.insert(std::make_pair("for", new Token(Token::Type::KEYWORD_FOR, "for", line_number)));
     keyword_map.insert(std::make_pair("while", new Token(Token::Type::KEYWORD_WHILE, "while", line_number)));
-    keyword_map.insert(std::make_pair("num", new Token(Token::Type::KEYWORD_NUM, "num", line_number)));
-    keyword_map.insert(std::make_pair("str", new Token(Token::Type::KEYWORD_STR, "str", line_number)));
-    keyword_map.insert(std::make_pair("none", new Token(Token::Type::KEYWORD_NONE, "none", line_number)));
     keyword_map.insert(std::make_pair("return", new Token(Token::Type::KEYWORD_RETURN, "return", line_number)));
     keyword_map.insert(std::make_pair("shel", new Token(Token::Type::KEYWORD_STRUCT, "shel", line_number)));
     keyword_map.insert(std::make_pair("bug", new Token(Token::Type::KEYWORD_FUNCTION, "bug", line_number)));
