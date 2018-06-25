@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include "interp.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
@@ -48,7 +49,7 @@ float get_number_literal(Scope *scope, Ast_Literal *node) {
 }
 
 std::string get_string_literal(Scope *scope, Ast_Literal *node) {
-    return node->value; 
+    return node->value;
 }
 
 float get_number_variable(Interpreter *interp, Scope *scope, Ast_Variable *node) {
@@ -112,14 +113,16 @@ void walk_assignment_node(Interpreter *interp, Scope *scope, Ast_Assignment *nod
     std::string name = node->left->name;
     Ast_Node::Type type = node->right->node_type;
 
-    if (node->right->node_type == Ast_Node::Type::LITERAL) {
+    if (type == Ast_Node::Type::LITERAL) {
         Ast_Literal *lit = static_cast<Ast_Literal *>(node->right);
-        
-        if (is_float(lit->value)) {
+
+        if (is_float(lit->value) == false) {
             set_var(scope, name, std::to_string(walk_from_arithmetic_root(interp, scope, node->right)));
         } else {
             set_var(scope, name, lit->value);
         }
+    } else {
+        set_var(scope, name, std::to_string(walk_from_arithmetic_root(interp, scope, node->right)));
     }
 }
 
