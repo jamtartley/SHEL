@@ -24,6 +24,7 @@ std::vector<Token *> lex(const std::string source) {
     special_char_map.insert(std::make_pair("-", Token::Type::OP_MINUS));
     special_char_map.insert(std::make_pair("*", Token::Type::OP_MULTIPLY));
     special_char_map.insert(std::make_pair("/", Token::Type::OP_DIVIDE));
+    special_char_map.insert(std::make_pair(",", Token::Type::ARGUMENT_SEPARATOR));
     special_char_map.insert(std::make_pair("<", Token::Type::COMPARE_LESS_THAN));
     special_char_map.insert(std::make_pair(">", Token::Type::COMPARE_GREATER_THAN));
 

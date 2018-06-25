@@ -68,16 +68,14 @@ float get_number_variable(Interpreter *interp, Scope *scope, Ast_Variable *node)
 }
 
 float walk_block_node(Interpreter *interp, Scope *scope, Ast_Block *root) {
-    Scope *block_scope = new Scope(scope);
-
     for (Ast_Node *child : root->children) {
-        walk_from_root(interp, block_scope, child);
+        walk_from_root(interp, scope, child);
     }
 
-    print_contents(block_scope);
+    print_contents(scope);
 
     if (root->return_node->value == NULL) return 0; // Empty block
-    return walk_from_arithmetic_root(interp, block_scope, root->return_node->value);
+    return walk_from_arithmetic_root(interp, scope, root->return_node->value);
 }
 
 std::string get_string_variable(Interpreter *interp, Scope *scope, Ast_Variable *node) {
@@ -98,9 +96,18 @@ void add_function_def_to_scope(Interpreter *interp, Scope *scope, Ast_Function_D
 
 float walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_Call *call) {
     Func_With_Success *fs = get_func(scope, call->name);
+    Scope *func_scope = new Scope(scope);
+
+    // Match calculated values to function names and insert them into the function scope
+    // before we walk the main function block
+    for (int i = 0; i < fs->body->args.size(); i++) {
+        Ast_Function_Argument *current = fs->body->args[i];
+
+        set_var(func_scope, current->name, std::to_string(walk_from_arithmetic_root(interp, scope, call->args[i])));
+    }
 
     if (fs->was_success) {
-        return walk_block_node(interp, scope, fs->body->block);
+        return walk_block_node(interp, func_scope, fs->body->block);
     } else {
         std::cerr << "Attempted to call function: '" << call->name << "' without first defining it" << std::endl;
         return 0;
@@ -134,7 +141,7 @@ void walk_assignment_node(Interpreter *interp, Scope *scope, Ast_Assignment *nod
 
 void walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) {
     if (root->node_type == Ast_Node::Type::BLOCK) {
-        walk_block_node(interp, scope, static_cast<Ast_Block *>(root));
+        walk_block_node(interp, new Scope(scope), static_cast<Ast_Block *>(root));
     } else if (root->node_type == Ast_Node::Type::FUNCTION_DEFINITION) {
         add_function_def_to_scope(interp, scope, static_cast<Ast_Function_Definition *>(root));
     } else if (root->node_type == Ast_Node::Type::FUNCTION_CALL) {

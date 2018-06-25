@@ -18,6 +18,7 @@ struct Token {
         R_PAREN,
         BLOCK_OPEN,
         BLOCK_CLOSE,
+        ARGUMENT_SEPARATOR,
         OP_PLUS,
         OP_MINUS,
         OP_MULTIPLY,
@@ -63,6 +64,7 @@ inline const std::string type_to_string(Token::Type type) {
         case Token::Type::R_PAREN: return "R_PAREN";
         case Token::Type::BLOCK_OPEN: return "BLOCK_OPEN";
         case Token::Type::BLOCK_CLOSE: return "BLOCK_CLOSE";
+        case Token::Type::ARGUMENT_SEPARATOR: return "ARGUMENT_SEPARATOR";
         case Token::Type::OP_PLUS: return "OP_PLUS";
         case Token::Type::OP_MINUS: return "OP_MINUS";
         case Token::Type::OP_MULTIPLY: return "OP_MULTIPLY";

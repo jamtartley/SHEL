@@ -31,6 +31,7 @@ struct Ast_Node {
         VARIABLE,
         FUNCTION_DEFINITION,
         FUNCTION_CALL,
+        FUNCTION_ARGUMENT,
         RETURN
     };
 
@@ -90,12 +91,23 @@ struct Ast_Literal : Ast_Node {
     }
 };
 
-struct Ast_Function_Definition : Ast_Node {
-    Ast_Block *block;
+struct Ast_Function_Argument : Ast_Node {
     std::string name;
 
-    Ast_Function_Definition(Ast_Block *block, std::string name) {
+    Ast_Function_Argument(std::string name) {
+        this->name = name;
+        this->node_type = Ast_Node::Type::FUNCTION_ARGUMENT;
+    }
+};
+
+struct Ast_Function_Definition : Ast_Node {
+    Ast_Block *block;
+    std::vector<Ast_Function_Argument *> args;
+    std::string name;
+
+    Ast_Function_Definition(Ast_Block *block, std::vector<Ast_Function_Argument *> args, std::string name) {
         this->block = block;
+        this->args = args;
         this->name = name;
         this->node_type = Ast_Node::Type::FUNCTION_DEFINITION;
     }
@@ -103,9 +115,11 @@ struct Ast_Function_Definition : Ast_Node {
 
 struct Ast_Function_Call : Ast_Node {
     std::string name;
+    std::vector<Ast_Node *> args;
 
-    Ast_Function_Call(std::string name) {
+    Ast_Function_Call(std::string name, std::vector<Ast_Node *> args) {
         this->name = name;
+        this->args = args;
         this->node_type = Ast_Node::Type::FUNCTION_CALL;
     }
 };

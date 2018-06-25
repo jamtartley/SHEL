@@ -85,24 +85,46 @@ Ast_Function_Definition *parse_function_definition(Parser *parser) {
     eat(parser, Token::Type::KEYWORD_FUNCTION);
     Token::Type ret_type = parser->current_token->type;
 
-    std::string name = parse_ident_name(parser);
+    std::string func_name = parse_ident_name(parser);
 
-    // @TODO(MEDIUM) Parse function args
     eat(parser, Token::Type::L_PAREN);
+    std::vector<Ast_Function_Argument *> args;
+
+    while (parser->current_token->type == Token::Type::IDENT) {
+        std::string arg_name = parse_ident_name(parser);
+
+        for (Ast_Function_Argument *other : args) {
+            if (other->name == arg_name)
+                std::cerr << "Error on line " << parser->current_token->line_number <<  ": Argument with the name '" << arg_name << "' already exists in definition of function '" << func_name << "'" << std::endl;
+        }
+
+        args.push_back(new Ast_Function_Argument(arg_name));
+
+        if (parser->current_token->type == Token::Type::ARGUMENT_SEPARATOR) eat(parser, Token::Type::ARGUMENT_SEPARATOR);
+    }
+
     eat(parser, Token::Type::R_PAREN);
 
     Ast_Block *body = parse_block(parser, false);
 
-    return new Ast_Function_Definition(body, name);
+    return new Ast_Function_Definition(body, args, func_name);
 }
 
 Ast_Function_Call *parse_function_call(Parser *parser) {
-    std::string name = parse_ident_name(parser);
-    // @TODO(MEDIUM) Parse function args
+    std::string func_name = parse_ident_name(parser);
+
     eat(parser, Token::Type::L_PAREN);
+    std::vector<Ast_Node *> args;
+
+    while (parser->current_token->type != Token::Type::ARGUMENT_SEPARATOR && parser->current_token->type != Token::Type::R_PAREN) {
+        args.push_back(parse_arithmetic_expression(parser));
+
+        if (parser->current_token->type == Token::Type::ARGUMENT_SEPARATOR) eat(parser, Token::Type::ARGUMENT_SEPARATOR);
+    }
+
     eat(parser, Token::Type::R_PAREN);
 
-    return new Ast_Function_Call(name);
+    return new Ast_Function_Call(func_name, args);
 }
 
 std::string parse_ident_name(Parser *parser) {
