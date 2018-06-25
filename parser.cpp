@@ -121,11 +121,26 @@ Ast_Assignment *parse_assignment(Parser *parser) {
     return new Ast_Assignment(var, right);
 }
 
+Ast_Return *parse_return(Parser *parser) {
+    eat(parser, Token::Type::KEYWORD_RETURN);
+    return new Ast_Return(parse_arithmetic_expression(parser));
+}
+
 Ast_Block *parse_block(Parser *parser, bool is_global_scope) {
     if (is_global_scope == false) eat(parser, Token::Type::BLOCK_OPEN);
     std::vector<Ast_Node *> nodes = parse_statements(parser);
+    Ast_Block *block = new Ast_Block(nodes);
+
+    for (Ast_Node *node : nodes) {
+        // First return node in a block wins
+        if (block->return_node != NULL) continue;
+
+        // @TODO(LOW) Warn if multiple returns in a block
+        if (node->node_type == Ast_Node::Type::RETURN) block->return_node = static_cast<Ast_Return *>(node);
+    }
+
     if (is_global_scope == false) eat(parser, Token::Type::BLOCK_CLOSE);
-    return new Ast_Block(nodes);
+    return block;
 }
 
 std::vector<Ast_Node *> parse_statements(Parser *parser) {
@@ -156,6 +171,9 @@ Ast_Node *parse_statement(Parser *parser) {
         return parse_block(parser, false);
     } else if (curr->type == Token::Type::KEYWORD_FUNCTION) {
         return parse_function_definition(parser);
+    } else if (curr->type == Token::Type::KEYWORD_RETURN) {
+        ret = parse_return(parser);
+        eat(parser, Token::Type::TERMINATOR);
     } else if (curr->type == Token::Type::IDENT && next != nullptr && next->type == Token::Type::L_PAREN) {
         ret = parse_function_call(parser);
         eat(parser, Token::Type::TERMINATOR);

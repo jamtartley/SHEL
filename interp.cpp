@@ -39,6 +39,9 @@ float walk_from_arithmetic_root(Interpreter *interp, Scope *scope, Ast_Node *nod
         return walk_unary_op_node(interp, scope, static_cast<Ast_Unary_Op *>(node));
     } else if (node->node_type == Ast_Node::Type::LITERAL) {
         return get_number_literal(scope, static_cast<Ast_Literal *>(node));
+    } else if (node->node_type == Ast_Node::Type::FUNCTION_CALL) {
+        Ast_Node *ret = walk_function_call(interp, scope, static_cast<Ast_Function_Call *>(node))->value;
+        return walk_from_arithmetic_root(interp, scope, ret);
     } else {
         return get_number_variable(interp, scope, static_cast<Ast_Variable *>(node));
     }
@@ -65,7 +68,7 @@ float get_number_variable(Interpreter *interp, Scope *scope, Ast_Variable *node)
     }
 }
 
-void walk_block_node(Interpreter *interp, Scope *scope, Ast_Block *root) {
+Ast_Return *walk_block_node(Interpreter *interp, Scope *scope, Ast_Block *root) {
     Scope *block_scope = new Scope(scope);
 
     for (Ast_Node *child : root->children) {
@@ -73,6 +76,8 @@ void walk_block_node(Interpreter *interp, Scope *scope, Ast_Block *root) {
     }
 
     print_contents(block_scope);
+
+    return root->return_node; 
 }
 
 std::string get_string_variable(Interpreter *interp, Scope *scope, Ast_Variable *node) {
@@ -91,17 +96,18 @@ void add_function_def_to_scope(Interpreter *interp, Scope *scope, Ast_Function_D
     set_func(scope, def->name, def);
 }
 
-void walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_Call *call) {
+Ast_Return *walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_Call *call) {
     Func_With_Success *fs = get_func(scope, call->name);
 
     if (fs->was_success) {
-        walk_block_node(interp, scope, fs->body->block);
+        return walk_block_node(interp, scope, fs->body->block);
     } else {
         std::cerr << "Attempted to call function: '" << call->name << "' without first defining it" << std::endl;
+        return nullptr;
     }
 }
 
-bool is_float(std::string str) {
+bool is_num(std::string str) {
     std::istringstream iss(str);
     float f;
     iss >> std::noskipws >> f;
@@ -116,7 +122,7 @@ void walk_assignment_node(Interpreter *interp, Scope *scope, Ast_Assignment *nod
     if (type == Ast_Node::Type::LITERAL) {
         Ast_Literal *lit = static_cast<Ast_Literal *>(node->right);
 
-        if (is_float(lit->value) == false) {
+        if (is_num(lit->value) == false) {
             set_var(scope, name, std::to_string(walk_from_arithmetic_root(interp, scope, node->right)));
         } else {
             set_var(scope, name, lit->value);

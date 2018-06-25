@@ -31,6 +31,7 @@ struct Ast_Node {
         VARIABLE,
         FUNCTION_DEFINITION,
         FUNCTION_CALL,
+        RETURN
     };
 
     Type node_type;
@@ -60,11 +61,22 @@ struct Ast_Unary_Op : Ast_Node {
     }
 };
 
+struct Ast_Return : Ast_Node {
+    Ast_Node *value;
+
+    Ast_Return(Ast_Node *value) {
+        this->value = value;
+        this->node_type = Ast_Node::Type::RETURN;
+    }
+};
+
 struct Ast_Block : Ast_Node {
     std::vector<Ast_Node *> children;
+    Ast_Return *return_node;
 
     Ast_Block(std::vector<Ast_Node *> children) {
         this->children = children;
+        this->return_node = NULL;
         this->node_type = Ast_Node::Type::BLOCK;
     }
 };
@@ -76,7 +88,7 @@ struct Ast_Literal : Ast_Node {
         this->value = value;
         this->node_type = Ast_Node::Type::LITERAL;
     }
-}; 
+};
 
 struct Ast_Function_Definition : Ast_Node {
     Ast_Block *block;
@@ -134,6 +146,8 @@ Ast_Function_Definition *parse_function_definition(Parser *parser);
 Ast_Function_Call *parse_function_call(Parser *parser);
 
 Ast_Assignment *parse_assignment(Parser *parser);
+
+Ast_Return *parse_return(Parser *parser);
 
 Ast_Block *parse_block(Parser *parser, bool is_global_scope);
 
