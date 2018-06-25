@@ -2,4 +2,15 @@ bug square(x) {
     return x * x;
 }
 
-a = square(3);
+bug cube(x) {
+    return x * x * x;
+}
+
+bug add(x, y) {
+    return x + y;
+}
+
+a = 2;
+b = add(1, square(cube(a)));
+
+print(b);

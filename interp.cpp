@@ -4,10 +4,12 @@
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "scope.hpp"
+#include "shel_lib.hpp"
 
 float walk_from_arithmetic_root(Interpreter *interp, Scope *scope, Ast_Node *node);
 float get_number_variable(Interpreter *interp, Scope *scope, Ast_Variable *node);
 void walk_from_root(Interpreter *interp, Scope *scope,  Ast_Node *root);
+void call_native_function(Interpreter *interp, Scope *scope, Ast_Function_Call *call);
 
 float walk_unary_op_node(Interpreter *interp, Scope *scope, Ast_Unary_Op *node) {
     Token::Type type = node->op->type;
@@ -72,8 +74,6 @@ float walk_block_node(Interpreter *interp, Scope *scope, Ast_Block *root) {
         walk_from_root(interp, scope, child);
     }
 
-    print_contents(scope);
-
     if (root->return_node->value == NULL) return 0; // Empty block
     return walk_from_arithmetic_root(interp, scope, root->return_node->value);
 }
@@ -96,20 +96,21 @@ void add_function_def_to_scope(Interpreter *interp, Scope *scope, Ast_Function_D
 
 float walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_Call *call) {
     Func_With_Success *fs = get_func(scope, call->name);
-    Scope *func_scope = new Scope(scope);
-
-    // Match calculated values to function names and insert them into the function scope
-    // before we walk the main function block
-    for (int i = 0; i < fs->body->args.size(); i++) {
-        Ast_Function_Argument *current = fs->body->args[i];
-
-        set_var(func_scope, current->name, std::to_string(walk_from_arithmetic_root(interp, scope, call->args[i])));
-    }
 
     if (fs->was_success) {
+        Scope *func_scope = new Scope(scope);
+
+        // Match calculated values to function names and insert them into the function scope
+        // before we walk the main function block
+        for (int i = 0; i < fs->body->args.size(); i++) {
+            Ast_Function_Argument *current = fs->body->args[i];
+
+            set_var(func_scope, current->name, std::to_string(walk_from_arithmetic_root(interp, scope, call->args[i])));
+        }
+
         return walk_block_node(interp, func_scope, fs->body->block);
     } else {
-        std::cerr << "Attempted to call function: '" << call->name << "' without first defining it" << std::endl;
+        call_native_function(interp, scope, call);
         return 0;
     }
 }
@@ -141,7 +142,7 @@ void walk_assignment_node(Interpreter *interp, Scope *scope, Ast_Assignment *nod
 
 void walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) {
     if (root->node_type == Ast_Node::Type::BLOCK) {
-        walk_block_node(interp, new Scope(scope), static_cast<Ast_Block *>(root));
+        walk_block_node(interp, scope, static_cast<Ast_Block *>(root));
     } else if (root->node_type == Ast_Node::Type::FUNCTION_DEFINITION) {
         add_function_def_to_scope(interp, scope, static_cast<Ast_Function_Definition *>(root));
     } else if (root->node_type == Ast_Node::Type::FUNCTION_CALL) {
@@ -151,8 +152,28 @@ void walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) {
     }
 }
 
+void call_native_function(Interpreter *interp, Scope *scope, Ast_Function_Call *call) {
+    // @HACK(HIGH) @ROBUSTNESS(HIGH) Need better way of calling out to native functions
+    // Just in here so it's easy to print out variable values in a .shel file at the min
+    std::vector<float> evaluated_args;
+
+    for (Ast_Node *arg : call->args) {
+        float evaluated_arg = walk_from_arithmetic_root(interp, scope, arg);
+
+        evaluated_args.push_back(evaluated_arg);
+    }
+
+    if (call->name == "print") {
+        print(std::to_string(evaluated_args[0]));
+    } else {
+        std::cerr << "Attempted to call function: '" << call->name << "' without first defining it" << std::endl;
+    }
+}
+
 void interpret(Interpreter *interp) {
+    Scope *global_scope = new Scope(nullptr);
+
     Ast_Block *root = parse(interp->parser);
-    walk_from_root(interp, nullptr, root);
+    walk_from_root(interp, global_scope, root);
 }
 
