@@ -147,13 +147,19 @@ std::string parse_ident_name(Parser *parser) {
     return name;
 }
 
-Ast_Assignment *parse_assignment(Parser *parser) {
+Ast_Assignment *parse_assignment(Parser *parser, bool is_first_assign) {
+    if (is_first_assign) {
+        eat(parser, Token::Type::KEYWORD_ASSIGN_VARIABLE);
+    } else {
+        eat(parser, Token::Type::KEYWORD_REASSIGN_VARIABLE);
+    }
+
     Ast_Variable *var = parse_variable(parser);
     eat(parser, Token::Type::ASSIGNMENT);
 
     Ast_Node *right = parse_arithmetic_expression(parser);
 
-    return new Ast_Assignment(var, right);
+    return new Ast_Assignment(var, right, is_first_assign);
 }
 
 Ast_Return *parse_return(Parser *parser) {
@@ -257,12 +263,15 @@ Ast_Node *parse_statement(Parser *parser) {
         return parse_if(parser);
     } else if (curr->type == Token::Type::KEYWORD_WHILE) {
         return parse_while(parser);
+    } else if (curr->type == Token::Type::KEYWORD_ASSIGN_VARIABLE) {
+        ret = parse_assignment(parser, true);
+        eat(parser, Token::Type::TERMINATOR);
+    } else if (curr->type == Token::Type::KEYWORD_REASSIGN_VARIABLE) {
+        ret = parse_assignment(parser, false);
+        eat(parser, Token::Type::TERMINATOR);
     } else if (curr->type == Token::Type::IDENT && next != nullptr) {
         if (next->type == Token::Type::L_PAREN) {
             ret = parse_function_call(parser);
-            eat(parser, Token::Type::TERMINATOR);
-        } else if (next->type == Token::Type::ASSIGNMENT) {
-            ret = parse_assignment(parser);
             eat(parser, Token::Type::TERMINATOR);
         } else {
             report_fatal_error(unspecified_parse_error(parser->current_token->line_number));

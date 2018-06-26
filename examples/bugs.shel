@@ -2,5 +2,5 @@ bug square(x) {
     return x * x;
 }
 
-a = square(5);
+let a = square(5);
 print(a);

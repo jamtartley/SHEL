@@ -1,5 +1,17 @@
-a = 1;
-b = 2;
+let a = 1;
+let b = 2;
 
 print(a);
 print(b);
+
+relet a = 5;
+
+print(a);
+
+bug mute_a(a){
+    relet a = 3;
+    return a;
+}
+
+relet a = mute_a(a);
+print(a);

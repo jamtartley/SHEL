@@ -180,10 +180,12 @@ struct Ast_Variable : Ast_Node {
 struct Ast_Assignment : Ast_Node {
     Ast_Variable *left;
     Ast_Node *right;
+    bool is_first_assign;
 
-    Ast_Assignment(Ast_Variable *left, Ast_Node *right) {
+    Ast_Assignment(Ast_Variable *left, Ast_Node *right, bool is_first_assign) {
         this->left = left;
         this->right = right;
+        this->is_first_assign = is_first_assign;
         this->node_type = Ast_Node::Type::ASSIGNMENT;
     }
 };
@@ -201,7 +203,7 @@ Ast_Function_Definition *parse_function_definition(Parser *parser);
 
 Ast_Function_Call *parse_function_call(Parser *parser);
 
-Ast_Assignment *parse_assignment(Parser *parser);
+Ast_Assignment *parse_assignment(Parser *parser, bool is_first_assign);
 
 Ast_Return *parse_return(Parser *parser);
 

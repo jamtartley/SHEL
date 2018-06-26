@@ -40,7 +40,8 @@ struct Var_With_Success {
 
 Var_With_Success *get_var(Scope *scope, std::string name); 
 Func_With_Success *get_func(Scope *scope, std::string name); 
-void set_var(Scope *scope, std::string name, std::string value); 
+void assign_var(Scope *scope, std::string name, std::string value); 
+void reassign_var(Scope *scope, std::string name, std::string value); 
 void set_func(Scope *scope, std::string name, Ast_Function_Definition *func); 
 bool is_var_in_scope(Scope *scope, std::string name);
 bool is_func_in_scope(Scope *scope, std::string name);

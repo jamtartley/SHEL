@@ -14,6 +14,8 @@ struct Token {
         KEYWORD_RETURN,
         KEYWORD_STRUCT,
         KEYWORD_FUNCTION,
+        KEYWORD_ASSIGN_VARIABLE,
+        KEYWORD_REASSIGN_VARIABLE,
         L_PAREN,
         R_PAREN,
         BLOCK_OPEN,
@@ -61,6 +63,8 @@ inline const std::string type_to_string(Token::Type type) {
         case Token::Type::KEYWORD_RETURN: return "KEYWORD_RETURN";
         case Token::Type::KEYWORD_STRUCT: return "KEYWORD_STRUCT";
         case Token::Type::KEYWORD_FUNCTION: return "KEYWORD_FUNCTION";
+        case Token::Type::KEYWORD_ASSIGN_VARIABLE: return "KEYWORD_ASSIGN_VARIABLE";
+        case Token::Type::KEYWORD_REASSIGN_VARIABLE: return "KEYWORD_REASSIGN_VARIABLE";
         case Token::Type::L_PAREN: return "L_PAREN";
         case Token::Type::R_PAREN: return "R_PAREN";
         case Token::Type::BLOCK_OPEN: return "BLOCK_OPEN";

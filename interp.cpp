@@ -163,7 +163,7 @@ Return_Value *walk_function_call(Interpreter *interp, Scope *scope, Ast_Function
         for (int i = 0; i < fs->body->args.size(); i++) {
             Ast_Function_Argument *current = fs->body->args[i];
             std::string val = std::to_string(walk_from_arithmetic_root(interp, scope, call->args[i]));
-            set_var(func_scope, current->name, val);
+            assign_var(func_scope, current->name, val);
         }
 
         return walk_block_node(interp, func_scope, fs->body->block);
@@ -193,17 +193,24 @@ bool is_num(std::string str) {
 void walk_assignment_node(Interpreter *interp, Scope *scope, Ast_Assignment *node) {
     std::string name = node->left->name;
     Ast_Node::Type type = node->right->node_type;
+    std::string value;
 
     if (type == Ast_Node::Type::LITERAL) {
         Ast_Literal *lit = static_cast<Ast_Literal *>(node->right);
 
         if (is_num(lit->value)) {
-            set_var(scope, name, std::to_string(walk_from_arithmetic_root(interp, scope, node->right)));
+            value = std::to_string(walk_from_arithmetic_root(interp, scope, node->right));
         } else {
-            set_var(scope, name, lit->value);
+            value = lit->value;
         }
     } else {
-        set_var(scope, name, std::to_string(walk_from_arithmetic_root(interp, scope, node->right)));
+        value = std::to_string(walk_from_arithmetic_root(interp, scope, node->right));
+    }
+
+    if (node->is_first_assign) {
+        assign_var(scope, name, value);
+    } else {
+        reassign_var(scope, name, value);
     }
 }
 

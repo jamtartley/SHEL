@@ -1,4 +1,7 @@
 #include <iostream>
+#include <sstream>
+
+#include "logger.hpp"
 #include "scope.hpp"
 
 // @CLEANUP(LOW) Lots of repetitions between vars/functions in scope.cpp
@@ -15,8 +18,26 @@ Func_With_Success *get_func(Scope *scope, std::string name) {
     return new Func_With_Success(nullptr, false);
 }
 
-void set_var(Scope *scope, std::string name, std::string value) {
+void assign_var(Scope *scope, std::string name, std::string value) {
     scope->variables[name] = value;
+}
+
+void reassign_var(Scope *scope, std::string name, std::string value) {
+    Scope *current = scope;
+
+    // Move up scopes looking for a variable of the given name to reassign
+    while (current != NULL) {
+        if (is_var_in_scope(current, name)) {
+            current->variables[name] = value;
+            return;
+        }
+
+        current = current->parent;
+    }
+
+    std::stringstream ss;
+    ss << "Attempted to reassign variable with the name '" << name << "', but none by that name exists.";
+    report_fatal_error(ss.str());
 }
 
 void set_func(Scope *scope, std::string name, Ast_Function_Definition *func) {
