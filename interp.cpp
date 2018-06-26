@@ -74,7 +74,7 @@ float walk_block_node(Interpreter *interp, Scope *scope, Ast_Block *root) {
         walk_from_root(interp, scope, child);
     }
 
-    if (root->return_node->value == NULL) return 0; // Empty block
+    if (root->return_node == NULL || root->return_node->value == NULL) return 0; // Empty block
     return walk_from_arithmetic_root(interp, scope, root->return_node->value);
 }
 

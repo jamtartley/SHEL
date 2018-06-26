@@ -44,4 +44,8 @@ int main() {
     Interpreter *interp = new Interpreter(parser);
 
     interpret(interp);
+
+    do {
+        std::cout << "Press a key to continue...";
+    } while (std::cin.get() != '\n');
 }
