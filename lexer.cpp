@@ -1,7 +1,9 @@
 #include <iostream>
 #include <map>
+#include <sstream>
 
 #include "lexer.hpp"
+#include "logger.hpp"
 
 static const std::regex string_regex("[\"]");
 static const std::regex ident_start_regex("[_a-zA-Z]");
@@ -81,7 +83,9 @@ std::vector<Token *> lex(const std::string source) {
             continue;
         }
 
-        std::cerr << "Cannot lex character: " << current << std::endl;
+        std::stringstream ss;
+        ss << "Cannot lex character: " << current;
+        report_fatal_error(ss.str());
         i++;
     }
 
@@ -98,8 +102,8 @@ std::string scan_string(const std::string input, int &index, const std::regex en
         ret.append(std::string(1, input.at(i)));
         i++;
 
-        if (i >= input.size()) 
-            std::cerr << "String didn't terminate before end of file!" << std::endl;
+        if (i >= input.size())
+            report_fatal_error("String didn't terminate before end of file!");
     }
 
     index += ret.size() + 2;

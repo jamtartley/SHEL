@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "lexer.hpp"
+#include "logger.hpp"
 #include "parser.hpp"
 #include "interp.hpp"
 
@@ -36,7 +37,9 @@ int main(int argc, char *argv[]) {
     std::ifstream in_file(in_file_name);
 
     if (!in_file) {
-        std::cerr << "Cannot open: " << in_file_name << std::endl;
+        std::stringstream error;
+        error << "Cannot open: " << in_file_name;
+        report_fatal_error(error.str());
         return 1;
     }
 

@@ -1,7 +1,9 @@
 #include <iostream>
 #include <sstream>
+
 #include "interp.hpp"
 #include "lexer.hpp"
+#include "logger.hpp"
 #include "parser.hpp"
 #include "scope.hpp"
 #include "shel_lib.hpp"
@@ -11,6 +13,13 @@ float get_number_variable(Interpreter *interp, Scope *scope, Ast_Variable *node)
 bool is_num(std::string str);
 Return_Value *walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root);
 void print(std::string str);
+
+std::string get_unassigned_variable_error(std::string name, int line_number) {
+    std::stringstream ss;
+    ss << "Use of unassigned num variable '" << name << "' at line: " << line_number << std::endl;
+
+    return ss.str();
+}
 
 float walk_unary_op_node(Interpreter *interp, Scope *scope, Ast_Unary_Op *node) {
     Token::Type type = node->op->type;
@@ -65,7 +74,7 @@ float get_number_variable(Interpreter *interp, Scope *scope, Ast_Variable *node)
         // Variables stored as maps of string name to string value so need to convert to float
         return var->num_value;
     } else {
-        std::cerr << "Use of unassigned num variable '" << name << "' at line: " << node->token->line_number << std::endl;
+        report_fatal_error(get_unassigned_variable_error(name, node->token->line_number));
         return 0;
     }
 }
@@ -86,7 +95,7 @@ std::string get_string_variable(Interpreter *interp, Scope *scope, Ast_Variable 
     if (var->was_success) {
         return var->str_value;
     } else {
-        std::cerr << "Use of unassigned str variable '" << name << "' at line: " << node->token->line_number << std::endl;
+        report_fatal_error(get_unassigned_variable_error(name, node->token->line_number));
         return 0;
     }
 }

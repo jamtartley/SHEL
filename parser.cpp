@@ -1,7 +1,8 @@
-#include <cstdlib>
 #include <iostream>
 #include <sstream>
+
 #include "lexer.hpp"
+#include "logger.hpp"
 #include "parser.hpp"
 
 std::string unspecified_parse_error(int line_number) {
@@ -10,15 +11,8 @@ std::string unspecified_parse_error(int line_number) {
     return ss.str();
 }
 
-void report_fatal_parse_error(Parser *parser, std::string error) {
-    std::cerr << error << std::endl;
-    std::cerr << "Exiting..." << std::endl;
-    exit(0);
-}
-
-
 void eat(Parser *parser, Token::Type expected_type) {
-    if (parser->position == parser->tokens.size() - 1) std::cerr << "Reached last token and attempted further eat" << std::endl;
+    if (parser->position == parser->tokens.size() - 1) report_fatal_error("Reached last token and attempted further eat");
 
     if (parser->current_token->type == expected_type) {
         parser->position++;
@@ -26,7 +20,7 @@ void eat(Parser *parser, Token::Type expected_type) {
     } else {
         std::stringstream ss;
         ss << "Invalid syntax on line " << parser->current_token->line_number << ", expected '" << type_to_string(expected_type) << "', found '" << type_to_string(parser->current_token->type) << "'.";
-        report_fatal_parse_error(parser, ss.str());
+        report_fatal_error(ss.str());
     }
 }
 
@@ -110,8 +104,11 @@ Ast_Function_Definition *parse_function_definition(Parser *parser) {
         std::string arg_name = parse_ident_name(parser);
 
         for (Ast_Function_Argument *other : args) {
-            if (other->name == arg_name)
-                std::cerr << "Error on line " << parser->current_token->line_number <<  ": Argument with the name '" << arg_name << "' already exists in definition of function '" << func_name << "'" << std::endl;
+            if (other->name == arg_name) {
+                std::stringstream ss;
+                ss << "Error on line " << parser->current_token->line_number <<  ": Argument with the name '" << arg_name << "' already exists in definition of function '" << func_name << "'";
+                report_fatal_error(ss.str());
+            }
         }
 
         args.push_back(new Ast_Function_Argument(arg_name));
@@ -268,10 +265,10 @@ Ast_Node *parse_statement(Parser *parser) {
             ret = parse_assignment(parser);
             eat(parser, Token::Type::TERMINATOR);
         } else {
-            report_fatal_parse_error(parser, unspecified_parse_error(parser->current_token->line_number));
+            report_fatal_error(unspecified_parse_error(parser->current_token->line_number));
         }
     } else {
-        report_fatal_parse_error(parser, unspecified_parse_error(parser->current_token->line_number));
+        report_fatal_error(unspecified_parse_error(parser->current_token->line_number));
     }
 
     return ret;
