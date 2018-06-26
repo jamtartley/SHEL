@@ -1,6 +1,8 @@
 bug fib(x) {
     if (x == 0) { return 0; }
     if (x == 1) { return 1; }
+
+    # Using recursion to solve Fibonacci sequence
     return fib(x - 1) + fib(x - 2);
 }
 

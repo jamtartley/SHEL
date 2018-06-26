@@ -1,0 +1,13 @@
+# This is a comment
+
+let a = 1; # Set a to 1 (P.S. Don't write useless comments)
+
+print(a); # Print a
+
+# Best function ever
+bug useless() {
+    return 0;
+}
+
+relet a = useless(); # Why
+print(a);

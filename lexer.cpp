@@ -45,6 +45,14 @@ std::vector<Token *> lex(const std::string source) {
             line_number++;
             continue;
         }
+        if (current == "#") {
+            while (current != "\n") {
+                i++;
+                current = std::string(1, source.at(i));
+            }
+
+            continue;
+        }
         if (current == "=" && peek(source, i) == "=") {
             ret_tokens.push_back(new Token(Token::Type::COMPARE_EQUALS, "==", line_number));
             i += 2;
@@ -123,7 +131,7 @@ std::string scan_other(const std::string input, int &index, const std::regex end
     index += ret.size();
 
     return ret;
-} 
+}
 
 Token *scan_ident(const std::string input, int &index, const std::regex end_match, int line_number) {
     static std::map<std::string, Token *> keyword_map;
