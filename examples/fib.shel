@@ -4,5 +4,5 @@ bug fib(x) {
     return fib(x - 1) + fib(x - 2);
 }
 
-a = fib(20);
+a = fib(10);
 print(a);

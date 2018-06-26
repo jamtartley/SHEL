@@ -188,6 +188,7 @@ struct Ast_Assignment : Ast_Node {
     }
 };
 
+void report_fatal_parse_error(Parser *parser, std::string error);
 void eat(Parser *parser, Token::Type expected_type);
 
 Ast_Node *parse_arithmetic_factor(Parser *parser);

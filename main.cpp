@@ -30,8 +30,9 @@ void print_tokens(std::vector<Token *> tokens) {
     }
 }
 
-int main() {
-    std::string in_file_name = "fib.shel";
+int main(int argc, char *argv[]) {
+    // @ROBUSTNESS(LOW) Improve argv control/robustness
+    std::string in_file_name = argc > 1 ? argv[1] : "examples/fib.shel";
     std::ifstream in_file(in_file_name);
 
     if (!in_file) {

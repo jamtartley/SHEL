@@ -1,6 +1,21 @@
+#include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include "lexer.hpp"
 #include "parser.hpp"
+
+std::string unspecified_parse_error(int line_number) {
+    std::stringstream ss;
+    ss << "Cannot parse line " << line_number << ", sorry!";
+    return ss.str();
+}
+
+void report_fatal_parse_error(Parser *parser, std::string error) {
+    std::cerr << error << std::endl;
+    std::cerr << "Exiting..." << std::endl;
+    exit(0);
+}
+
 
 void eat(Parser *parser, Token::Type expected_type) {
     if (parser->position == parser->tokens.size() - 1) std::cerr << "Reached last token and attempted further eat" << std::endl;
@@ -9,8 +24,9 @@ void eat(Parser *parser, Token::Type expected_type) {
         parser->position++;
         parser->current_token = parser->tokens[parser->position];
     } else {
-        // @TODO(LOW) Exit on invalid syntax
-        std::cerr << "Invalid syntax on line " << parser->current_token->line_number << ", expected '" << type_to_string(expected_type) << "', found '" << type_to_string(parser->current_token->type) << "'." << std::endl;
+        std::stringstream ss;
+        ss << "Invalid syntax on line " << parser->current_token->line_number << ", expected '" << type_to_string(expected_type) << "', found '" << type_to_string(parser->current_token->type) << "'.";
+        report_fatal_parse_error(parser, ss.str());
     }
 }
 
@@ -252,19 +268,10 @@ Ast_Node *parse_statement(Parser *parser) {
             ret = parse_assignment(parser);
             eat(parser, Token::Type::TERMINATOR);
         } else {
-            switch (next->type) {
-                default:
-                case Token::Type::COMPARE_EQUALS:
-                case Token::Type::COMPARE_NOT_EQUALS:
-                case Token::Type::COMPARE_LESS_THAN:
-                case Token::Type::COMPARE_GREATER_THAN:
-                case Token::Type::COMPARE_LESS_THAN_EQUALS:
-                case Token::Type::COMPARE_GREATER_THAN_EQUALS:
-                    std::cout << "Comparison" << std::endl;
-            }
+            report_fatal_parse_error(parser, unspecified_parse_error(parser->current_token->line_number));
         }
     } else {
-        // @TODO(LOW) Error on not being able to parse statement into one of the above categories
+        report_fatal_parse_error(parser, unspecified_parse_error(parser->current_token->line_number));
     }
 
     return ret;
