@@ -45,6 +45,7 @@ void add_function_def_to_scope(Interpreter *interp, Scope *scope, Ast_Function_D
 Return_Value *walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_Call *call);
 Return_Value *walk_if(Interpreter *interp, Scope *scope, Ast_If *if_node);
 Return_Value *walk_while(Interpreter *interp, Scope *scope, Ast_While *while_node);
+Return_Value *walk_loop(Interpreter *interp, Scope *scope, Ast_Loop *loop_node);
 Return_Value *walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root);
 
 void call_native_function(Interpreter *interp, Scope *scope, Ast_Function_Call *call);

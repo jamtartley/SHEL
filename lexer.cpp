@@ -145,6 +145,9 @@ Token *scan_ident(const std::string input, int &index, const std::regex end_matc
     keyword_map.insert(std::make_pair("bug", new Token(Token::Type::KEYWORD_FUNCTION, "bug", line_number)));
     keyword_map.insert(std::make_pair("let", new Token(Token::Type::KEYWORD_ASSIGN_VARIABLE, "let", line_number)));
     keyword_map.insert(std::make_pair("relet", new Token(Token::Type::KEYWORD_REASSIGN_VARIABLE, "relet", line_number)));
+    keyword_map.insert(std::make_pair("from", new Token(Token::Type::KEYWORD_LOOP_START, "from", line_number)));
+    keyword_map.insert(std::make_pair("to", new Token(Token::Type::KEYWORD_LOOP_TO, "to", line_number)));
+    keyword_map.insert(std::make_pair("step", new Token(Token::Type::KEYWORD_LOOP_STEP, "step", line_number)));
 
     std::string raw = scan_other(input, index, end_match);
 

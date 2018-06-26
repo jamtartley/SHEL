@@ -29,6 +29,7 @@ struct Ast_Node {
         BLOCK,
         IF,
         WHILE,
+        LOOP,
         ASSIGNMENT,
         COMPARISON,
         VARIABLE,
@@ -124,6 +125,21 @@ struct Ast_While : Ast_Node {
     }
 };
 
+struct Ast_Loop : Ast_Node {
+    Ast_Node *start;
+    Ast_Node *to;
+    Ast_Node *step;
+    Ast_Block *body;
+
+    Ast_Loop(Ast_Node *start, Ast_Node *to, Ast_Node *step, Ast_Block *body) {
+        this->start = start;
+        this->to = to;
+        this->step = step;
+        this->body = body;
+        this->node_type = Ast_Node::Type::LOOP;
+    }
+};
+
 struct Ast_Literal : Ast_Node {
     std::string value;
 
@@ -210,6 +226,8 @@ Ast_Return *parse_return(Parser *parser);
 Ast_If *parse_if(Parser *parser);
 
 Ast_While *parse_while(Parser *parser);
+
+Ast_Loop *parse_loop(Parser *parser);
 
 Ast_Comparison *parse_comparison(Parser *parser);
 

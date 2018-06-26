@@ -123,6 +123,7 @@ bool evaluate_comparison(Interpreter *interp, Scope *scope, Ast_Comparison *comp
 }
 
 Return_Value *walk_if(Interpreter *interp, Scope *scope, Ast_If *if_node) {
+    // @TODO(HIGH) Allow 'else if' branching in if statement
     bool is_success = evaluate_comparison(interp, scope, if_node->comparison);
 
     if (is_success) {
@@ -141,6 +142,27 @@ Return_Value *walk_while(Interpreter *interp, Scope *scope, Ast_While *while_nod
 
     while (evaluate_comparison(interp, scope, while_node->comparison)) {
         ret = walk_block_node(interp, new Scope(scope), while_node->body);
+
+        if (ret != NULL) break;
+    }
+
+    return ret;
+}
+
+Return_Value *walk_loop(Interpreter *interp, Scope *scope, Ast_Loop *loop_node) {
+    // @ROBUSTNESS(MEDIUM) Check for weird from loop setups
+    // i.e. positive step value but higher start value than end
+    float from = walk_from_arithmetic_root(interp, scope, loop_node->start);
+    float to = walk_from_arithmetic_root(interp, scope, loop_node->to);
+    float step = walk_from_arithmetic_root(interp, scope, loop_node->step);
+    Return_Value *ret = NULL;
+    bool is_going_up = to > from;
+
+    for (float i = from; is_going_up ? i <= to : i >= to; i += step) {
+        Scope *body_scope = new Scope(scope);
+        assign_var(body_scope, "idx", std::to_string(i));
+
+        ret = walk_block_node(interp, body_scope, loop_node->body);
 
         if (ret != NULL) break;
     }
@@ -227,6 +249,8 @@ Return_Value *walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) 
         return walk_if(interp, scope, static_cast<Ast_If *>(root));
     } else if (root->node_type == Ast_Node::Type::WHILE) {
         return walk_while(interp, scope, static_cast<Ast_While *>(root));
+    } else if (root->node_type == Ast_Node::Type::LOOP) {
+        return walk_loop(interp, scope, static_cast<Ast_Loop *>(root));
     } else if (root->node_type == Ast_Node::Type::FUNCTION_CALL) {
         return walk_function_call(interp, scope, static_cast<Ast_Function_Call *>(root));
     } else if (root->node_type == Ast_Node::Type::ASSIGNMENT) {

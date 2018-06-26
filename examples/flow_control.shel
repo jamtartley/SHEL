@@ -1,12 +1,38 @@
 let a = 1;
 
+# The if statement works as in other C-style languages, except there
+# is no support for 'else if' or similar at the minute.
+
 if (a == 1) {
     print("a equals 1");
 } else {
     print("a does not equal 1");
 }
 
+# While in SHEL works exactly as you'd expect if coming from any C-style language.
+# The body of the statement is evaluated every time the conditional in
+# parentheses evaluates to true.
+
 while (a <= 5) {
     print(a);
     relet a = a + 1;
+}
+
+# Loops in SHEL work over a closed range,
+# that is to say that both end values are included.
+# idx is a special variable that is injected into the
+# scope of the body of the loop, and it provides the current
+# iteration index of the loop.
+
+from 0 to 5 step 1 {
+    print(idx);
+    
+    # If you want to access this value from inside an inner loop,
+    # simply assign it to a variable before and access that.
+    let i = idx;
+
+    from 10 to 5 step -1 {
+        print(idx);
+        print(i);
+    }
 }

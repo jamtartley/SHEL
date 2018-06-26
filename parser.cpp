@@ -199,6 +199,24 @@ Ast_While *parse_while(Parser *parser) {
     return new Ast_While(comparison, body);
 }
 
+Ast_Loop *parse_loop(Parser *parser) {
+    eat(parser, Token::Type::KEYWORD_LOOP_START);
+
+    Ast_Node *start = parse_arithmetic_expression(parser);
+
+    eat(parser, Token::Type::KEYWORD_LOOP_TO);
+
+    Ast_Node *to = parse_arithmetic_expression(parser);
+
+    eat(parser, Token::Type::KEYWORD_LOOP_STEP);
+
+    Ast_Node *step = parse_arithmetic_expression(parser);
+
+    Ast_Block *body = parse_block(parser, false);
+
+    return new Ast_Loop(start, to, step, body);
+}
+
 Ast_Comparison *parse_comparison(Parser *parser) {
     Ast_Node *left = parse_arithmetic_expression(parser);
 
@@ -263,6 +281,8 @@ Ast_Node *parse_statement(Parser *parser) {
         return parse_if(parser);
     } else if (curr->type == Token::Type::KEYWORD_WHILE) {
         return parse_while(parser);
+    } else if (curr->type == Token::Type::KEYWORD_LOOP_START) {
+        return parse_loop(parser);
     } else if (curr->type == Token::Type::KEYWORD_ASSIGN_VARIABLE) {
         ret = parse_assignment(parser, true);
         eat(parser, Token::Type::TERMINATOR);
