@@ -22,6 +22,8 @@ float walk_unary_op_node(Interpreter *interp, Scope *scope, Ast_Unary_Op *node);
 float get_number_literal(Scope *scope, Ast_Literal *node);
 float get_number_variable(Scope *scope, Ast_Variable *node);
 
+bool evaluate_comparison(Interpreter *interp, Scope *scope, Ast_Comparison *comparison);
+
 std::string get_string_literal(Scope *scope, Ast_Literal *node);
 std::string get_string_variable(Interpreter *interp, Scope *scope, Ast_Variable *node);
 
@@ -30,6 +32,7 @@ bool is_num(std::string str);
 void add_function_def_to_scope(Interpreter *interp, Scope *scope, Ast_Function_Definition *def);
 
 float walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_Call *call);
+void walk_if(Interpreter *interp, Scope *scope, Ast_If *if_node);
 void walk_from_root(Scope *scope, Ast_Node *root);
 
 void call_native_function(Interpreter *interp, Scope *scope, Ast_Function_Call *call);

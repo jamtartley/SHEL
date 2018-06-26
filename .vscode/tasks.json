@@ -9,7 +9,8 @@
                 "-g",
                 "*.cpp",
                 "-o",
-                "shel.o"
+                "shel.o",
+                "-std=c++11"
             ],
             "group": {
                 "kind": "build",

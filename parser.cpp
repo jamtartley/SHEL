@@ -148,6 +148,37 @@ Ast_Return *parse_return(Parser *parser) {
     return new Ast_Return(parse_arithmetic_expression(parser));
 }
 
+Ast_If *parse_if(Parser *parser) {
+    eat(parser, Token::Type::KEYWORD_IF);
+    eat(parser, Token::Type::L_PAREN);
+
+    Ast_Comparison *comparison = parse_comparison(parser);
+
+    eat(parser, Token::Type::R_PAREN);
+    Ast_Block *success = parse_block(parser, false);
+
+    Ast_Block *failure = nullptr;
+
+    if (parser->current_token->type == Token::Type::KEYWORD_ELSE) {
+        eat(parser, Token::Type::KEYWORD_ELSE);
+        failure = parse_block(parser, false);
+    }
+
+    return new Ast_If(comparison, success, failure);
+}
+
+Ast_Comparison *parse_comparison(Parser *parser) {
+    Ast_Node *left = parse_arithmetic_expression(parser);
+
+    // @ROBUSTNESS(LOW) Assert this is a comparator
+    Token *comparator = parser->current_token;
+    eat(parser, comparator->type);
+
+    Ast_Node *right = parse_arithmetic_expression(parser);
+
+    return new Ast_Comparison(left, right, comparator);
+}
+
 Ast_Block *parse_block(Parser *parser, bool is_global_scope) {
     if (is_global_scope == false) eat(parser, Token::Type::BLOCK_OPEN);
     std::vector<Ast_Node *> nodes = parse_statements(parser);
@@ -196,12 +227,27 @@ Ast_Node *parse_statement(Parser *parser) {
     } else if (curr->type == Token::Type::KEYWORD_RETURN) {
         ret = parse_return(parser);
         eat(parser, Token::Type::TERMINATOR);
-    } else if (curr->type == Token::Type::IDENT && next != nullptr && next->type == Token::Type::L_PAREN) {
-        ret = parse_function_call(parser);
-        eat(parser, Token::Type::TERMINATOR);
-    } else if (curr->type == Token::Type::IDENT && next != nullptr && next->type == Token::Type::ASSIGNMENT) {
-        ret = parse_assignment(parser);
-        eat(parser, Token::Type::TERMINATOR);
+    } else if (curr->type == Token::Type::KEYWORD_IF) {
+        return parse_if(parser);
+    } else if (curr->type == Token::Type::IDENT && next != nullptr) {
+        if (next->type == Token::Type::L_PAREN) {
+            ret = parse_function_call(parser);
+            eat(parser, Token::Type::TERMINATOR);
+        } else if (next->type == Token::Type::ASSIGNMENT) {
+            ret = parse_assignment(parser);
+            eat(parser, Token::Type::TERMINATOR);
+        } else {
+            switch (next->type) {
+                default:
+                case Token::Type::COMPARE_EQUALS:
+                case Token::Type::COMPARE_NOT_EQUALS:
+                case Token::Type::COMPARE_LESS_THAN:
+                case Token::Type::COMPARE_GREATER_THAN:
+                case Token::Type::COMPARE_LESS_THAN_EQUALS:
+                case Token::Type::COMPARE_GREATER_THAN_EQUALS:
+                    std::cout << "Comparison" << std::endl;
+            }
+        }
     } else {
         // @TODO(LOW) Error on not being able to parse statement into one of the above categories
     }

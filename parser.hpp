@@ -27,7 +27,9 @@ struct Ast_Node {
         UNARY_OP,
         LITERAL,
         BLOCK,
+        IF,
         ASSIGNMENT,
+        COMPARISON,
         VARIABLE,
         FUNCTION_DEFINITION,
         FUNCTION_CALL,
@@ -35,6 +37,8 @@ struct Ast_Node {
         RETURN
     };
 
+    // @TODO(MEDIUM) Add flags to Ast_Node
+    // Attaching some metadata to these at some point might be useful
     Type node_type;
 };
 
@@ -79,6 +83,32 @@ struct Ast_Block : Ast_Node {
         this->children = children;
         this->return_node = NULL;
         this->node_type = Ast_Node::Type::BLOCK;
+    }
+};
+
+struct Ast_Comparison : Ast_Node {
+    Ast_Node *left;
+    Ast_Node *right;
+    Token *comparator;
+
+    Ast_Comparison(Ast_Node *left, Ast_Node *right, Token *comparator) {
+        this->left = left;
+        this->right = right;
+        this->comparator = comparator;
+        this->node_type = Ast_Node::Type::COMPARISON;
+    }
+};
+
+struct Ast_If : Ast_Node {
+    Ast_Comparison *comparison;
+    Ast_Block *success;
+    Ast_Block *failure;
+
+    Ast_If(Ast_Comparison *comparison, Ast_Block *success, Ast_Block *failure) {
+        this->comparison = comparison;
+        this->success = success;
+        this->failure = failure;
+        this->node_type = Ast_Node::Type::IF;
     }
 };
 
@@ -162,6 +192,10 @@ Ast_Function_Call *parse_function_call(Parser *parser);
 Ast_Assignment *parse_assignment(Parser *parser);
 
 Ast_Return *parse_return(Parser *parser);
+
+Ast_If *parse_if(Parser *parser);
+
+Ast_Comparison *parse_comparison(Parser *parser);
 
 Ast_Block *parse_block(Parser *parser, bool is_global_scope);
 

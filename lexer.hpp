@@ -40,6 +40,7 @@ struct Token {
     Token::Type type;
     std::string value;
     int line_number;
+    int flags;
 
     Token(Token::Type type, std::string value, int line_number) {
         this->type = type;

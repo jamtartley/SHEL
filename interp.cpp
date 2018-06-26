@@ -90,6 +90,32 @@ std::string get_string_variable(Interpreter *interp, Scope *scope, Ast_Variable 
     }
 }
 
+bool evaluate_comparison(Interpreter *interp, Scope *scope, Ast_Comparison *comparison) {
+    // @TODO(HIGH) Don't assume numbers in comparison
+    float left = walk_from_arithmetic_root(interp, scope, comparison->left);
+    float right = walk_from_arithmetic_root(interp, scope, comparison->right);
+
+    switch (comparison->comparator->type) {
+        default:
+        case Token::Type::COMPARE_EQUALS:
+            return left == right;
+        case Token::Type::COMPARE_NOT_EQUALS:
+            return left != right;
+    }
+}
+
+void walk_if(Interpreter *interp, Scope *scope, Ast_If *if_node) {
+    bool is_success = evaluate_comparison(interp, scope, if_node->comparison);
+
+    if (is_success) {
+        walk_block_node(interp, new Scope(scope), if_node->success);
+    } else {
+        if (if_node->failure != NULL) {
+            walk_block_node(interp, new Scope(scope), if_node->failure);
+        }
+    }
+}
+
 void add_function_def_to_scope(Interpreter *interp, Scope *scope, Ast_Function_Definition *def) {
     set_func(scope, def->name, def);
 }
@@ -145,6 +171,8 @@ void walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) {
         walk_block_node(interp, scope, static_cast<Ast_Block *>(root));
     } else if (root->node_type == Ast_Node::Type::FUNCTION_DEFINITION) {
         add_function_def_to_scope(interp, scope, static_cast<Ast_Function_Definition *>(root));
+    } else if (root->node_type == Ast_Node::Type::IF) {
+        walk_if(interp, scope, static_cast<Ast_If *>(root));
     } else if (root->node_type == Ast_Node::Type::FUNCTION_CALL) {
         walk_function_call(interp, scope, static_cast<Ast_Function_Call *>(root));
     } else if (root->node_type == Ast_Node::Type::ASSIGNMENT) {
