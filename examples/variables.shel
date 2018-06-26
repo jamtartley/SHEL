@@ -1,17 +1,10 @@
 let a = 1;
 let b = 2;
 
-print(a);
-print(b);
+print("Let a is %", a);
+print("Let b is %", b);
+print("");
 
 relet a = 5;
 
-print(a);
-
-bug mute_a(a){
-    relet a = 3;
-    return a;
-}
-
-relet a = mute_a(a);
-print(a);
+print("Relet a is %", a);

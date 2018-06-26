@@ -12,7 +12,6 @@ float walk_from_arithmetic_root(Interpreter *interp, Scope *scope, Ast_Node *nod
 float get_number_variable(Interpreter *interp, Scope *scope, Ast_Variable *node);
 bool is_num(std::string str);
 Return_Value *walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root);
-void print(std::string str);
 
 std::string get_unassigned_variable_error(std::string name, int line_number) {
     std::stringstream ss;
@@ -192,13 +191,15 @@ Return_Value *walk_function_call(Interpreter *interp, Scope *scope, Ast_Function
     } else {
         // @HACK(HIGH) Horrible call out to native print
         if (call->name == "print") {
-            Ast_Node *first_arg = call->args[0];
+            // This just isn't very nice
+            std::string main_string = static_cast<Ast_Literal *>(call->args[0])->value;
+            std::vector<std::string> args;
 
-            if (first_arg->node_type == Ast_Node::Type::LITERAL) {
-                print(static_cast<Ast_Literal *>(first_arg)->value);
-            } else if (first_arg->node_type == Ast_Node::Type::VARIABLE) {
-                print(std::to_string(walk_from_arithmetic_root(interp, scope, first_arg)));
+            for (int i = 1; i < call->args.size(); i++) {
+                args.push_back(std::to_string(walk_from_arithmetic_root(interp, scope, call->args[i])));
             }
+
+            print_native(main_string, args);
         }
         return nullptr;
     }
@@ -259,12 +260,6 @@ Return_Value *walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) 
     } else {
         return nullptr;
     }
-}
-
-void print(std::string str) {
-    // @HACK(HIGH) @ROBUSTNESS(HIGH) Need better way of calling out to native functions
-    // Just in here so it's easy to print out variable values in a .shel file at the min
-    print_native(str);
 }
 
 void interpret(Interpreter *interp) {
