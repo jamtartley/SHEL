@@ -6,7 +6,7 @@
 Var_With_Success *get_var(Scope *scope, std::string name) {
     if (is_var_in_scope(scope, name)) return new Var_With_Success(scope->variables[name], true);
     if (scope->parent != nullptr) return get_var(scope->parent, name);
-    return new Var_With_Success(nullptr, false);
+    return new Var_With_Success("", false);
 }
 
 Func_With_Success *get_func(Scope *scope, std::string name) {
@@ -16,6 +16,19 @@ Func_With_Success *get_func(Scope *scope, std::string name) {
 }
 
 void set_var(Scope *scope, std::string name, std::string value) {
+    Scope *current = scope;
+
+    // Try and find variable in parent scope, in case
+    // this is a re-assignment rather than an assignment
+    while (current != NULL) {
+        if (is_var_in_scope(current, name)) {
+            current->variables[name] = value;
+            return;
+        }
+
+        current = current->parent;
+    }
+
     scope->variables[name] = value;
 }
 

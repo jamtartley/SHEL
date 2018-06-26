@@ -167,6 +167,19 @@ Ast_If *parse_if(Parser *parser) {
     return new Ast_If(comparison, success, failure);
 }
 
+Ast_While *parse_while(Parser *parser) {
+    eat(parser, Token::Type::KEYWORD_WHILE);
+    eat(parser, Token::Type::L_PAREN);
+
+    Ast_Comparison *comparison = parse_comparison(parser);
+
+    eat(parser, Token::Type::R_PAREN);
+
+    Ast_Block *body = parse_block(parser, false);
+
+    return new Ast_While(comparison, body);
+}
+
 Ast_Comparison *parse_comparison(Parser *parser) {
     Ast_Node *left = parse_arithmetic_expression(parser);
 
@@ -229,6 +242,8 @@ Ast_Node *parse_statement(Parser *parser) {
         eat(parser, Token::Type::TERMINATOR);
     } else if (curr->type == Token::Type::KEYWORD_IF) {
         return parse_if(parser);
+    } else if (curr->type == Token::Type::KEYWORD_WHILE) {
+        return parse_while(parser);
     } else if (curr->type == Token::Type::IDENT && next != nullptr) {
         if (next->type == Token::Type::L_PAREN) {
             ret = parse_function_call(parser);

@@ -10,11 +10,16 @@ bug add(x, y) {
     return x + y;
 }
 
-a = 2;
+a = 1;
 b = add(1, square(cube(a)));
+c = 1;
 
-if (a == 2) {
-    print("TRUE");
-} else {
-    print("FALSE");
+while (c <= 100000000) {
+    print(c);
+
+    if (c == 1) {
+        c = 2;
+    } else {
+        c = c * 2;
+    }
 }

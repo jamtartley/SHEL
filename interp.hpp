@@ -33,6 +33,7 @@ void add_function_def_to_scope(Interpreter *interp, Scope *scope, Ast_Function_D
 
 float walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_Call *call);
 void walk_if(Interpreter *interp, Scope *scope, Ast_If *if_node);
+void walk_while(Interpreter *interp, Scope *scope, Ast_While *while_node);
 void walk_from_root(Scope *scope, Ast_Node *root);
 
 void call_native_function(Interpreter *interp, Scope *scope, Ast_Function_Call *call);

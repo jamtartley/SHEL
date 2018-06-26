@@ -102,6 +102,14 @@ bool evaluate_comparison(Interpreter *interp, Scope *scope, Ast_Comparison *comp
             return left == right;
         case Token::Type::COMPARE_NOT_EQUALS:
             return left != right;
+        case Token::Type::COMPARE_GREATER_THAN:
+            return left > right;
+        case Token::Type::COMPARE_GREATER_THAN_EQUALS:
+            return left >= right;
+        case Token::Type::COMPARE_LESS_THAN:
+            return left < right;
+        case Token::Type::COMPARE_LESS_THAN_EQUALS:
+            return left <= right;
     }
 }
 
@@ -114,6 +122,12 @@ void walk_if(Interpreter *interp, Scope *scope, Ast_If *if_node) {
         if (if_node->failure != NULL) {
             walk_block_node(interp, new Scope(scope), if_node->failure);
         }
+    }
+}
+
+void walk_while(Interpreter *interp, Scope *scope, Ast_While *while_node) {
+    while (evaluate_comparison(interp, scope, while_node->comparison)) {
+        walk_block_node(interp, new Scope(scope), while_node->body);
     }
 }
 
@@ -139,7 +153,13 @@ float walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_Call *c
     } else {
         // @HACK(HIGH) Horrible call out to native print
         if (call->name == "print") {
-            print(static_cast<Ast_Literal *>(call->args[0])->value);
+            Ast_Node *first_arg = call->args[0];
+
+            if (first_arg->node_type == Ast_Node::Type::LITERAL) {
+                print(static_cast<Ast_Literal *>(first_arg)->value);
+            } else if (first_arg->node_type == Ast_Node::Type::VARIABLE) {
+                print(std::to_string(walk_from_arithmetic_root(interp, scope, first_arg)));
+            }
         }
         return 0;
     }
@@ -177,6 +197,8 @@ void walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) {
         add_function_def_to_scope(interp, scope, static_cast<Ast_Function_Definition *>(root));
     } else if (root->node_type == Ast_Node::Type::IF) {
         walk_if(interp, scope, static_cast<Ast_If *>(root));
+    } else if (root->node_type == Ast_Node::Type::WHILE) {
+        walk_while(interp, scope, static_cast<Ast_While *>(root));
     } else if (root->node_type == Ast_Node::Type::FUNCTION_CALL) {
         walk_function_call(interp, scope, static_cast<Ast_Function_Call *>(root));
     } else if (root->node_type == Ast_Node::Type::ASSIGNMENT) {

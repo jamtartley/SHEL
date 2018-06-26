@@ -28,6 +28,7 @@ struct Ast_Node {
         LITERAL,
         BLOCK,
         IF,
+        WHILE,
         ASSIGNMENT,
         COMPARISON,
         VARIABLE,
@@ -109,6 +110,17 @@ struct Ast_If : Ast_Node {
         this->success = success;
         this->failure = failure;
         this->node_type = Ast_Node::Type::IF;
+    }
+};
+
+struct Ast_While : Ast_Node {
+    Ast_Comparison *comparison;
+    Ast_Block *body;
+
+    Ast_While(Ast_Comparison *comparison, Ast_Block *body) {
+        this->comparison = comparison;
+        this->body = body;
+        this->node_type = Ast_Node::Type::WHILE;
     }
 };
 
@@ -194,6 +206,8 @@ Ast_Assignment *parse_assignment(Parser *parser);
 Ast_Return *parse_return(Parser *parser);
 
 Ast_If *parse_if(Parser *parser);
+
+Ast_While *parse_while(Parser *parser);
 
 Ast_Comparison *parse_comparison(Parser *parser);
 
