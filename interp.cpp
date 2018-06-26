@@ -8,8 +8,9 @@
 
 float walk_from_arithmetic_root(Interpreter *interp, Scope *scope, Ast_Node *node);
 float get_number_variable(Interpreter *interp, Scope *scope, Ast_Variable *node);
+bool is_num(std::string str);
 void walk_from_root(Interpreter *interp, Scope *scope,  Ast_Node *root);
-void call_native_function(Interpreter *interp, Scope *scope, Ast_Function_Call *call);
+void print(std::string str);
 
 float walk_unary_op_node(Interpreter *interp, Scope *scope, Ast_Unary_Op *node) {
     Token::Type type = node->op->type;
@@ -136,7 +137,10 @@ float walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_Call *c
 
         return walk_block_node(interp, func_scope, fs->body->block);
     } else {
-        call_native_function(interp, scope, call);
+        // @HACK(HIGH) Horrible call out to native print
+        if (call->name == "print") {
+            print(static_cast<Ast_Literal *>(call->args[0])->value);
+        }
         return 0;
     }
 }
@@ -180,22 +184,10 @@ void walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) {
     }
 }
 
-void call_native_function(Interpreter *interp, Scope *scope, Ast_Function_Call *call) {
+void print(std::string str) {
     // @HACK(HIGH) @ROBUSTNESS(HIGH) Need better way of calling out to native functions
     // Just in here so it's easy to print out variable values in a .shel file at the min
-    std::vector<float> evaluated_args;
-
-    for (Ast_Node *arg : call->args) {
-        float evaluated_arg = walk_from_arithmetic_root(interp, scope, arg);
-
-        evaluated_args.push_back(evaluated_arg);
-    }
-
-    if (call->name == "print") {
-        print(std::to_string(evaluated_args[0]));
-    } else {
-        std::cerr << "Attempted to call function: '" << call->name << "' without first defining it" << std::endl;
-    }
+    print_native(str);
 }
 
 void interpret(Interpreter *interp) {

@@ -1,1 +1,1 @@
-void print(std::string str);
+void print_native(std::string str);
