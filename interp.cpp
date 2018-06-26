@@ -9,7 +9,7 @@
 float walk_from_arithmetic_root(Interpreter *interp, Scope *scope, Ast_Node *node);
 float get_number_variable(Interpreter *interp, Scope *scope, Ast_Variable *node);
 bool is_num(std::string str);
-void walk_from_root(Interpreter *interp, Scope *scope,  Ast_Node *root);
+Return_Value *walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root);
 void print(std::string str);
 
 float walk_unary_op_node(Interpreter *interp, Scope *scope, Ast_Unary_Op *node) {
@@ -43,7 +43,7 @@ float walk_from_arithmetic_root(Interpreter *interp, Scope *scope, Ast_Node *nod
     } else if (node->node_type == Ast_Node::Type::LITERAL) {
         return get_number_literal(scope, static_cast<Ast_Literal *>(node));
     } else if (node->node_type == Ast_Node::Type::FUNCTION_CALL) {
-        return walk_function_call(interp, scope, static_cast<Ast_Function_Call *>(node));
+        return walk_function_call(interp, scope, static_cast<Ast_Function_Call *>(node))->num_val;
     } else {
         return get_number_variable(interp, scope, static_cast<Ast_Variable *>(node));
     }
@@ -70,13 +70,13 @@ float get_number_variable(Interpreter *interp, Scope *scope, Ast_Variable *node)
     }
 }
 
-float walk_block_node(Interpreter *interp, Scope *scope, Ast_Block *root) {
+Return_Value *walk_block_node(Interpreter *interp, Scope *scope, Ast_Block *root) {
     for (Ast_Node *child : root->children) {
-        walk_from_root(interp, scope, child);
+        Return_Value *ret = walk_from_root(interp, scope, child);
+        if (ret != NULL) return ret;
     }
 
-    if (root->return_node == NULL || root->return_node->value == NULL) return 0; // Empty block
-    return walk_from_arithmetic_root(interp, scope, root->return_node->value);
+    return nullptr;
 }
 
 std::string get_string_variable(Interpreter *interp, Scope *scope, Ast_Variable *node) {
@@ -113,29 +113,37 @@ bool evaluate_comparison(Interpreter *interp, Scope *scope, Ast_Comparison *comp
     }
 }
 
-void walk_if(Interpreter *interp, Scope *scope, Ast_If *if_node) {
+Return_Value *walk_if(Interpreter *interp, Scope *scope, Ast_If *if_node) {
     bool is_success = evaluate_comparison(interp, scope, if_node->comparison);
 
     if (is_success) {
-        walk_block_node(interp, new Scope(scope), if_node->success);
+        return walk_block_node(interp, new Scope(scope), if_node->success);
     } else {
         if (if_node->failure != NULL) {
-            walk_block_node(interp, new Scope(scope), if_node->failure);
+            return walk_block_node(interp, new Scope(scope), if_node->failure);
         }
     }
+
+    return nullptr;
 }
 
-void walk_while(Interpreter *interp, Scope *scope, Ast_While *while_node) {
+Return_Value *walk_while(Interpreter *interp, Scope *scope, Ast_While *while_node) {
+    Return_Value *ret = NULL;
+
     while (evaluate_comparison(interp, scope, while_node->comparison)) {
-        walk_block_node(interp, new Scope(scope), while_node->body);
+        ret = walk_block_node(interp, new Scope(scope), while_node->body);
+
+        if (ret != NULL) break;
     }
+
+    return ret;
 }
 
 void add_function_def_to_scope(Interpreter *interp, Scope *scope, Ast_Function_Definition *def) {
     set_func(scope, def->name, def);
 }
 
-float walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_Call *call) {
+Return_Value *walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_Call *call) {
     Func_With_Success *fs = get_func(scope, call->name);
 
     if (fs->was_success) {
@@ -145,8 +153,8 @@ float walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_Call *c
         // before we walk the main function block
         for (int i = 0; i < fs->body->args.size(); i++) {
             Ast_Function_Argument *current = fs->body->args[i];
-
-            set_var(func_scope, current->name, std::to_string(walk_from_arithmetic_root(interp, scope, call->args[i])));
+            std::string val = std::to_string(walk_from_arithmetic_root(interp, scope, call->args[i]));
+            set_var(func_scope, current->name, val);
         }
 
         return walk_block_node(interp, func_scope, fs->body->block);
@@ -161,7 +169,7 @@ float walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_Call *c
                 print(std::to_string(walk_from_arithmetic_root(interp, scope, first_arg)));
             }
         }
-        return 0;
+        return nullptr;
     }
 }
 
@@ -190,19 +198,26 @@ void walk_assignment_node(Interpreter *interp, Scope *scope, Ast_Assignment *nod
     }
 }
 
-void walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) {
+Return_Value *walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) {
     if (root->node_type == Ast_Node::Type::BLOCK) {
-        walk_block_node(interp, scope, static_cast<Ast_Block *>(root));
+        return walk_block_node(interp, scope, static_cast<Ast_Block *>(root));
     } else if (root->node_type == Ast_Node::Type::FUNCTION_DEFINITION) {
         add_function_def_to_scope(interp, scope, static_cast<Ast_Function_Definition *>(root));
+        return nullptr;
+    } else if (root->node_type == Ast_Node::Type::RETURN) {
+        float d = walk_from_arithmetic_root(interp, scope, static_cast<Ast_Return *>(root)->value);
+        return new Return_Value(d);
     } else if (root->node_type == Ast_Node::Type::IF) {
-        walk_if(interp, scope, static_cast<Ast_If *>(root));
+        return walk_if(interp, scope, static_cast<Ast_If *>(root));
     } else if (root->node_type == Ast_Node::Type::WHILE) {
-        walk_while(interp, scope, static_cast<Ast_While *>(root));
+        return walk_while(interp, scope, static_cast<Ast_While *>(root));
     } else if (root->node_type == Ast_Node::Type::FUNCTION_CALL) {
-        walk_function_call(interp, scope, static_cast<Ast_Function_Call *>(root));
+        return walk_function_call(interp, scope, static_cast<Ast_Function_Call *>(root));
     } else if (root->node_type == Ast_Node::Type::ASSIGNMENT) {
         walk_assignment_node(interp, scope, static_cast<Ast_Assignment *>(root));
+        return nullptr;
+    } else {
+        return nullptr;
     }
 }
 

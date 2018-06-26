@@ -31,7 +31,7 @@ void print_tokens(std::vector<Token *> tokens) {
 }
 
 int main() {
-    std::string in_file_name = "main.shel";
+    std::string in_file_name = "fib.shel";
     std::ifstream in_file(in_file_name);
 
     if (!in_file) {
@@ -42,8 +42,6 @@ int main() {
     std::vector<Token *> tokens = lex(file_to_string(in_file));
     Parser *parser = new Parser(tokens, Token::Type::END_OF_FILE);
     Interpreter *interp = new Interpreter(parser);
-
-    //print_tokens(tokens);
 
     interpret(interp);
 

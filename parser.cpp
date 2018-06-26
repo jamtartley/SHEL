@@ -199,7 +199,7 @@ Ast_Block *parse_block(Parser *parser, bool is_global_scope) {
 
     for (Ast_Node *node : nodes) {
         // First return node in a block wins
-        if (block->return_node != NULL) continue;
+        if (block->return_node != NULL) break;
 
         // @TODO(LOW) Warn if multiple returns in a block
         if (node->node_type == Ast_Node::Type::RETURN) block->return_node = static_cast<Ast_Return *>(node);

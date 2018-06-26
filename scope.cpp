@@ -16,19 +16,6 @@ Func_With_Success *get_func(Scope *scope, std::string name) {
 }
 
 void set_var(Scope *scope, std::string name, std::string value) {
-    Scope *current = scope;
-
-    // Try and find variable in parent scope, in case
-    // this is a re-assignment rather than an assignment
-    while (current != NULL) {
-        if (is_var_in_scope(current, name)) {
-            current->variables[name] = value;
-            return;
-        }
-
-        current = current->parent;
-    }
-
     scope->variables[name] = value;
 }
 
