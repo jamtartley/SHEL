@@ -46,15 +46,16 @@ struct Token {
     };
 
     enum Flags {
-        COMPARISON = 1 << 0,
-        OPERATOR = 1 << 1,
-        KEYWORD = 1 << 2,
+        NONE       = 1 << 0,
+        COMPARISON = 1 << 1,
+        OPERATOR   = 1 << 2,
+        KEYWORD    = 1 << 3,
     };
 
     Token::Type type;
     std::string value;
     int line_number;
-    int flags;
+    int flags = 0;
 
     Token(Token::Type type, std::string value, int line_number) {
         this->type = type;
