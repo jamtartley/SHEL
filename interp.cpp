@@ -8,7 +8,6 @@
 #include "scope.hpp"
 #include "shel_lib.hpp"
 
-float get_number_variable(Interpreter *interp, Scope *scope, Ast_Variable *node);
 bool is_num(std::string str);
 Data_Value *walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root);
 
@@ -25,17 +24,11 @@ Data_Value *walk_expression(Interpreter *interp, Scope *scope, Ast_Node *node) {
     } else if (node->node_type == Ast_Node::Type::UNARY_OP) {
         return walk_unary_op_node(interp, scope, static_cast<Ast_Unary_Op *>(node));
     } else if (node->node_type == Ast_Node::Type::LITERAL) {
-        Ast_Literal *lit = static_cast<Ast_Literal *>(node);
-        if (is_num(lit->value)) {
-            return new Data_Value(std::stof(lit->value));
-        } else {
-            // @TODO(MEDIUM) Handle bools here
-            return new Data_Value(lit->value);
-        }
+        return get_data_from_literal(interp, scope, static_cast<Ast_Literal *>(node));
     } else if (node->node_type == Ast_Node::Type::FUNCTION_CALL) {
         return walk_function_call(interp, scope, static_cast<Ast_Function_Call *>(node));
     } else {
-        return new Data_Value(get_number_variable(interp, scope, static_cast<Ast_Variable *>(node)));
+        return get_variable(interp, scope, static_cast<Ast_Variable *>(node));
     }
 }
 
@@ -62,7 +55,7 @@ Data_Value *walk_binary_op_node(Interpreter *interp, Scope *scope, Ast_Binary_Op
         if (left->data_type == Data_Type::NUM) {
             return new Data_Value(left->num_val + right->num_val);
         } else if (left->data_type == Data_Type::STR) {
-            return new Data_Value(left->str_val.append(right->str_val));
+            return new Data_Value(left->str_val + right->str_val);
         } else {
             report_fatal_error("Attempted to '+' incompatible expressions");
             return nullptr;
@@ -87,38 +80,49 @@ void fail_if_binary_op_invalid(Data_Value *left, Data_Value *right, Token *op) {
         report_fatal_error("Cannot perform binary operations on bool expressions");
     }
 
+    if (left_t != right_t) {
+        report_fatal_error("Cannot perform binary operations on two mismatched expression types");
+    }
+
     switch (op->type) {
         case Token::Type::OP_PLUS:
+            // Can + both num and str
+            return;
         case Token::Type::OP_MINUS:
         case Token::Type::OP_MULTIPLY:
-        case Token::Type::OP_DIVIDE:
-        case Token::Type::OP_MODULO:
-            if (left_t != right_t) {
+        case Token::Type::OP_DIVIDE: {
+            if (left_t == Data_Type::STR) {
                 std::stringstream ss;
-                ss << "Cannot perform '" << op->value << "' on two mismatched expression types";
+                ss << "Cannot perform '" << op->value << "' on two string types";
                 report_fatal_error(ss.str());
             }
             break;
+        }
         default:
             report_fatal_error("Invalid binary operator");
             break;
     }
 }
 
-std::string get_string_literal(Scope *scope, Ast_Literal *node) {
-    return node->value;
-}
-
-float get_number_variable(Interpreter *interp, Scope *scope, Ast_Variable *node) {
+Data_Value *get_variable(Interpreter *interp, Scope *scope, Ast_Variable *node) {
     std::string name = node->name;
     Var_With_Success *var = get_var(scope, name);
 
     if (var->was_success) {
         // Variables stored as maps of string name to string value so need to convert to float
-        return var->num_value;
+        return var->data;
     } else {
         report_fatal_error(get_unassigned_variable_error(name, node->token->line_number));
-        return 0;
+        return nullptr;
+    }
+}
+
+Data_Value *get_data_from_literal(Interpreter *interp, Scope *scope, Ast_Literal *lit) {
+    switch (lit->data_type) {
+        case Data_Type::NUM: return new Data_Value(std::stof(lit->value));
+        case Data_Type::STR: return new Data_Value(lit->value);
+        case Data_Type::BOOL: return new Data_Value(lit->value == "true" ? true : false);
+        default: return nullptr;
     }
 }
 
@@ -216,7 +220,7 @@ Data_Value *walk_loop(Interpreter *interp, Scope *scope, Ast_Loop *loop_node) {
 
     for (float i = from->num_val; is_going_up ? i <= to->num_val : i >= to->num_val; i += step->num_val) {
         Scope *body_scope = new Scope(scope);
-        assign_var(body_scope, "idx", std::to_string(i));
+        assign_var(body_scope, "idx", new Data_Value(float(i)));
 
         ret = walk_block_node(interp, body_scope, loop_node->body);
 
@@ -250,9 +254,8 @@ Data_Value *walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_C
         for (int i = 0; i < fs->body->args.size(); i++) {
             Ast_Function_Argument *current = fs->body->args[i];
             Data_Value *expr = walk_expression(interp, scope, call->args[i]);
-            std::string str_val = get_string_from_return_value(expr);
 
-            assign_var(func_scope, current->name, str_val);
+            assign_var(func_scope, current->name, expr);
         }
 
         return walk_block_node(interp, func_scope, fs->body->block);
@@ -284,12 +287,12 @@ bool is_num(std::string str) {
 void walk_assignment_node(Interpreter *interp, Scope *scope, Ast_Assignment *node) {
     std::string name = node->left->name;
     Ast_Node::Type type = node->right->node_type;
-    std::string value = get_string_from_return_value(walk_expression(interp, scope, node->right));
+    Data_Value *expr = walk_expression(interp, scope, node->right);
 
     if (node->is_first_assign) {
-        assign_var(scope, name, value);
+        assign_var(scope, name, expr);
     } else {
-        reassign_var(scope, name, value);
+        reassign_var(scope, name, expr);
     }
 }
 

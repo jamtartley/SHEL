@@ -4,6 +4,7 @@
 #include <map>
 #include "parser.hpp"
 #include "scope.hpp"
+#include "typer.hpp"
 
 struct Interpreter {
     Parser *parser;
@@ -13,41 +14,16 @@ struct Interpreter {
     }
 };
 
-struct Data_Value {
-    float num_val;
-    std::string str_val;
-    bool bool_val;
-
-    Data_Type data_type = Data_Type::UNKNOWN;
-
-    Data_Value(float num_val) {
-        this->num_val = num_val;
-        this->data_type = Data_Type::NUM;
-    }
-
-    Data_Value(std::string str_val) {
-        this->str_val = str_val;
-        this->data_type = Data_Type::STR;
-    }
-
-    Data_Value(bool bool_val) {
-        this->bool_val = bool_val;
-        this->data_type = Data_Type::BOOL;
-    }
-};
-
 Data_Value *walk_block_node(Interpreter *interp, Scope *scope, Ast_Block *root);
 
 Data_Value *walk_expression(Interpreter *interp, Scope *scope, Ast_Node *node);
 Data_Value *walk_binary_op_node(Interpreter *interp, Scope *scope, Ast_Binary_Op *node);
 Data_Value *walk_unary_op_node(Interpreter *interp, Scope *scope, Ast_Unary_Op *node);
-
-float get_number_literal(Scope *scope, Ast_Literal *node);
-float get_number_variable(Scope *scope, Ast_Variable *node);
+Data_Value *get_variable(Interpreter *interp, Scope *scope, Ast_Variable *node);
+Data_Value *get_data_from_literal(Interpreter *interp, Scope *scope, Ast_Literal *lit);
 
 bool evaluate_comparison(Interpreter *interp, Scope *scope, Ast_Comparison *comparison);
 
-std::string get_string_literal(Scope *scope, Ast_Literal *node);
 std::string get_string_from_return_value(Data_Value *ret);
 
 bool is_num(std::string str);

@@ -3,11 +3,12 @@
 
 #include <map>
 #include "parser.hpp"
+#include "typer.hpp"
 
 struct Scope {
     int depth; // @CLEANUP Does scope need depth?
     Scope *parent;
-    std::map<std::string, std::string> variables;
+    std::map<std::string, Data_Value *> variables;
     std::map<std::string, Ast_Function_Definition *> functions;
 
     Scope(Scope *parent) {
@@ -27,21 +28,19 @@ struct Func_With_Success {
 };
 
 struct Var_With_Success {
-    std::string str_value;
-    float num_value;
+    Data_Value *data;
     bool was_success;
 
-    Var_With_Success(std::string str_value, bool was_success) {
-        this->str_value = str_value;
-        this->num_value = std::atof(str_value.c_str());
+    Var_With_Success(Data_Value *data, bool was_success) {
+        this->data = data;
         this->was_success = was_success;
     }
 };
 
 Var_With_Success *get_var(Scope *scope, std::string name); 
 Func_With_Success *get_func(Scope *scope, std::string name); 
-void assign_var(Scope *scope, std::string name, std::string value); 
-void reassign_var(Scope *scope, std::string name, std::string value); 
+void assign_var(Scope *scope, std::string name, Data_Value *value); 
+void reassign_var(Scope *scope, std::string name, Data_Value *value); 
 void set_func(Scope *scope, std::string name, Ast_Function_Definition *func); 
 bool is_var_in_scope(Scope *scope, std::string name);
 bool is_func_in_scope(Scope *scope, std::string name);

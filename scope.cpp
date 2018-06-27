@@ -9,7 +9,7 @@
 Var_With_Success *get_var(Scope *scope, std::string name) {
     if (is_var_in_scope(scope, name)) return new Var_With_Success(scope->variables[name], true);
     if (scope->parent != nullptr) return get_var(scope->parent, name);
-    return new Var_With_Success("", false);
+    return new Var_With_Success(nullptr, false);
 }
 
 Func_With_Success *get_func(Scope *scope, std::string name) {
@@ -18,11 +18,11 @@ Func_With_Success *get_func(Scope *scope, std::string name) {
     return new Func_With_Success(nullptr, false);
 }
 
-void assign_var(Scope *scope, std::string name, std::string value) {
+void assign_var(Scope *scope, std::string name, Data_Value *value) {
     scope->variables[name] = value;
 }
 
-void reassign_var(Scope *scope, std::string name, std::string value) {
+void reassign_var(Scope *scope, std::string name, Data_Value *value) {
     Scope *current = scope;
 
     // Move up scopes looking for a variable of the given name to reassign

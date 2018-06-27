@@ -1,12 +1,25 @@
 let a = 1;
 let b = 2;
 let c = "test";
-let d = false;
+let d = true;
+
+let e = a + b;
+let f = c + c;
 
 print("Let a is %", a);
 print("Let b is %", b);
+print("Let c is %", c);
+print("Let d is %", d);
+
+print("");
+
+print("Let e is a + b:  %", e);
+print("Let f is c + c:  %", f);
+
 print("");
 
 relet a = 5;
+relet c = 2;
 
 print("Relet a is %", a);
+print("c was str, relet to num: %", c);

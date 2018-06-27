@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "lexer.hpp"
+#include "typer.hpp"
 
 struct Parser {
     std::vector<Token *> tokens;
@@ -16,13 +17,6 @@ struct Parser {
         this->current_token = tokens[0];
         this->position = 0;
     }
-};
-
-enum Data_Type {
-    NUM,
-    STR,
-    BOOL,
-    UNKNOWN
 };
 
 struct Ast_Node {
@@ -152,8 +146,9 @@ struct Ast_Loop : Ast_Node {
 struct Ast_Literal : Ast_Node {
     std::string value;
 
-    Ast_Literal(std::string value) {
+    Ast_Literal(std::string value, Data_Type type) {
         this->value = value;
+        this->data_type = type;
         this->node_type = Ast_Node::Type::LITERAL;
     }
 };

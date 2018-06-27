@@ -35,11 +35,15 @@ Ast_Node *parse_arithmetic_factor(Parser *parser) {
             return new Ast_Unary_Op(token, parse_arithmetic_factor(parser));
         }
         case Token::Type::NUMBER:
+            eat(parser, token->type);
+            return new Ast_Literal(token->value, Data_Type::NUM);
         case Token::Type::STRING:
+            eat(parser, token->type);
+            return new Ast_Literal(token->value, Data_Type::STR);
         case Token::Type::TRUE:
         case Token::Type::FALSE: {
             eat(parser, token->type);
-            return new Ast_Literal(token->value);
+            return new Ast_Literal(token->value, Data_Type::BOOL);
         }
         case Token::Type::IDENT: {
             if (next->type == Token::Type::L_PAREN) {
