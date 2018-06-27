@@ -246,14 +246,24 @@ Data_Value *walk_while(Interpreter *interp, Scope *scope, Ast_While *while_node)
 }
 
 Data_Value *walk_loop(Interpreter *interp, Scope *scope, Ast_Loop *loop_node) {
-    // @ROBUSTNESS(MEDIUM) Check for weird from loop setups
-    // i.e. positive step value but higher start value than end
     Data_Value *from = walk_expression(interp, scope, loop_node->start);
     Data_Value *to = walk_expression(interp, scope, loop_node->to);
     Data_Value *step = walk_expression(interp, scope, loop_node->step);
 
     if (from->data_type != Data_Type::NUM || to->data_type != Data_Type::NUM || step->data_type != Data_Type::NUM) {
         report_fatal_error("Attempted to use non-num expression as control in a from loop");
+    }
+
+    if (step->num_val < 0 && from->num_val < to->num_val) {
+        report_fatal_error("from < to but step value is negative");
+    }
+
+    if (step->num_val > 0 && from->num_val > to->num_val) {
+        report_fatal_error("to > from but step value is positive");
+    }
+
+    if (step->num_val == 0) {
+        report_fatal_error("step value cannot be 0");
     }
 
     Data_Value *ret = NULL;
