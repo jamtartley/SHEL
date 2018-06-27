@@ -18,6 +18,13 @@ struct Parser {
     }
 };
 
+enum Data_Type {
+    NUM,
+    STR,
+    BOOL,
+    UNKNOWN
+};
+
 struct Ast_Node {
     // @ROBUSTNESS(MEDIUM) @CLEANUP Storing type enum value in Ast_Node
     // This is a bit of a workaround for determining the type of a node
@@ -42,6 +49,7 @@ struct Ast_Node {
     // @TODO(MEDIUM) Add flags to Ast_Node
     // Attaching some metadata to these at some point might be useful
     Type node_type;
+    Data_Type data_type = Data_Type::UNKNOWN;
 };
 
 struct Ast_Binary_Op : Ast_Node {
@@ -97,6 +105,7 @@ struct Ast_Comparison : Ast_Node {
         this->left = left;
         this->right = right;
         this->comparator = comparator;
+        this->data_type = Data_Type::BOOL;
         this->node_type = Ast_Node::Type::COMPARISON;
     }
 };

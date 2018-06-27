@@ -8,10 +8,9 @@
 #include "scope.hpp"
 #include "shel_lib.hpp"
 
-float walk_from_arithmetic_root(Interpreter *interp, Scope *scope, Ast_Node *node);
 float get_number_variable(Interpreter *interp, Scope *scope, Ast_Variable *node);
 bool is_num(std::string str);
-Return_Value *walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root);
+Data_Value *walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root);
 
 std::string get_unassigned_variable_error(std::string name, int line_number) {
     std::stringstream ss;
@@ -20,47 +19,90 @@ std::string get_unassigned_variable_error(std::string name, int line_number) {
     return ss.str();
 }
 
-float walk_unary_op_node(Interpreter *interp, Scope *scope, Ast_Unary_Op *node) {
-    Token::Type type = node->op->type;
-
-    if (type == Token::Type::OP_PLUS) {
-        return +walk_from_arithmetic_root(interp, scope, node->node);
-    } else {
-        return -walk_from_arithmetic_root(interp, scope, node->node);
-    }
-}
-
-float walk_binary_op_node(Interpreter *interp, Scope *scope, Ast_Binary_Op *node) {
-    // @TODO(LOW) Handle string concatenation here
-    if (node->op->type == Token::Type::OP_PLUS) {
-        return walk_from_arithmetic_root(interp, scope, node->left) + walk_from_arithmetic_root(interp, scope, node->right);
-    } else if (node->op->type == Token::Type::OP_MINUS) {
-        return walk_from_arithmetic_root(interp, scope, node->left) - walk_from_arithmetic_root(interp, scope, node->right);
-    } else if (node->op->type == Token::Type::OP_MULTIPLY) {
-        return walk_from_arithmetic_root(interp, scope, node->left) * walk_from_arithmetic_root(interp, scope, node->right);
-    } else if (node->op->type == Token::Type::OP_DIVIDE) {
-        return walk_from_arithmetic_root(interp, scope, node->left) / walk_from_arithmetic_root(interp, scope, node->right);
-    } else {
-        return int(walk_from_arithmetic_root(interp, scope, node->left)) % int(walk_from_arithmetic_root(interp, scope, node->right));
-    }
-}
-
-float walk_from_arithmetic_root(Interpreter *interp, Scope *scope, Ast_Node *node) {
+Data_Value *walk_expression(Interpreter *interp, Scope *scope, Ast_Node *node) {
     if (node->node_type == Ast_Node::Type::BINARY_OP) {
         return walk_binary_op_node(interp, scope, static_cast<Ast_Binary_Op *>(node));
     } else if (node->node_type == Ast_Node::Type::UNARY_OP) {
         return walk_unary_op_node(interp, scope, static_cast<Ast_Unary_Op *>(node));
     } else if (node->node_type == Ast_Node::Type::LITERAL) {
-        return get_number_literal(scope, static_cast<Ast_Literal *>(node));
+        Ast_Literal *lit = static_cast<Ast_Literal *>(node);
+        if (is_num(lit->value)) {
+            return new Data_Value(std::stof(lit->value));
+        } else {
+            // @TODO(MEDIUM) Handle bools here
+            return new Data_Value(lit->value);
+        }
     } else if (node->node_type == Ast_Node::Type::FUNCTION_CALL) {
-        return walk_function_call(interp, scope, static_cast<Ast_Function_Call *>(node))->num_val;
+        return walk_function_call(interp, scope, static_cast<Ast_Function_Call *>(node));
     } else {
-        return get_number_variable(interp, scope, static_cast<Ast_Variable *>(node));
+        return new Data_Value(get_number_variable(interp, scope, static_cast<Ast_Variable *>(node)));
     }
 }
 
-float get_number_literal(Scope *scope, Ast_Literal *node) {
-    return std::stof(node->value);
+Data_Value *walk_unary_op_node(Interpreter *interp, Scope *scope, Ast_Unary_Op *node) {
+    Token::Type type = node->op->type;
+    Data_Value *value = walk_expression(interp, scope, node->node);
+
+    if (value->data_type != Data_Type::NUM) {
+        report_fatal_error("Attempted to perform unary operation on non-num type");
+        return nullptr;
+    } else {
+        return new Data_Value(type == Token::Type::OP_PLUS ? +value->num_val : -value->num_val);
+    }
+}
+
+Data_Value *walk_binary_op_node(Interpreter *interp, Scope *scope, Ast_Binary_Op *node) {
+    // @TODO(LOW) Handle string concatenation here
+    Data_Value *left = walk_expression(interp, scope, node->left);
+    Data_Value *right = walk_expression(interp, scope, node->right);
+
+    fail_if_binary_op_invalid(left, right, node->op);
+
+    if (node->op->type == Token::Type::OP_PLUS) {
+        if (left->data_type == Data_Type::NUM) {
+            return new Data_Value(left->num_val + right->num_val);
+        } else if (left->data_type == Data_Type::STR) {
+            return new Data_Value(left->str_val.append(right->str_val));
+        } else {
+            report_fatal_error("Attempted to '+' incompatible expressions");
+            return nullptr;
+        }
+        return new Data_Value(left->num_val + right->num_val);
+    } else if (node->op->type == Token::Type::OP_MINUS) {
+        return new Data_Value(left->num_val - right->num_val);
+    } else if (node->op->type == Token::Type::OP_MULTIPLY) {
+        return new Data_Value(left->num_val * right->num_val);
+    } else if (node->op->type == Token::Type::OP_DIVIDE) {
+        return new Data_Value(left->num_val / right->num_val);
+    } else {
+        return new Data_Value(float(int(left->num_val) % int(right->num_val)));
+    }
+}
+
+void fail_if_binary_op_invalid(Data_Value *left, Data_Value *right, Token *op) {
+    Data_Type left_t = left->data_type;
+    Data_Type right_t = right->data_type;
+
+    if (left_t == Data_Type::BOOL || right_t == Data_Type::BOOL) {
+        report_fatal_error("Cannot perform binary operations on bool expressions");
+    }
+
+    switch (op->type) {
+        case Token::Type::OP_PLUS:
+        case Token::Type::OP_MINUS:
+        case Token::Type::OP_MULTIPLY:
+        case Token::Type::OP_DIVIDE:
+        case Token::Type::OP_MODULO:
+            if (left_t != right_t) {
+                std::stringstream ss;
+                ss << "Cannot perform '" << op->value << "' on two mismatched expression types";
+                report_fatal_error(ss.str());
+            }
+            break;
+        default:
+            report_fatal_error("Invalid binary operator");
+            break;
+    }
 }
 
 std::string get_string_literal(Scope *scope, Ast_Literal *node) {
@@ -80,50 +122,58 @@ float get_number_variable(Interpreter *interp, Scope *scope, Ast_Variable *node)
     }
 }
 
-Return_Value *walk_block_node(Interpreter *interp, Scope *scope, Ast_Block *root) {
+Data_Value *walk_block_node(Interpreter *interp, Scope *scope, Ast_Block *root) {
     for (Ast_Node *child : root->children) {
-        Return_Value *ret = walk_from_root(interp, scope, child);
+        Data_Value *ret = walk_from_root(interp, scope, child);
         if (ret != NULL) return ret;
     }
 
     return nullptr;
 }
 
-std::string get_string_variable(Interpreter *interp, Scope *scope, Ast_Variable *node) {
-    std::string name = node->name;
-    Var_With_Success *var = get_var(scope, name);
-
-    if (var->was_success) {
-        return var->str_value;
-    } else {
-        report_fatal_error(get_unassigned_variable_error(name, node->token->line_number));
-        return 0;
-    }
-}
-
 bool evaluate_comparison(Interpreter *interp, Scope *scope, Ast_Comparison *comparison) {
     // @TODO(HIGH) Don't assume numbers in comparison
-    float left = walk_from_arithmetic_root(interp, scope, comparison->left);
-    float right = walk_from_arithmetic_root(interp, scope, comparison->right);
+    Data_Value *left = walk_expression(interp, scope, comparison->left);
+    Data_Value *right = walk_expression(interp, scope, comparison->right);
+
+    if (left->data_type != right->data_type) {
+        report_fatal_error("Attempted to compare expressions of different data types");
+    }
+
+    Data_Type type = left->data_type;
 
     switch (comparison->comparator->type) {
         default:
         case Token::Type::COMPARE_EQUALS:
-            return left == right;
+            if (type == Data_Type::NUM) return left->num_val == right->num_val;
+            if (type == Data_Type::STR) return left->str_val == right->str_val;
+            if (type == Data_Type::BOOL) return left->bool_val == right->bool_val;
+            return false;
         case Token::Type::COMPARE_NOT_EQUALS:
-            return left != right;
+            if (type == Data_Type::NUM) return left->num_val != right->num_val;
+            if (type == Data_Type::STR) return left->str_val != right->str_val;
+            if (type == Data_Type::BOOL) return left->bool_val != right->bool_val;
+            return false;
         case Token::Type::COMPARE_GREATER_THAN:
-            return left > right;
+            if (type == Data_Type::NUM) return left->num_val > right->num_val;
+            report_fatal_error("Invalid comparison operator for given data type");
+            return false;
         case Token::Type::COMPARE_GREATER_THAN_EQUALS:
-            return left >= right;
+            if (type == Data_Type::NUM) return left->num_val >= right->num_val;
+            report_fatal_error("Invalid comparison operator for given data type");
+            return false;
         case Token::Type::COMPARE_LESS_THAN:
-            return left < right;
+            if (type == Data_Type::NUM) return left->num_val < right->num_val;
+            report_fatal_error("Invalid comparison operator for given data type");
+            return false;
         case Token::Type::COMPARE_LESS_THAN_EQUALS:
-            return left <= right;
+            if (type == Data_Type::NUM) return left->num_val <= right->num_val;
+            report_fatal_error("Invalid comparison operator for given data type");
+            return false;
     }
 }
 
-Return_Value *walk_if(Interpreter *interp, Scope *scope, Ast_If *if_node) {
+Data_Value *walk_if(Interpreter *interp, Scope *scope, Ast_If *if_node) {
     // @TODO(HIGH) Allow 'else if' branching in if statement
     bool is_success = evaluate_comparison(interp, scope, if_node->comparison);
 
@@ -138,8 +188,8 @@ Return_Value *walk_if(Interpreter *interp, Scope *scope, Ast_If *if_node) {
     return nullptr;
 }
 
-Return_Value *walk_while(Interpreter *interp, Scope *scope, Ast_While *while_node) {
-    Return_Value *ret = NULL;
+Data_Value *walk_while(Interpreter *interp, Scope *scope, Ast_While *while_node) {
+    Data_Value *ret = NULL;
 
     while (evaluate_comparison(interp, scope, while_node->comparison)) {
         ret = walk_block_node(interp, new Scope(scope), while_node->body);
@@ -150,16 +200,21 @@ Return_Value *walk_while(Interpreter *interp, Scope *scope, Ast_While *while_nod
     return ret;
 }
 
-Return_Value *walk_loop(Interpreter *interp, Scope *scope, Ast_Loop *loop_node) {
+Data_Value *walk_loop(Interpreter *interp, Scope *scope, Ast_Loop *loop_node) {
     // @ROBUSTNESS(MEDIUM) Check for weird from loop setups
     // i.e. positive step value but higher start value than end
-    float from = walk_from_arithmetic_root(interp, scope, loop_node->start);
-    float to = walk_from_arithmetic_root(interp, scope, loop_node->to);
-    float step = walk_from_arithmetic_root(interp, scope, loop_node->step);
-    Return_Value *ret = NULL;
-    bool is_going_up = to > from;
+    Data_Value *from = walk_expression(interp, scope, loop_node->start);
+    Data_Value *to = walk_expression(interp, scope, loop_node->to);
+    Data_Value *step = walk_expression(interp, scope, loop_node->step);
 
-    for (float i = from; is_going_up ? i <= to : i >= to; i += step) {
+    if (from->data_type != Data_Type::NUM || to->data_type != Data_Type::NUM || step->data_type != Data_Type::NUM) {
+        report_fatal_error("Attempted to use non-num expression as control in a from loop");
+    }
+
+    Data_Value *ret = NULL;
+    bool is_going_up = to->num_val > from->num_val;
+
+    for (float i = from->num_val; is_going_up ? i <= to->num_val : i >= to->num_val; i += step->num_val) {
         Scope *body_scope = new Scope(scope);
         assign_var(body_scope, "idx", std::to_string(i));
 
@@ -175,7 +230,16 @@ void add_function_def_to_scope(Interpreter *interp, Scope *scope, Ast_Function_D
     set_func(scope, def->name, def);
 }
 
-Return_Value *walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_Call *call) {
+std::string get_string_from_return_value(Data_Value *ret) {
+    if (ret->data_type == Data_Type::NUM) return std::to_string(ret->num_val);
+    if (ret->data_type == Data_Type::STR) return ret->str_val;
+    if (ret->data_type == Data_Type::BOOL) return std::to_string(ret->bool_val);
+
+    report_fatal_error("");
+    return "";
+}
+
+Data_Value *walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_Call *call) {
     Func_With_Success *fs = get_func(scope, call->name);
 
     if (fs->was_success) {
@@ -185,8 +249,10 @@ Return_Value *walk_function_call(Interpreter *interp, Scope *scope, Ast_Function
         // before we walk the main function block
         for (int i = 0; i < fs->body->args.size(); i++) {
             Ast_Function_Argument *current = fs->body->args[i];
-            std::string val = std::to_string(walk_from_arithmetic_root(interp, scope, call->args[i]));
-            assign_var(func_scope, current->name, val);
+            Data_Value *expr = walk_expression(interp, scope, call->args[i]);
+            std::string str_val = get_string_from_return_value(expr);
+
+            assign_var(func_scope, current->name, str_val);
         }
 
         return walk_block_node(interp, func_scope, fs->body->block);
@@ -198,7 +264,7 @@ Return_Value *walk_function_call(Interpreter *interp, Scope *scope, Ast_Function
             std::vector<std::string> args;
 
             for (int i = 1; i < call->args.size(); i++) {
-                args.push_back(std::to_string(walk_from_arithmetic_root(interp, scope, call->args[i])));
+                args.push_back(get_string_from_return_value(walk_expression(interp, scope, call->args[i])));
             }
 
             print_native(main_string, args);
@@ -218,19 +284,7 @@ bool is_num(std::string str) {
 void walk_assignment_node(Interpreter *interp, Scope *scope, Ast_Assignment *node) {
     std::string name = node->left->name;
     Ast_Node::Type type = node->right->node_type;
-    std::string value;
-
-    if (type == Ast_Node::Type::LITERAL) {
-        Ast_Literal *lit = static_cast<Ast_Literal *>(node->right);
-
-        if (is_num(lit->value)) {
-            value = std::to_string(walk_from_arithmetic_root(interp, scope, node->right));
-        } else {
-            value = lit->value;
-        }
-    } else {
-        value = std::to_string(walk_from_arithmetic_root(interp, scope, node->right));
-    }
+    std::string value = get_string_from_return_value(walk_expression(interp, scope, node->right));
 
     if (node->is_first_assign) {
         assign_var(scope, name, value);
@@ -239,15 +293,14 @@ void walk_assignment_node(Interpreter *interp, Scope *scope, Ast_Assignment *nod
     }
 }
 
-Return_Value *walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) {
+Data_Value *walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) {
     if (root->node_type == Ast_Node::Type::BLOCK) {
         return walk_block_node(interp, scope, static_cast<Ast_Block *>(root));
     } else if (root->node_type == Ast_Node::Type::FUNCTION_DEFINITION) {
         add_function_def_to_scope(interp, scope, static_cast<Ast_Function_Definition *>(root));
         return nullptr;
     } else if (root->node_type == Ast_Node::Type::RETURN) {
-        float d = walk_from_arithmetic_root(interp, scope, static_cast<Ast_Return *>(root)->value);
-        return new Return_Value(d);
+        return walk_expression(interp, scope, static_cast<Ast_Return *>(root)->value);
     } else if (root->node_type == Ast_Node::Type::IF) {
         return walk_if(interp, scope, static_cast<Ast_If *>(root));
     } else if (root->node_type == Ast_Node::Type::WHILE) {

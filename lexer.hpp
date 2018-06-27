@@ -32,6 +32,8 @@ struct Token {
         IDENT,
         NUMBER,
         STRING,
+        TRUE,
+        FALSE,
         COMPARE_EQUALS,
         COMPARE_NOT_EQUALS,
         COMPARE_LESS_THAN,
@@ -78,6 +80,8 @@ inline const std::string type_to_string(Token::Type type) {
         case Token::Type::KEYWORD_FUNCTION: return "KEYWORD_FUNCTION";
         case Token::Type::KEYWORD_ASSIGN_VARIABLE: return "KEYWORD_ASSIGN_VARIABLE";
         case Token::Type::KEYWORD_REASSIGN_VARIABLE: return "KEYWORD_REASSIGN_VARIABLE";
+        case Token::Type::TRUE: return "TRUE";
+        case Token::Type::FALSE: return "FALSE";
         case Token::Type::L_PAREN: return "L_PAREN";
         case Token::Type::R_PAREN: return "R_PAREN";
         case Token::Type::BLOCK_OPEN: return "BLOCK_OPEN";

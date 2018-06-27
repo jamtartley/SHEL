@@ -166,6 +166,8 @@ Token *scan_ident(const std::string input, int &index, const std::regex end_matc
     keyword_map.insert(std::make_pair("from", new Token(Token::Type::KEYWORD_LOOP_START, "from", line_number)));
     keyword_map.insert(std::make_pair("to", new Token(Token::Type::KEYWORD_LOOP_TO, "to", line_number)));
     keyword_map.insert(std::make_pair("step", new Token(Token::Type::KEYWORD_LOOP_STEP, "step", line_number)));
+    keyword_map.insert(std::make_pair("true", new Token(Token::Type::TRUE, "true", line_number)));
+    keyword_map.insert(std::make_pair("false", new Token(Token::Type::FALSE, "false", line_number)));
 
     std::string raw = scan_other(input, index, end_match);
 

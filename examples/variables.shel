@@ -1,5 +1,7 @@
 let a = 1;
 let b = 2;
+let c = "test";
+let d = false;
 
 print("Let a is %", a);
 print("Let b is %", b);

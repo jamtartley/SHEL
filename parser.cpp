@@ -35,7 +35,9 @@ Ast_Node *parse_arithmetic_factor(Parser *parser) {
             return new Ast_Unary_Op(token, parse_arithmetic_factor(parser));
         }
         case Token::Type::NUMBER:
-        case Token::Type::STRING: {
+        case Token::Type::STRING:
+        case Token::Type::TRUE:
+        case Token::Type::FALSE: {
             eat(parser, token->type);
             return new Ast_Literal(token->value);
         }
