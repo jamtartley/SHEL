@@ -19,15 +19,15 @@ std::string get_unassigned_variable_error(std::string name, int line_number) {
 
 Data_Value *walk_expression(Interpreter *interp, Scope *scope, Ast_Node *node) {
     if (node->node_type == Ast_Node::Type::BINARY_OP) {
-        return walk_binary_op_node(interp, scope, static_cast<Ast_Binary_Op *>(node));
+        return walk_binary_op_node(interp, scope, (Ast_Binary_Op *)node);
     } else if (node->node_type == Ast_Node::Type::UNARY_OP) {
-        return walk_unary_op_node(interp, scope, static_cast<Ast_Unary_Op *>(node));
+        return walk_unary_op_node(interp, scope, (Ast_Unary_Op *)node);
     } else if (node->node_type == Ast_Node::Type::LITERAL) {
-        return get_data_from_literal(interp, scope, static_cast<Ast_Literal *>(node));
+        return get_data_from_literal(interp, scope, (Ast_Literal *)node);
     } else if (node->node_type == Ast_Node::Type::FUNCTION_CALL) {
-        return walk_function_call(interp, scope, static_cast<Ast_Function_Call *>(node));
+        return walk_function_call(interp, scope, (Ast_Function_Call *)node);
     } else {
-        return get_variable(interp, scope, static_cast<Ast_Variable *>(node));
+        return get_variable(interp, scope, (Ast_Variable *)node);
     }
 }
 
@@ -68,7 +68,7 @@ Data_Value *walk_binary_op_node(Interpreter *interp, Scope *scope, Ast_Binary_Op
     } else if (node->op->type == Token::Type::OP_MODULO) {
         return new Data_Value(float(int(left->num_val) % int(right->num_val)));
     } else {
-        if (node->op->flags & Token::Flags::COMPARISON) {
+        if (node->op->flags & Token::Flags::COMPARISON || node->op->flags & Token::Flags::LOGICAL) {
             return new Data_Value(evaluate_node_to_bool(interp, scope, node));
         }
 
@@ -304,7 +304,7 @@ Data_Value *walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_C
         // @HACK(HIGH) Horrible call out to native print
         if (call->name == "print") {
             // This just isn't very nice
-            std::string main_string = static_cast<Ast_Literal *>(call->args[0])->value;
+            std::string main_string = ((Ast_Literal *)call->args[0])->value;
             std::vector<std::string> args;
 
             for (int i = 1; i < call->args.size(); i++) {
@@ -331,22 +331,22 @@ void walk_assignment_node(Interpreter *interp, Scope *scope, Ast_Assignment *nod
 
 Data_Value *walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root) {
     if (root->node_type == Ast_Node::Type::BLOCK) {
-        return walk_block_node(interp, scope, static_cast<Ast_Block *>(root));
+        return walk_block_node(interp, scope, (Ast_Block *)root);
     } else if (root->node_type == Ast_Node::Type::FUNCTION_DEFINITION) {
-        add_function_def_to_scope(interp, scope, static_cast<Ast_Function_Definition *>(root));
+        add_function_def_to_scope(interp, scope, (Ast_Function_Definition *)root);
         return nullptr;
     } else if (root->node_type == Ast_Node::Type::RETURN) {
-        return walk_expression(interp, scope, static_cast<Ast_Return *>(root)->value);
+        return walk_expression(interp, scope, ((Ast_Return *)root)->value);
     } else if (root->node_type == Ast_Node::Type::IF) {
-        return walk_if(interp, scope, static_cast<Ast_If *>(root));
+        return walk_if(interp, scope, (Ast_If *)root);
     } else if (root->node_type == Ast_Node::Type::WHILE) {
-        return walk_while(interp, scope, static_cast<Ast_While *>(root));
+        return walk_while(interp, scope, (Ast_While *)root);
     } else if (root->node_type == Ast_Node::Type::LOOP) {
-        return walk_loop(interp, scope, static_cast<Ast_Loop *>(root));
+        return walk_loop(interp, scope, (Ast_Loop *)root);
     } else if (root->node_type == Ast_Node::Type::FUNCTION_CALL) {
-        return walk_function_call(interp, scope, static_cast<Ast_Function_Call *>(root));
+        return walk_function_call(interp, scope, (Ast_Function_Call *)root);
     } else if (root->node_type == Ast_Node::Type::ASSIGNMENT) {
-        walk_assignment_node(interp, scope, static_cast<Ast_Assignment *>(root));
+        walk_assignment_node(interp, scope, (Ast_Assignment *)root);
         return nullptr;
     } else {
         return nullptr;

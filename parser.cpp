@@ -53,7 +53,7 @@ Ast_Node *parse_expression_factor(Parser *parser) {
         }
         case Token::Type::L_PAREN: {
             eat(parser, Token::Type::L_PAREN);
-            Ast_Node *node = parse_expression_expression(parser);
+            Ast_Node *node = parse_expression(parser);
             eat(parser, Token::Type::R_PAREN);
             return node;
         }
@@ -67,8 +67,8 @@ Ast_Node *parse_expression_term(Parser *parser, Token *token) {
 
     while (parser->current_token->type == Token::Type::OP_MULTIPLY 
             || parser->current_token->type == Token::Type::OP_DIVIDE 
-            || parser->current_token->type == Token::Type::COMPARE_LOGICAL_AND 
-            || parser->current_token->type == Token::Type::OP_MODULO) {
+            || parser->current_token->type == Token::Type::OP_MODULO
+            || parser->current_token->flags & Token::Flags::COMPARISON) {
         Token *token = parser->current_token;
         eat(parser, parser->current_token->type);
 
@@ -78,13 +78,12 @@ Ast_Node *parse_expression_term(Parser *parser, Token *token) {
     return node;
 }
 
-Ast_Node *parse_expression_expression(Parser *parser) {
+Ast_Node *parse_expression(Parser *parser) {
     Ast_Node *node = parse_expression_term(parser, parser->current_token);
 
     while (parser->current_token->type == Token::Type::OP_PLUS 
         || parser->current_token->type == Token::Type::OP_MINUS 
-        || parser->current_token->type == Token::Type::COMPARE_LOGICAL_OR
-        || parser->current_token->flags & Token::Flags::COMPARISON) {
+        || parser->current_token->flags & Token::Flags::LOGICAL) {
         Token *token = parser->current_token;
         eat(parser, parser->current_token->type);
 
@@ -142,7 +141,7 @@ Ast_Function_Call *parse_function_call(Parser *parser) {
     std::vector<Ast_Node *> args;
 
     while (parser->current_token->type != Token::Type::ARGUMENT_SEPARATOR && parser->current_token->type != Token::Type::R_PAREN) {
-        args.push_back(parse_expression_expression(parser));
+        args.push_back(parse_expression(parser));
 
         if (parser->current_token->type == Token::Type::ARGUMENT_SEPARATOR) eat(parser, Token::Type::ARGUMENT_SEPARATOR);
     }
@@ -169,7 +168,7 @@ Ast_Assignment *parse_assignment(Parser *parser, bool is_first_assign) {
     Ast_Variable *var = parse_variable(parser);
     eat(parser, Token::Type::ASSIGNMENT);
 
-    Ast_Node *right = parse_expression_expression(parser);
+    Ast_Node *right = parse_expression(parser);
 
     return new Ast_Assignment(var, right, is_first_assign);
 }
@@ -177,14 +176,14 @@ Ast_Assignment *parse_assignment(Parser *parser, bool is_first_assign) {
 Ast_Return *parse_return(Parser *parser) {
     eat(parser, Token::Type::KEYWORD_RETURN);
 
-    return new Ast_Return(parse_expression_expression(parser));
+    return new Ast_Return(parse_expression(parser));
 }
 
 Ast_If *parse_if(Parser *parser) {
     eat(parser, Token::Type::KEYWORD_IF);
     eat(parser, Token::Type::L_PAREN);
 
-    Ast_Node *comparison = parse_expression_expression(parser);
+    Ast_Node *comparison = parse_expression(parser);
 
     eat(parser, Token::Type::R_PAREN);
     Ast_Block *success = parse_block(parser, false);
@@ -203,7 +202,7 @@ Ast_While *parse_while(Parser *parser) {
     eat(parser, Token::Type::KEYWORD_WHILE);
     eat(parser, Token::Type::L_PAREN);
 
-    Ast_Binary_Op *comparison = static_cast<Ast_Binary_Op *>(parse_expression_expression(parser));
+    Ast_Binary_Op *comparison = (Ast_Binary_Op *)parse_expression(parser);
 
     eat(parser, Token::Type::R_PAREN);
 
@@ -215,15 +214,15 @@ Ast_While *parse_while(Parser *parser) {
 Ast_Loop *parse_loop(Parser *parser) {
     eat(parser, Token::Type::KEYWORD_LOOP_START);
 
-    Ast_Node *start = parse_expression_expression(parser);
+    Ast_Node *start = parse_expression(parser);
 
     eat(parser, Token::Type::KEYWORD_LOOP_TO);
 
-    Ast_Node *to = parse_expression_expression(parser);
+    Ast_Node *to = parse_expression(parser);
 
     eat(parser, Token::Type::KEYWORD_LOOP_STEP);
 
-    Ast_Node *step = parse_expression_expression(parser);
+    Ast_Node *step = parse_expression(parser);
 
     Ast_Block *body = parse_block(parser, false);
 
@@ -240,7 +239,7 @@ Ast_Block *parse_block(Parser *parser, bool is_global_scope) {
         if (block->return_node != NULL) break;
 
         // @TODO(LOW) Warn if multiple returns in a block
-        if (node->node_type == Ast_Node::Type::RETURN) block->return_node = static_cast<Ast_Return *>(node);
+        if (node->node_type == Ast_Node::Type::RETURN) block->return_node = (Ast_Return *)node;
     }
 
     if (is_global_scope == false) eat(parser, Token::Type::BLOCK_CLOSE);

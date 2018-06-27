@@ -199,7 +199,7 @@ void eat(Parser *parser, Token::Type expected_type);
 
 Ast_Node *parse_expression_factor(Parser *parser);
 Ast_Node *parse_expression_term(Parser *parser, Token *token);
-Ast_Node *parse_expression_expression(Parser *parser);
+Ast_Node *parse_expression(Parser *parser);
 Ast_Node *parse_statement(Parser *parser);
 
 Ast_Variable *parse_variable(Parser *parser);

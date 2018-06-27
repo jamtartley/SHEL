@@ -93,7 +93,8 @@ std::vector<Token *> lex(const std::string source) {
             continue;
         }
         if (std::regex_match(current, ident_start_regex)) {
-            ret_tokens.push_back(scan_ident(source.substr(i), i, ident_end_regex, line_number));
+            Token *t = scan_ident(source.substr(i), i, ident_end_regex, line_number);
+            ret_tokens.push_back(t);
             continue;
         }
         if (special_char_map.find(current) != special_char_map.end()) {
@@ -155,21 +156,20 @@ Token *scan_ident(const std::string input, int &index, const std::regex end_matc
     static std::map<std::string, Token *> keyword_map;
     // @CLEANUP(LOW) Keyword map identifier redundancies
     keyword_map.insert(std::make_pair("if", new Token(Token::Type::KEYWORD_IF, "if", line_number)));
-    keyword_map.insert(std::make_pair("and", new Token(Token::Type::COMPARE_LOGICAL_AND, "and", line_number)));
-    keyword_map.insert(std::make_pair("or", new Token(Token::Type::COMPARE_LOGICAL_OR, "or", line_number)));
     keyword_map.insert(std::make_pair("else", new Token(Token::Type::KEYWORD_ELSE, "else", line_number)));
-    keyword_map.insert(std::make_pair("for", new Token(Token::Type::KEYWORD_FOR, "for", line_number)));
     keyword_map.insert(std::make_pair("while", new Token(Token::Type::KEYWORD_WHILE, "while", line_number)));
     keyword_map.insert(std::make_pair("return", new Token(Token::Type::KEYWORD_RETURN, "return", line_number)));
     keyword_map.insert(std::make_pair("shel", new Token(Token::Type::KEYWORD_STRUCT, "shel", line_number)));
     keyword_map.insert(std::make_pair("bug", new Token(Token::Type::KEYWORD_FUNCTION, "bug", line_number)));
+
     keyword_map.insert(std::make_pair("let", new Token(Token::Type::KEYWORD_ASSIGN_VARIABLE, "let", line_number)));
     keyword_map.insert(std::make_pair("relet", new Token(Token::Type::KEYWORD_REASSIGN_VARIABLE, "relet", line_number)));
     keyword_map.insert(std::make_pair("from", new Token(Token::Type::KEYWORD_LOOP_START, "from", line_number)));
     keyword_map.insert(std::make_pair("to", new Token(Token::Type::KEYWORD_LOOP_TO, "to", line_number)));
     keyword_map.insert(std::make_pair("step", new Token(Token::Type::KEYWORD_LOOP_STEP, "step", line_number)));
-    keyword_map.insert(std::make_pair("and", new Token(Token::Type::COMPARE_LOGICAL_AND, "and", line_number, Token::Flags::COMPARISON)));
-    keyword_map.insert(std::make_pair("or", new Token(Token::Type::COMPARE_LOGICAL_OR, "or", line_number, Token::Flags::COMPARISON)));
+
+    keyword_map.insert(std::make_pair("and", new Token(Token::Type::COMPARE_LOGICAL_AND, "and", line_number, Token::Flags::LOGICAL)));
+    keyword_map.insert(std::make_pair("or", new Token(Token::Type::COMPARE_LOGICAL_OR, "or", line_number, Token::Flags::LOGICAL)));
 
     keyword_map.insert(std::make_pair("true", new Token(Token::Type::TRUE, "true", line_number)));
     keyword_map.insert(std::make_pair("false", new Token(Token::Type::FALSE, "false", line_number)));

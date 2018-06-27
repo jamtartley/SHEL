@@ -9,7 +9,6 @@ struct Token {
     enum Type {
         KEYWORD_IF,
         KEYWORD_ELSE,
-        KEYWORD_FOR,
         KEYWORD_WHILE,
         KEYWORD_LOOP_START,
         KEYWORD_LOOP_TO,
@@ -52,18 +51,19 @@ struct Token {
         COMPARISON = 1 << 1,
         OPERATOR   = 1 << 2,
         KEYWORD    = 1 << 3,
+        LOGICAL    = 1 << 4,
     };
 
     Token::Type type;
     std::string value;
     int line_number;
-    int flags;
+    int flags = 0;
 
-    Token(Token::Type type, std::string value, int line_number, int flags = 0) {
+    Token(Token::Type type, std::string value, int line_number, Token::Flags flags = Token::Flags::NONE) {
         this->type = type;
         this->value = value;
         this->line_number = line_number;
-        this->flags = flags;
+        this->flags |= flags;
     }
 };
 
@@ -74,7 +74,6 @@ inline const std::string type_to_string(Token::Type type) {
     switch (type) {
         case Token::Type::KEYWORD_IF: return "KEYWORD_IF";
         case Token::Type::KEYWORD_ELSE: return "KEYWORD_ELSE";
-        case Token::Type::KEYWORD_FOR: return "KEYWORD_FOR";
         case Token::Type::KEYWORD_WHILE: return "KEYWORD_WHILE";
         case Token::Type::KEYWORD_LOOP_START: return "KEYWORD_LOOP_START";
         case Token::Type::KEYWORD_LOOP_TO: return "KEYWORD_LOOP_TO";
