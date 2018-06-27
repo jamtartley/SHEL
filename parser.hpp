@@ -36,7 +36,8 @@ struct Ast_Node {
         FUNCTION_DEFINITION,
         FUNCTION_CALL,
         FUNCTION_ARGUMENT,
-        RETURN
+        RETURN,
+        EMPTY
     };
 
     // @TODO(MEDIUM) Add flags to Ast_Node
@@ -192,6 +193,12 @@ struct Ast_Assignment : Ast_Node {
         this->right = right;
         this->is_first_assign = is_first_assign;
         this->node_type = Ast_Node::Type::ASSIGNMENT;
+    }
+};
+
+struct Ast_Empty : Ast_Node {
+    Ast_Empty() {
+        this->node_type = Ast_Node::Type::EMPTY;
     }
 };
 

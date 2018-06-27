@@ -58,7 +58,7 @@ Ast_Node *parse_expression_factor(Parser *parser) {
             return node;
         }
         default:
-            return parse_variable(parser);
+            return new Ast_Empty();
     }
 }
 

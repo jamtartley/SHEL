@@ -26,8 +26,10 @@ Data_Value *walk_expression(Interpreter *interp, Scope *scope, Ast_Node *node) {
         return get_data_from_literal(interp, scope, (Ast_Literal *)node);
     } else if (node->node_type == Ast_Node::Type::FUNCTION_CALL) {
         return walk_function_call(interp, scope, (Ast_Function_Call *)node);
-    } else {
+    } else if (node->node_type == Ast_Node::Type::VARIABLE) {
         return get_variable(interp, scope, (Ast_Variable *)node);
+    } else {
+        return nullptr;
     }
 }
 
