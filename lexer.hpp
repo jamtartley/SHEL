@@ -28,6 +28,7 @@ struct Token {
         OP_MINUS,
         OP_MULTIPLY,
         OP_DIVIDE,
+        OP_MODULO,
         IDENT,
         NUMBER,
         STRING,
@@ -40,6 +41,12 @@ struct Token {
         ASSIGNMENT,
         TERMINATOR,
         END_OF_FILE
+    };
+
+    enum Flags {
+        COMPARISON = 1 << 0,
+        OPERATOR = 1 << 1,
+        KEYWORD = 1 << 2,
     };
 
     Token::Type type;
@@ -80,6 +87,7 @@ inline const std::string type_to_string(Token::Type type) {
         case Token::Type::OP_MINUS: return "OP_MINUS";
         case Token::Type::OP_MULTIPLY: return "OP_MULTIPLY";
         case Token::Type::OP_DIVIDE: return "OP_DIVIDE";
+        case Token::Type::OP_MODULO: return "OP_MODULO";
         case Token::Type::IDENT: return "IDENT";
         case Token::Type::NUMBER: return "NUMBER";
         case Token::Type::STRING: return "STRING";

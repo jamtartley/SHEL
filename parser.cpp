@@ -59,7 +59,7 @@ Ast_Node *parse_arithmetic_factor(Parser *parser) {
 Ast_Node *parse_arithmetic_term(Parser *parser, Token *token) {
     Ast_Node *node = parse_arithmetic_factor(parser);
 
-    while (parser->current_token->type == Token::Type::OP_MULTIPLY || parser->current_token->type == Token::Type::OP_DIVIDE) {
+    while (parser->current_token->type == Token::Type::OP_MULTIPLY || parser->current_token->type == Token::Type::OP_DIVIDE || parser->current_token->type == Token::Type::OP_MODULO) {
         Token *token = parser->current_token;
         eat(parser, parser->current_token->type);
 
@@ -164,6 +164,18 @@ Ast_Assignment *parse_assignment(Parser *parser, bool is_first_assign) {
 
 Ast_Return *parse_return(Parser *parser) {
     eat(parser, Token::Type::KEYWORD_RETURN);
+
+    // Return can return either an arithmetic expression or a comparison
+    // so peek ahead and see which type we should parse for.
+
+    Token *peek = parser->current_token;
+
+    while (peek != NULL && peek->type != Token::Type::TERMINATOR) {
+        if (peek->flags & Token::Flags::COMPARISON) return new Ast_Return(parse_comparison(parser));
+
+        peek = peek_next_token(parser, peek);
+    }
+
     return new Ast_Return(parse_arithmetic_expression(parser));
 }
 
@@ -258,11 +270,16 @@ std::vector<Ast_Node *> parse_statements(Parser *parser) {
     return nodes;
 }
 
-Token *peek_next_token(Parser *parser) {
-    int next_pos = parser->position + 1;
+Token *peek_next_token(Parser *parser, Token *current) {
+    int pos = find(parser->tokens.begin(), parser->tokens.end(), current) - parser->tokens.begin();
+    int next_pos = pos + 1;
     int tokens_len = parser->tokens.size();
 
     return next_pos < tokens_len ? parser->tokens[next_pos] : nullptr;
+}
+
+Token *peek_next_token(Parser *parser) {
+    return peek_next_token(parser, parser->current_token);
 }
 
 Ast_Node *parse_statement(Parser *parser) {

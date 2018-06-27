@@ -38,8 +38,10 @@ float walk_binary_op_node(Interpreter *interp, Scope *scope, Ast_Binary_Op *node
         return walk_from_arithmetic_root(interp, scope, node->left) - walk_from_arithmetic_root(interp, scope, node->right);
     } else if (node->op->type == Token::Type::OP_MULTIPLY) {
         return walk_from_arithmetic_root(interp, scope, node->left) * walk_from_arithmetic_root(interp, scope, node->right);
-    } else {
+    } else if (node->op->type == Token::Type::OP_DIVIDE) {
         return walk_from_arithmetic_root(interp, scope, node->left) / walk_from_arithmetic_root(interp, scope, node->right);
+    } else {
+        return int(walk_from_arithmetic_root(interp, scope, node->left)) % int(walk_from_arithmetic_root(interp, scope, node->right));
     }
 }
 

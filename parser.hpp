@@ -240,5 +240,6 @@ std::vector<Ast_Node *> parse_statements(Parser *parser);
 Ast_Block *parse(Parser *parser);
 
 Token *peek_next_token(Parser *parser);
+Token *peek_next_token(Parser *parser, Token *current);
 
 #endif

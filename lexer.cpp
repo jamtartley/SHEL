@@ -5,6 +5,8 @@
 #include "lexer.hpp"
 #include "logger.hpp"
 
+Token *build_comparison_token(Token::Type type, std::string chars, int line_number);
+
 static const std::regex string_regex("[\"]");
 static const std::regex ident_start_regex("[_a-zA-Z]");
 static const std::regex ident_end_regex("[^_a-zA-Z0-9]");
@@ -26,9 +28,8 @@ std::vector<Token *> lex(const std::string source) {
     special_char_map.insert(std::make_pair("-", Token::Type::OP_MINUS));
     special_char_map.insert(std::make_pair("*", Token::Type::OP_MULTIPLY));
     special_char_map.insert(std::make_pair("/", Token::Type::OP_DIVIDE));
+    special_char_map.insert(std::make_pair("%", Token::Type::OP_MODULO));
     special_char_map.insert(std::make_pair(",", Token::Type::ARGUMENT_SEPARATOR));
-    special_char_map.insert(std::make_pair("<", Token::Type::COMPARE_LESS_THAN));
-    special_char_map.insert(std::make_pair(">", Token::Type::COMPARE_GREATER_THAN));
 
     int i = 0;
     int line_number = 1;
@@ -54,23 +55,33 @@ std::vector<Token *> lex(const std::string source) {
             continue;
         }
         if (current == "=" && peek(source, i) == "=") {
-            ret_tokens.push_back(new Token(Token::Type::COMPARE_EQUALS, "==", line_number));
+            ret_tokens.push_back(build_comparison_token(Token::Type::COMPARE_EQUALS, "==", line_number));
             i += 2;
             continue;
         }
         if (current == "<" && peek(source, i) == "=") {
-            ret_tokens.push_back(new Token(Token::Type::COMPARE_LESS_THAN_EQUALS, "<=", line_number));
+            ret_tokens.push_back(build_comparison_token(Token::Type::COMPARE_LESS_THAN_EQUALS, "<=", line_number));
             i += 2;
             continue;
         }
         if (current == ">" && peek(source, i) == "=") {
-            ret_tokens.push_back(new Token(Token::Type::COMPARE_GREATER_THAN_EQUALS, ">=", line_number));
+            ret_tokens.push_back(build_comparison_token(Token::Type::COMPARE_GREATER_THAN_EQUALS, ">=", line_number));
             i += 2;
             continue;
         }
         if (current == "<" && peek(source, i) == ">") {
             ret_tokens.push_back(new Token(Token::Type::COMPARE_NOT_EQUALS, "<>", line_number));
             i += 2;
+            continue;
+        }
+        if (current == "<") {
+            ret_tokens.push_back(build_comparison_token(Token::Type::COMPARE_LESS_THAN, "<", line_number));
+            i++;
+            continue;
+        }
+        if (current == ">") {
+            ret_tokens.push_back(build_comparison_token(Token::Type::COMPARE_GREATER_THAN, ">", line_number));
+            i++;
             continue;
         }
         if (std::regex_match(current, string_regex)) {
@@ -100,6 +111,13 @@ std::vector<Token *> lex(const std::string source) {
     ret_tokens.push_back(new Token(Token::Type::END_OF_FILE, "EOF", line_number));
 
     return ret_tokens;
+}
+
+Token *build_comparison_token(Token::Type type, std::string chars, int line_number) {
+    Token *ret = new Token(type, chars, line_number);
+    ret->flags |= Token::Flags::COMPARISON;
+
+    return ret;
 }
 
 std::string scan_string(const std::string input, int &index, const std::regex end_match) {
