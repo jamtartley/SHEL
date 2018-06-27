@@ -24,7 +24,7 @@ void eat(Parser *parser, Token::Type expected_type) {
     }
 }
 
-Ast_Node *parse_arithmetic_factor(Parser *parser) {
+Ast_Node *parse_expression_factor(Parser *parser) {
     Token *token = parser->current_token;
     Token *next = peek_next_token(parser);
 
@@ -32,7 +32,7 @@ Ast_Node *parse_arithmetic_factor(Parser *parser) {
         case Token::Type::OP_PLUS:
         case Token::Type::OP_MINUS: {
             eat(parser, token->type);
-            return new Ast_Unary_Op(token, parse_arithmetic_factor(parser));
+            return new Ast_Unary_Op(token, parse_expression_factor(parser));
         }
         case Token::Type::NUMBER:
             eat(parser, token->type);
@@ -53,7 +53,7 @@ Ast_Node *parse_arithmetic_factor(Parser *parser) {
         }
         case Token::Type::L_PAREN: {
             eat(parser, Token::Type::L_PAREN);
-            Ast_Node *node = parse_arithmetic_expression(parser);
+            Ast_Node *node = parse_expression_expression(parser);
             eat(parser, Token::Type::R_PAREN);
             return node;
         }
@@ -62,28 +62,33 @@ Ast_Node *parse_arithmetic_factor(Parser *parser) {
     }
 }
 
-Ast_Node *parse_arithmetic_term(Parser *parser, Token *token) {
-    Ast_Node *node = parse_arithmetic_factor(parser);
+Ast_Node *parse_expression_term(Parser *parser, Token *token) {
+    Ast_Node *node = parse_expression_factor(parser);
 
-    while (parser->current_token->type == Token::Type::OP_MULTIPLY || parser->current_token->type == Token::Type::OP_DIVIDE || parser->current_token->type == Token::Type::OP_MODULO) {
+    while (parser->current_token->type == Token::Type::OP_MULTIPLY 
+            || parser->current_token->type == Token::Type::OP_DIVIDE 
+            || parser->current_token->type == Token::Type::COMPARE_LOGICAL_AND 
+            || parser->current_token->type == Token::Type::OP_MODULO) {
         Token *token = parser->current_token;
         eat(parser, parser->current_token->type);
 
-        node = new Ast_Binary_Op(node, parse_arithmetic_factor(parser), token);
+        node = new Ast_Binary_Op(node, parse_expression_factor(parser), token);
     }
 
     return node;
 }
 
-Ast_Node *parse_arithmetic_expression(Parser *parser) {
-    Ast_Node *node = parse_arithmetic_term(parser, parser->current_token);
+Ast_Node *parse_expression_expression(Parser *parser) {
+    Ast_Node *node = parse_expression_term(parser, parser->current_token);
 
     while (parser->current_token->type == Token::Type::OP_PLUS 
-        || parser->current_token->type == Token::Type::OP_MINUS || parser->current_token->flags & Token::Flags::COMPARISON) {
+        || parser->current_token->type == Token::Type::OP_MINUS 
+        || parser->current_token->type == Token::Type::COMPARE_LOGICAL_OR
+        || parser->current_token->flags & Token::Flags::COMPARISON) {
         Token *token = parser->current_token;
         eat(parser, parser->current_token->type);
 
-        node = new Ast_Binary_Op(node, parse_arithmetic_term(parser, token), token);
+        node = new Ast_Binary_Op(node, parse_expression_term(parser, token), token);
     }
 
     return node;
@@ -137,7 +142,7 @@ Ast_Function_Call *parse_function_call(Parser *parser) {
     std::vector<Ast_Node *> args;
 
     while (parser->current_token->type != Token::Type::ARGUMENT_SEPARATOR && parser->current_token->type != Token::Type::R_PAREN) {
-        args.push_back(parse_arithmetic_expression(parser));
+        args.push_back(parse_expression_expression(parser));
 
         if (parser->current_token->type == Token::Type::ARGUMENT_SEPARATOR) eat(parser, Token::Type::ARGUMENT_SEPARATOR);
     }
@@ -164,7 +169,7 @@ Ast_Assignment *parse_assignment(Parser *parser, bool is_first_assign) {
     Ast_Variable *var = parse_variable(parser);
     eat(parser, Token::Type::ASSIGNMENT);
 
-    Ast_Node *right = parse_arithmetic_expression(parser);
+    Ast_Node *right = parse_expression_expression(parser);
 
     return new Ast_Assignment(var, right, is_first_assign);
 }
@@ -172,14 +177,14 @@ Ast_Assignment *parse_assignment(Parser *parser, bool is_first_assign) {
 Ast_Return *parse_return(Parser *parser) {
     eat(parser, Token::Type::KEYWORD_RETURN);
 
-    return new Ast_Return(parse_arithmetic_expression(parser));
+    return new Ast_Return(parse_expression_expression(parser));
 }
 
 Ast_If *parse_if(Parser *parser) {
     eat(parser, Token::Type::KEYWORD_IF);
     eat(parser, Token::Type::L_PAREN);
 
-    Ast_Node *comparison = parse_arithmetic_expression(parser);
+    Ast_Node *comparison = parse_expression_expression(parser);
 
     eat(parser, Token::Type::R_PAREN);
     Ast_Block *success = parse_block(parser, false);
@@ -198,7 +203,7 @@ Ast_While *parse_while(Parser *parser) {
     eat(parser, Token::Type::KEYWORD_WHILE);
     eat(parser, Token::Type::L_PAREN);
 
-    Ast_Binary_Op *comparison = static_cast<Ast_Binary_Op *>(parse_arithmetic_expression(parser));
+    Ast_Binary_Op *comparison = static_cast<Ast_Binary_Op *>(parse_expression_expression(parser));
 
     eat(parser, Token::Type::R_PAREN);
 
@@ -210,15 +215,15 @@ Ast_While *parse_while(Parser *parser) {
 Ast_Loop *parse_loop(Parser *parser) {
     eat(parser, Token::Type::KEYWORD_LOOP_START);
 
-    Ast_Node *start = parse_arithmetic_expression(parser);
+    Ast_Node *start = parse_expression_expression(parser);
 
     eat(parser, Token::Type::KEYWORD_LOOP_TO);
 
-    Ast_Node *to = parse_arithmetic_expression(parser);
+    Ast_Node *to = parse_expression_expression(parser);
 
     eat(parser, Token::Type::KEYWORD_LOOP_STEP);
 
-    Ast_Node *step = parse_arithmetic_expression(parser);
+    Ast_Node *step = parse_expression_expression(parser);
 
     Ast_Block *body = parse_block(parser, false);
 

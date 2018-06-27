@@ -155,6 +155,8 @@ Token *scan_ident(const std::string input, int &index, const std::regex end_matc
     static std::map<std::string, Token *> keyword_map;
     // @CLEANUP(LOW) Keyword map identifier redundancies
     keyword_map.insert(std::make_pair("if", new Token(Token::Type::KEYWORD_IF, "if", line_number)));
+    keyword_map.insert(std::make_pair("and", new Token(Token::Type::COMPARE_LOGICAL_AND, "and", line_number)));
+    keyword_map.insert(std::make_pair("or", new Token(Token::Type::COMPARE_LOGICAL_OR, "or", line_number)));
     keyword_map.insert(std::make_pair("else", new Token(Token::Type::KEYWORD_ELSE, "else", line_number)));
     keyword_map.insert(std::make_pair("for", new Token(Token::Type::KEYWORD_FOR, "for", line_number)));
     keyword_map.insert(std::make_pair("while", new Token(Token::Type::KEYWORD_WHILE, "while", line_number)));
@@ -166,6 +168,9 @@ Token *scan_ident(const std::string input, int &index, const std::regex end_matc
     keyword_map.insert(std::make_pair("from", new Token(Token::Type::KEYWORD_LOOP_START, "from", line_number)));
     keyword_map.insert(std::make_pair("to", new Token(Token::Type::KEYWORD_LOOP_TO, "to", line_number)));
     keyword_map.insert(std::make_pair("step", new Token(Token::Type::KEYWORD_LOOP_STEP, "step", line_number)));
+    keyword_map.insert(std::make_pair("and", new Token(Token::Type::COMPARE_LOGICAL_AND, "and", line_number, Token::Flags::COMPARISON)));
+    keyword_map.insert(std::make_pair("or", new Token(Token::Type::COMPARE_LOGICAL_OR, "or", line_number, Token::Flags::COMPARISON)));
+
     keyword_map.insert(std::make_pair("true", new Token(Token::Type::TRUE, "true", line_number)));
     keyword_map.insert(std::make_pair("false", new Token(Token::Type::FALSE, "false", line_number)));
 

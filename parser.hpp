@@ -197,9 +197,9 @@ struct Ast_Assignment : Ast_Node {
 
 void eat(Parser *parser, Token::Type expected_type);
 
-Ast_Node *parse_arithmetic_factor(Parser *parser);
-Ast_Node *parse_arithmetic_term(Parser *parser, Token *token);
-Ast_Node *parse_arithmetic_expression(Parser *parser);
+Ast_Node *parse_expression_factor(Parser *parser);
+Ast_Node *parse_expression_term(Parser *parser, Token *token);
+Ast_Node *parse_expression_expression(Parser *parser);
 Ast_Node *parse_statement(Parser *parser);
 
 Ast_Variable *parse_variable(Parser *parser);

@@ -2,13 +2,16 @@ bug is_divisible_by_3(x) {
     return x % 3 == 0;
 }
 
-let sum_div_3 = 0;
+bug is_divisible_by_5(x) {
+    return x % 5 == 0;
+}
 
-from 1 to 1000 step 1 {
-    # This doesn't work unless this is a straight comparison
-    if (is_divisible_by_3(idx)) {
-        relet sum_div_3 = sum_div_3 + idx;
+let sum = 0;
+
+from 1 to 999 step 1 {
+    if (is_divisible_by_3(idx) or is_divisible_by_5(idx)) {
+        relet sum = sum + idx;
     }
 }
 
-print("Sum of all numbers divisible by 3 under 1000 is %", sum_div_3);
+print("Sum of all numbers divisible by 3 or 5 under 1000 is %", sum);

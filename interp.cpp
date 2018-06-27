@@ -65,11 +65,14 @@ Data_Value *walk_binary_op_node(Interpreter *interp, Scope *scope, Ast_Binary_Op
         return new Data_Value(left->num_val * right->num_val);
     } else if (node->op->type == Token::Type::OP_DIVIDE) {
         return new Data_Value(left->num_val / right->num_val);
+    } else if (node->op->type == Token::Type::OP_MODULO) {
+        return new Data_Value(float(int(left->num_val) % int(right->num_val)));
     } else {
         if (node->op->flags & Token::Flags::COMPARISON) {
             return new Data_Value(evaluate_node_to_bool(interp, scope, node));
         }
-        return new Data_Value(float(int(left->num_val) % int(right->num_val)));
+
+        return nullptr;
     }
 }
 
@@ -87,6 +90,12 @@ void fail_if_binary_op_invalid(Data_Value *left, Data_Value *right, Token *op) {
         case Token::Type::COMPARE_NOT_EQUALS:
             // Can + both num and str
             return;
+        case Token::Type::COMPARE_LOGICAL_AND:
+        case Token::Type::COMPARE_LOGICAL_OR:
+            if (left_t != Data_Type::BOOL) {
+                report_fatal_error("Cannot perform logical operations on non bool expressions");
+            }
+            return;
         case Token::Type::OP_MINUS:
         case Token::Type::OP_MULTIPLY:
         case Token::Type::OP_DIVIDE:
@@ -100,11 +109,11 @@ void fail_if_binary_op_invalid(Data_Value *left, Data_Value *right, Token *op) {
                 ss << "Cannot perform '" << op->value << "' on two string types";
                 report_fatal_error(ss.str());
             }
-            break;
+            return;
         }
         default:
             report_fatal_error("Invalid binary operator");
-            break;
+            return;
     }
 }
 
@@ -175,6 +184,14 @@ bool evaluate_binary_op_to_bool(Interpreter *interp, Scope *scope, Ast_Binary_Op
             return false;
         case Token::Type::COMPARE_LESS_THAN_EQUALS:
             if (type == Data_Type::NUM) return left->num_val <= right->num_val;
+            report_fatal_error("Invalid comparison operator for given data type");
+            return false;
+        case Token::Type::COMPARE_LOGICAL_OR:
+            if (type == Data_Type::BOOL) return left->bool_val || right->bool_val;
+            report_fatal_error("Invalid comparison operator for given data type");
+            return false;
+        case Token::Type::COMPARE_LOGICAL_AND:
+            if (type == Data_Type::BOOL) return left->bool_val && right->bool_val;
             report_fatal_error("Invalid comparison operator for given data type");
             return false;
     }

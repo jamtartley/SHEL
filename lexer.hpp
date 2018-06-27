@@ -40,6 +40,8 @@ struct Token {
         COMPARE_GREATER_THAN,
         COMPARE_LESS_THAN_EQUALS,
         COMPARE_GREATER_THAN_EQUALS,
+        COMPARE_LOGICAL_OR,
+        COMPARE_LOGICAL_AND,
         ASSIGNMENT,
         TERMINATOR,
         END_OF_FILE
@@ -55,12 +57,13 @@ struct Token {
     Token::Type type;
     std::string value;
     int line_number;
-    int flags = 0;
+    int flags;
 
-    Token(Token::Type type, std::string value, int line_number) {
+    Token(Token::Type type, std::string value, int line_number, int flags = 0) {
         this->type = type;
         this->value = value;
         this->line_number = line_number;
+        this->flags = flags;
     }
 };
 
@@ -102,6 +105,8 @@ inline const std::string type_to_string(Token::Type type) {
         case Token::Type::COMPARE_GREATER_THAN: return "COMPARE_GREATER_THAN";
         case Token::Type::COMPARE_LESS_THAN_EQUALS: return "COMPARE_LESS_THAN_EQUALS";
         case Token::Type::COMPARE_GREATER_THAN_EQUALS: return "COMPARE_GREATER_THAN_EQUALS";
+        case Token::Type::COMPARE_LOGICAL_OR: return "COMPARE_LOGICAL_OR";
+        case Token::Type::COMPARE_LOGICAL_AND: return "COMPARE_LOGICAL_AND";
         case Token::Type::ASSIGNMENT: return "ASSIGNMENT";
         case Token::Type::TERMINATOR: return "TERMINATOR";
         case Token::Type::END_OF_FILE: return "END_OF_FILE";
