@@ -33,7 +33,7 @@ void print_tokens(std::vector<Token *> tokens) {
 
 int main(int argc, char *argv[]) {
     // @ROBUSTNESS(LOW) Improve argv control/robustness
-    std::string in_file_name = argc > 1 ? argv[1] : "examples/bugs.shel";
+    std::string in_file_name = argc > 1 ? argv[1] : "examples/project_euler_1.shel";
     std::ifstream in_file(in_file_name);
 
     if (!in_file) {

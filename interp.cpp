@@ -8,7 +8,6 @@
 #include "scope.hpp"
 #include "shel_lib.hpp"
 
-bool is_num(std::string str);
 Data_Value *walk_from_root(Interpreter *interp, Scope *scope, Ast_Node *root);
 
 std::string get_unassigned_variable_error(std::string name, int line_number) {
@@ -45,7 +44,6 @@ Data_Value *walk_unary_op_node(Interpreter *interp, Scope *scope, Ast_Unary_Op *
 }
 
 Data_Value *walk_binary_op_node(Interpreter *interp, Scope *scope, Ast_Binary_Op *node) {
-    // @TODO(LOW) Handle string concatenation here
     Data_Value *left = walk_expression(interp, scope, node->left);
     Data_Value *right = walk_expression(interp, scope, node->right);
 
@@ -68,6 +66,9 @@ Data_Value *walk_binary_op_node(Interpreter *interp, Scope *scope, Ast_Binary_Op
     } else if (node->op->type == Token::Type::OP_DIVIDE) {
         return new Data_Value(left->num_val / right->num_val);
     } else {
+        if (node->op->flags & Token::Flags::COMPARISON) {
+            return new Data_Value(evaluate_node_to_bool(interp, scope, node));
+        }
         return new Data_Value(float(int(left->num_val) % int(right->num_val)));
     }
 }
@@ -76,22 +77,25 @@ void fail_if_binary_op_invalid(Data_Value *left, Data_Value *right, Token *op) {
     Data_Type left_t = left->data_type;
     Data_Type right_t = right->data_type;
 
-    if (left_t == Data_Type::BOOL || right_t == Data_Type::BOOL) {
-        report_fatal_error("Cannot perform binary operations on bool expressions");
-    }
-
     if (left_t != right_t) {
         report_fatal_error("Cannot perform binary operations on two mismatched expression types");
     }
 
     switch (op->type) {
         case Token::Type::OP_PLUS:
+        case Token::Type::COMPARE_EQUALS:
+        case Token::Type::COMPARE_NOT_EQUALS:
             // Can + both num and str
             return;
         case Token::Type::OP_MINUS:
         case Token::Type::OP_MULTIPLY:
-        case Token::Type::OP_DIVIDE: {
-            if (left_t == Data_Type::STR) {
+        case Token::Type::OP_DIVIDE:
+        case Token::Type::OP_MODULO:
+        case Token::Type::COMPARE_GREATER_THAN:
+        case Token::Type::COMPARE_LESS_THAN:
+        case Token::Type::COMPARE_GREATER_THAN_EQUALS:
+        case Token::Type::COMPARE_LESS_THAN_EQUALS: {
+            if (left_t == Data_Type::STR || left_t == Data_Type::BOOL) {
                 std::stringstream ss;
                 ss << "Cannot perform '" << op->value << "' on two string types";
                 report_fatal_error(ss.str());
@@ -135,8 +139,7 @@ Data_Value *walk_block_node(Interpreter *interp, Scope *scope, Ast_Block *root) 
     return nullptr;
 }
 
-bool evaluate_comparison(Interpreter *interp, Scope *scope, Ast_Comparison *comparison) {
-    // @TODO(HIGH) Don't assume numbers in comparison
+bool evaluate_binary_op_to_bool(Interpreter *interp, Scope *scope, Ast_Binary_Op *comparison) {
     Data_Value *left = walk_expression(interp, scope, comparison->left);
     Data_Value *right = walk_expression(interp, scope, comparison->right);
 
@@ -146,7 +149,7 @@ bool evaluate_comparison(Interpreter *interp, Scope *scope, Ast_Comparison *comp
 
     Data_Type type = left->data_type;
 
-    switch (comparison->comparator->type) {
+    switch (comparison->op->type) {
         default:
         case Token::Type::COMPARE_EQUALS:
             if (type == Data_Type::NUM) return left->num_val == right->num_val;
@@ -177,9 +180,30 @@ bool evaluate_comparison(Interpreter *interp, Scope *scope, Ast_Comparison *comp
     }
 }
 
+bool evaluate_node_to_bool(Interpreter *interp, Scope *scope, Ast_Node *node) {
+    if (node->node_type == Ast_Node::Type::BINARY_OP) {
+        return evaluate_binary_op_to_bool(interp, scope, (Ast_Binary_Op *)node);
+    } else if (node->node_type == Ast_Node::Type::LITERAL) {
+        Ast_Literal *lit = (Ast_Literal *)node;
+        if (lit->data_type == Data_Type::BOOL) return lit->value == "true";
+    } else if (node->node_type == Ast_Node::Type::VARIABLE) {
+        Data_Value *value = get_variable(interp, scope, (Ast_Variable *)node);
+        if (value->data_type == Data_Type::BOOL) return value->bool_val;
+    } else if (node->node_type == Ast_Node::Type::BLOCK) {
+        Data_Value *value = walk_block_node(interp, scope, (Ast_Block *)node);
+        if (value->data_type == Data_Type::BOOL) return value->bool_val;
+    } else if (node->node_type == Ast_Node::Type::FUNCTION_CALL) {
+        Data_Value *value = walk_function_call(interp, scope, (Ast_Function_Call *)node);
+        if (value->data_type == Data_Type::BOOL) return value->bool_val;
+    }
+
+    report_fatal_error("Invalid comparison");
+    return false;
+}
+
 Data_Value *walk_if(Interpreter *interp, Scope *scope, Ast_If *if_node) {
     // @TODO(HIGH) Allow 'else if' branching in if statement
-    bool is_success = evaluate_comparison(interp, scope, if_node->comparison);
+    bool is_success = evaluate_node_to_bool(interp, scope, if_node->comparison);
 
     if (is_success) {
         return walk_block_node(interp, new Scope(scope), if_node->success);
@@ -195,7 +219,7 @@ Data_Value *walk_if(Interpreter *interp, Scope *scope, Ast_If *if_node) {
 Data_Value *walk_while(Interpreter *interp, Scope *scope, Ast_While *while_node) {
     Data_Value *ret = NULL;
 
-    while (evaluate_comparison(interp, scope, while_node->comparison)) {
+    while (evaluate_node_to_bool(interp, scope, while_node->comparison)) {
         ret = walk_block_node(interp, new Scope(scope), while_node->body);
 
         if (ret != NULL) break;
@@ -274,14 +298,6 @@ Data_Value *walk_function_call(Interpreter *interp, Scope *scope, Ast_Function_C
         }
         return nullptr;
     }
-}
-
-bool is_num(std::string str) {
-    std::istringstream iss(str);
-    float f;
-    iss >> std::noskipws >> f;
-
-    return iss.eof() && iss.fail() == false;
 }
 
 void walk_assignment_node(Interpreter *interp, Scope *scope, Ast_Assignment *node) {

@@ -78,7 +78,8 @@ Ast_Node *parse_arithmetic_term(Parser *parser, Token *token) {
 Ast_Node *parse_arithmetic_expression(Parser *parser) {
     Ast_Node *node = parse_arithmetic_term(parser, parser->current_token);
 
-    while (parser->current_token->type == Token::Type::OP_PLUS || parser->current_token->type == Token::Type::OP_MINUS) {
+    while (parser->current_token->type == Token::Type::OP_PLUS 
+        || parser->current_token->type == Token::Type::OP_MINUS || parser->current_token->flags & Token::Flags::COMPARISON) {
         Token *token = parser->current_token;
         eat(parser, parser->current_token->type);
 
@@ -171,17 +172,6 @@ Ast_Assignment *parse_assignment(Parser *parser, bool is_first_assign) {
 Ast_Return *parse_return(Parser *parser) {
     eat(parser, Token::Type::KEYWORD_RETURN);
 
-    // Return can return either an arithmetic expression or a comparison
-    // so peek ahead and see which type we should parse for.
-
-    Token *peek = parser->current_token;
-
-    while (peek != NULL && peek->type != Token::Type::TERMINATOR) {
-        if (peek->flags & Token::Flags::COMPARISON) return new Ast_Return(parse_comparison(parser));
-
-        peek = peek_next_token(parser, peek);
-    }
-
     return new Ast_Return(parse_arithmetic_expression(parser));
 }
 
@@ -189,7 +179,7 @@ Ast_If *parse_if(Parser *parser) {
     eat(parser, Token::Type::KEYWORD_IF);
     eat(parser, Token::Type::L_PAREN);
 
-    Ast_Comparison *comparison = parse_comparison(parser);
+    Ast_Node *comparison = parse_arithmetic_expression(parser);
 
     eat(parser, Token::Type::R_PAREN);
     Ast_Block *success = parse_block(parser, false);
@@ -208,7 +198,7 @@ Ast_While *parse_while(Parser *parser) {
     eat(parser, Token::Type::KEYWORD_WHILE);
     eat(parser, Token::Type::L_PAREN);
 
-    Ast_Comparison *comparison = parse_comparison(parser);
+    Ast_Binary_Op *comparison = static_cast<Ast_Binary_Op *>(parse_arithmetic_expression(parser));
 
     eat(parser, Token::Type::R_PAREN);
 
@@ -233,18 +223,6 @@ Ast_Loop *parse_loop(Parser *parser) {
     Ast_Block *body = parse_block(parser, false);
 
     return new Ast_Loop(start, to, step, body);
-}
-
-Ast_Comparison *parse_comparison(Parser *parser) {
-    Ast_Node *left = parse_arithmetic_expression(parser);
-
-    // @ROBUSTNESS(LOW) Assert this is a comparator
-    Token *comparator = parser->current_token;
-    eat(parser, comparator->type);
-
-    Ast_Node *right = parse_arithmetic_expression(parser);
-
-    return new Ast_Comparison(left, right, comparator);
 }
 
 Ast_Block *parse_block(Parser *parser, bool is_global_scope) {

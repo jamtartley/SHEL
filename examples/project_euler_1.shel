@@ -6,20 +6,9 @@ let sum_div_3 = 0;
 
 from 1 to 1000 step 1 {
     # This doesn't work unless this is a straight comparison
-    if (idx % 3 == 0) {
+    if (is_divisible_by_3(idx)) {
         relet sum_div_3 = sum_div_3 + idx;
     }
 }
 
-let sum_div_5 = 0;
-
-from 1 to 1000 step 1 {
-    # This doesn't work unless this is a straight comparison
-    if (idx % 5 == 0) {
-        relet sum_div_5 = sum_div_5 + idx;
-    }
-}
-
-
 print("Sum of all numbers divisible by 3 under 1000 is %", sum_div_3);
-print("Sum of all numbers divisible by 5 under 1000 is %", sum_div_5);

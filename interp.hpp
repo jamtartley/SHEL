@@ -22,7 +22,7 @@ Data_Value *walk_unary_op_node(Interpreter *interp, Scope *scope, Ast_Unary_Op *
 Data_Value *get_variable(Interpreter *interp, Scope *scope, Ast_Variable *node);
 Data_Value *get_data_from_literal(Interpreter *interp, Scope *scope, Ast_Literal *lit);
 
-bool evaluate_comparison(Interpreter *interp, Scope *scope, Ast_Comparison *comparison);
+bool evaluate_node_to_bool(Interpreter *interp, Scope *scope, Ast_Node *node);
 
 std::string get_string_from_return_value(Data_Value *ret);
 

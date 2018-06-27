@@ -32,7 +32,6 @@ struct Ast_Node {
         WHILE,
         LOOP,
         ASSIGNMENT,
-        COMPARISON,
         VARIABLE,
         FUNCTION_DEFINITION,
         FUNCTION_CALL,
@@ -90,26 +89,12 @@ struct Ast_Block : Ast_Node {
     }
 };
 
-struct Ast_Comparison : Ast_Node {
-    Ast_Node *left;
-    Ast_Node *right;
-    Token *comparator;
-
-    Ast_Comparison(Ast_Node *left, Ast_Node *right, Token *comparator) {
-        this->left = left;
-        this->right = right;
-        this->comparator = comparator;
-        this->data_type = Data_Type::BOOL;
-        this->node_type = Ast_Node::Type::COMPARISON;
-    }
-};
-
 struct Ast_If : Ast_Node {
-    Ast_Comparison *comparison;
+    Ast_Node *comparison;
     Ast_Block *success;
     Ast_Block *failure;
 
-    Ast_If(Ast_Comparison *comparison, Ast_Block *success, Ast_Block *failure) {
+    Ast_If(Ast_Node *comparison, Ast_Block *success, Ast_Block *failure) {
         this->comparison = comparison;
         this->success = success;
         this->failure = failure;
@@ -118,10 +103,10 @@ struct Ast_If : Ast_Node {
 };
 
 struct Ast_While : Ast_Node {
-    Ast_Comparison *comparison;
+    Ast_Node *comparison;
     Ast_Block *body;
 
-    Ast_While(Ast_Comparison *comparison, Ast_Block *body) {
+    Ast_While(Ast_Node *comparison, Ast_Block *body) {
         this->comparison = comparison;
         this->body = body;
         this->node_type = Ast_Node::Type::WHILE;
@@ -232,8 +217,6 @@ Ast_If *parse_if(Parser *parser);
 Ast_While *parse_while(Parser *parser);
 
 Ast_Loop *parse_loop(Parser *parser);
-
-Ast_Comparison *parse_comparison(Parser *parser);
 
 Ast_Block *parse_block(Parser *parser, bool is_global_scope);
 
