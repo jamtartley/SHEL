@@ -148,6 +148,7 @@ Token *Lexer::scan_ident(const std::string input, const std::regex end_match) {
     keyword_map.insert(std::make_pair("false", new Token(Token::Type::KEYWORD_FALSE, "false", line_number, column_position, Token::Flags::KEYWORD)));
     keyword_map.insert(std::make_pair("and", new Token(Token::Type::LOGICAL_AND, "and", line_number, column_position, Token::Flags::LOGICAL)));
     keyword_map.insert(std::make_pair("or", new Token(Token::Type::LOGICAL_OR, "or", line_number, column_position, Token::Flags::LOGICAL)));
+    keyword_map.insert(std::make_pair("not", new Token(Token::Type::LOGICAL_NOT, "not", line_number, column_position, Token::Flags::LOGICAL | Token::Flags::RIGHT_TO_LEFT)));
 
     std::string raw = scan_other(input, end_match);
 

@@ -127,12 +127,28 @@ Data_Value *Interpreter::walk_unary_op_node(Scope *scope, Ast_Unary_Op *node) {
     Token::Type type = node->op->type;
     Data_Value *value = walk_expression(scope, node->node);
 
-    if (value->data_type != Data_Type::NUM) {
-        report_fatal_error("Attempted to perform unary operation on non-num type");
-        return nullptr;
-    } else {
-        return new Data_Value(type == Token::Type::OP_PLUS ? +value->num_val : -value->num_val);
+    if (value->data_type == Data_Type::BOOL) {
+        if (type == Token::Type::LOGICAL_NOT) {
+            return new Data_Value(value->bool_val == false);
+        } else {
+            report_fatal_error("Attempted invalid unary operation on bool value");
+            return nullptr;
+        }
     }
+
+    if (value->data_type == Data_Type::NUM) {
+        if (type == Token::Type::OP_PLUS) {
+            return new Data_Value(+value->num_val);
+        } else if (type == Token::Type::OP_MINUS) {
+            return new Data_Value(-value->num_val);
+        } else {
+            report_fatal_error("Attempted invalid unary operation on num value");
+            return nullptr;
+        }
+    }
+
+    report_fatal_error("Attempted invalid unary operation on str value");
+    return nullptr;
 }
 
 Data_Value *Interpreter::walk_function_call(Scope *scope, Ast_Function_Call *call) {

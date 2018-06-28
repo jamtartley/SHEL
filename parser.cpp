@@ -32,6 +32,8 @@ int get_operator_precedence(Token *token) {
             return 1;
         } else if (type == Token::Type::LOGICAL_OR) {
             return 0;
+        } else if (type == Token::Type::LOGICAL_NOT) {
+            return 6;
         }
     }
 
@@ -43,6 +45,7 @@ Ast_Node *Parser::parse_expression_factor() {
     Token *next = peek_next_token();
 
     switch (token->type) {
+        case Token::Type::LOGICAL_NOT:
         case Token::Type::OP_PLUS:
         case Token::Type::OP_MINUS: {
             eat(token->type);
@@ -93,7 +96,7 @@ Ast_Node *Parser::parse_expression(Ast_Node *left, int min_precedence) {
         eat(current_token->type);
         Ast_Node *right = parse_expression_factor();
 
-        while (get_operator_precedence(current_token) > get_operator_precedence(op)) {
+        while ((get_operator_precedence(current_token) > get_operator_precedence(op)) || (current_token->flags & Token::Flags::RIGHT_TO_LEFT && get_operator_precedence(current_token) == get_operator_precedence(op))) {
             right = parse_expression(right, get_operator_precedence(current_token));
         }
 

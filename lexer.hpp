@@ -68,17 +68,20 @@ struct Token {
         COMPARE_GREATER_THAN_EQUALS,
         LOGICAL_OR,
         LOGICAL_AND,
+        LOGICAL_NOT,
         TERMINATOR,
         END_OF_FILE
     };
 
     enum Flags {
-        NONE       = 1 << 0,
-        COMPARISON = 1 << 1,
-        OPERATOR   = 1 << 2,
-        KEYWORD    = 1 << 3,
-        LOGICAL    = 1 << 4,
-        LITERAL    = 1 << 5,
+        NONE          = 1 << 0,
+        COMPARISON    = 1 << 1,
+        OPERATOR      = 1 << 2,
+        KEYWORD       = 1 << 3,
+        LOGICAL       = 1 << 4,
+        LITERAL       = 1 << 5,
+        LEFT_TO_RIGHT = 1 << 6,
+        RIGHT_TO_LEFT = 1 << 7
     };
 
     Token::Type type;
@@ -87,7 +90,7 @@ struct Token {
     unsigned int column_position;
     unsigned int flags = 0;
 
-    Token(Token::Type type, std::string value, unsigned int line_number, unsigned int column_position, Token::Flags flags = Token::Flags::NONE) {
+    Token(Token::Type type, std::string value, unsigned int line_number, unsigned int column_position, int flags = Token::Flags::NONE) {
         this->type = type;
         this->value = value;
         this->line_number = line_number;
@@ -138,6 +141,7 @@ inline const std::string type_to_string(Token::Type type) {
         case Token::Type::COMPARE_GREATER_THAN_EQUALS: return "COMPARE_GREATER_THAN_EQUALS";
         case Token::Type::LOGICAL_OR: return "LOGICAL_OR";
         case Token::Type::LOGICAL_AND: return "LOGICAL_AND";
+        case Token::Type::LOGICAL_NOT: return "LOGICAL_NOT";
         default: return "INVALID TOKEN TYPE";
     }
 }
