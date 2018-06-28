@@ -86,7 +86,7 @@ void Lexer::move_next_char() {
 void Lexer::move_next_line() {
     index++;
     line_number++;
-    column_position = 0;
+    column_position = 1;
 }
 
 std::string Lexer::peek_next_chars(unsigned int jump) {
@@ -131,28 +131,23 @@ std::string Lexer::scan_other(Code_Site *site, const std::string input, const st
 }
 
 Token *Lexer::scan_ident(Code_Site *site, const std::string input, const std::regex end_match) {
-    static std::map<std::string, Token *> keyword_map;
-
-    // @CLEANUP(LOW) Keyword map identifier redundancies
-    keyword_map.insert(std::make_pair("if", new Token(Token::Type::KEYWORD_IF, "if", site, Token::Flags::KEYWORD)));
-    keyword_map.insert(std::make_pair("else", new Token(Token::Type::KEYWORD_ELSE, "else", site, Token::Flags::KEYWORD)));
-    keyword_map.insert(std::make_pair("while", new Token(Token::Type::KEYWORD_WHILE, "while", site, Token::Flags::KEYWORD)));
-    keyword_map.insert(std::make_pair("return", new Token(Token::Type::KEYWORD_RETURN, "return", site, Token::Flags::KEYWORD)));
-    keyword_map.insert(std::make_pair("shel", new Token(Token::Type::KEYWORD_STRUCT, "shel", site, Token::Flags::KEYWORD)));
-    keyword_map.insert(std::make_pair("bug", new Token(Token::Type::KEYWORD_FUNCTION, "bug", site, Token::Flags::KEYWORD)));
-    keyword_map.insert(std::make_pair("let", new Token(Token::Type::KEYWORD_ASSIGN_VARIABLE, "let", site, Token::Flags::KEYWORD)));
-    keyword_map.insert(std::make_pair("relet", new Token(Token::Type::KEYWORD_REASSIGN_VARIABLE, "relet", site, Token::Flags::KEYWORD)));
-    keyword_map.insert(std::make_pair("from", new Token(Token::Type::KEYWORD_LOOP_START, "from", site, Token::Flags::KEYWORD)));
-    keyword_map.insert(std::make_pair("to", new Token(Token::Type::KEYWORD_LOOP_TO, "to", site, Token::Flags::KEYWORD)));
-    keyword_map.insert(std::make_pair("step", new Token(Token::Type::KEYWORD_LOOP_STEP, "step", site, Token::Flags::KEYWORD)));
-    keyword_map.insert(std::make_pair("true", new Token(Token::Type::KEYWORD_TRUE, "true", site, Token::Flags::KEYWORD)));
-    keyword_map.insert(std::make_pair("false", new Token(Token::Type::KEYWORD_FALSE, "false", site, Token::Flags::KEYWORD)));
-    keyword_map.insert(std::make_pair("and", new Token(Token::Type::LOGICAL_AND, "and", site, Token::Flags::LOGICAL)));
-    keyword_map.insert(std::make_pair("or", new Token(Token::Type::LOGICAL_OR, "or", site, Token::Flags::LOGICAL)));
-    keyword_map.insert(std::make_pair("not", new Token(Token::Type::LOGICAL_NOT, "not", site, Token::Flags::LOGICAL | Token::Flags::RIGHT_TO_LEFT)));
-
     std::string raw = scan_other(site, input, end_match);
 
-    if (keyword_map.find(raw) != keyword_map.end()) return keyword_map[raw];
-    return new Token(Token::Type::IDENT, raw, site);
+    if (raw == "if")          return new Token(Token::Type::KEYWORD_IF, "if", site, Token::Flags::KEYWORD);
+    else if (raw == "else")   return new Token(Token::Type::KEYWORD_ELSE, "else", site, Token::Flags::KEYWORD);
+    else if (raw == "while")  return new Token(Token::Type::KEYWORD_WHILE, "while", site, Token::Flags::KEYWORD);
+    else if (raw == "return") return new Token(Token::Type::KEYWORD_RETURN, "return", site, Token::Flags::KEYWORD);
+    else if (raw == "shel")   return new Token(Token::Type::KEYWORD_STRUCT, "shel", site, Token::Flags::KEYWORD);
+    else if (raw == "bug")    return new Token(Token::Type::KEYWORD_FUNCTION, "bug", site, Token::Flags::KEYWORD);
+    else if (raw == "let")    return new Token(Token::Type::KEYWORD_ASSIGN_VARIABLE, "let", site, Token::Flags::KEYWORD);
+    else if (raw == "relet")  return new Token(Token::Type::KEYWORD_REASSIGN_VARIABLE, "relet", site, Token::Flags::KEYWORD);
+    else if (raw == "from")   return new Token(Token::Type::KEYWORD_LOOP_START, "from", site, Token::Flags::KEYWORD);
+    else if (raw == "to")     return new Token(Token::Type::KEYWORD_LOOP_TO, "to", site, Token::Flags::KEYWORD);
+    else if (raw == "step")   return new Token(Token::Type::KEYWORD_LOOP_STEP, "step", site, Token::Flags::KEYWORD);
+    else if (raw == "true")   return new Token(Token::Type::KEYWORD_TRUE, "true", site, Token::Flags::KEYWORD);
+    else if (raw == "false")  return new Token(Token::Type::KEYWORD_FALSE, "false", site, Token::Flags::KEYWORD);
+    else if (raw == "and")    return new Token(Token::Type::LOGICAL_AND, "and", site, Token::Flags::LOGICAL);
+    else if (raw == "or")     return new Token(Token::Type::LOGICAL_OR, "or", site, Token::Flags::LOGICAL);
+    else if (raw == "not")    return new Token(Token::Type::LOGICAL_NOT, "not", site, Token::Flags::LOGICAL | Token::Flags::RIGHT_TO_LEFT);
+    else                      return new Token(Token::Type::IDENT, raw, site);
 }

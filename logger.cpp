@@ -27,7 +27,7 @@ std::string get_line_by_number(Code_Site *site) {
 }
 
 std::string get_column_marker(std::string line, int column) {
-    std::string before(column - 1, '_');
+    std::string before(column - 1, '-');
     std::string marker = "^";
 
     return before + marker;
