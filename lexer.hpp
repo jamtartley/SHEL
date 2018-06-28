@@ -5,23 +5,26 @@
 #include <string>
 #include <vector>
 
+struct Code_Site;
 struct Token;
 
 struct Lexer {
     std::vector<Token *> tokens;
+    std::string file_name;
     std::string file_string;
 
     unsigned int index = 0;
     unsigned int line_number = 1;
     unsigned int column_position = 1;
 
-    Lexer(const std::string file_string) {
+    Lexer(const std::string file_name, const std::string file_string) {
+        this->file_name = file_name;
         this->file_string = file_string;
     }
 
-    std::string scan_string(const std::string input, const std::regex end_match);
-    std::string scan_other(const std::string input, const std::regex end_match);
-    Token *scan_ident(const std::string input, const std::regex end_match);
+    std::string scan_string(Code_Site *site, const std::string input, const std::regex end_match);
+    std::string scan_other(Code_Site *site, const std::string input, const std::regex end_match);
+    Token *scan_ident(Code_Site *site, const std::string input, const std::regex end_match);
     void lex();
     void consume_comment();
     void move_next_char();
@@ -29,6 +32,18 @@ struct Lexer {
     void move_next_line();
     std::string peek_next_chars(unsigned int jump);
     std::string peek_next_char();
+};
+
+struct Code_Site {
+    std::string file_name;
+    unsigned int line_number;
+    unsigned int column_position;
+
+    Code_Site(std::string file_name, unsigned int line_number, unsigned int column_position) {
+        this->file_name = file_name;
+        this->line_number = line_number;
+        this->column_position = column_position;
+    }
 };
 
 struct Token {
@@ -86,15 +101,13 @@ struct Token {
 
     Token::Type type;
     std::string value;
-    unsigned int line_number;
-    unsigned int column_position;
+    Code_Site *site;
     unsigned int flags = 0;
 
-    Token(Token::Type type, std::string value, unsigned int line_number, unsigned int column_position, int flags = Token::Flags::NONE) {
+    Token(Token::Type type, std::string value, Code_Site *site, int flags = Token::Flags::NONE) {
         this->type = type;
         this->value = value;
-        this->line_number = line_number;
-        this->column_position = column_position;
+        this->site = site;
         this->flags |= flags;
     }
 };

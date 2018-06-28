@@ -30,6 +30,7 @@ struct Ast_Node {
     // Attaching some metadata to these at some point might be useful
     Type node_type;
     Data_Type data_type = Data_Type::UNKNOWN;
+    Code_Site *site;
 };
 
 struct Ast_Binary_Op : Ast_Node {
@@ -41,6 +42,7 @@ struct Ast_Binary_Op : Ast_Node {
         this->left = left;
         this->right = right;
         this->op = op;
+        this->site = op->site;
         this->node_type = Ast_Node::Type::BINARY_OP;
     }
 };
@@ -52,6 +54,7 @@ struct Ast_Unary_Op : Ast_Node {
     Ast_Unary_Op(Token *op, Ast_Node *node) {
         this->op = op;
         this->node = node;
+        this->site = op->site;
         this->node_type = Ast_Node::Type::UNARY_OP;
     }
 };
@@ -59,8 +62,9 @@ struct Ast_Unary_Op : Ast_Node {
 struct Ast_Return : Ast_Node {
     Ast_Node *value;
 
-    Ast_Return(Ast_Node *value) {
+    Ast_Return(Ast_Node *value, Code_Site *site) {
         this->value = value;
+        this->site = site;
         this->node_type = Ast_Node::Type::RETURN;
     }
 };
@@ -69,9 +73,10 @@ struct Ast_Block : Ast_Node {
     std::vector<Ast_Node *> children;
     Ast_Return *return_node;
 
-    Ast_Block(std::vector<Ast_Node *> children) {
+    Ast_Block(std::vector<Ast_Node *> children, Code_Site *site) {
         this->children = children;
         this->return_node = NULL;
+        this->site = site;
         this->node_type = Ast_Node::Type::BLOCK;
     }
 };
@@ -81,10 +86,11 @@ struct Ast_If : Ast_Node {
     Ast_Block *success;
     Ast_Block *failure;
 
-    Ast_If(Ast_Node *comparison, Ast_Block *success, Ast_Block *failure) {
+    Ast_If(Ast_Node *comparison, Ast_Block *success, Ast_Block *failure, Code_Site *site) {
         this->comparison = comparison;
         this->success = success;
         this->failure = failure;
+        this->site = site;
         this->node_type = Ast_Node::Type::IF;
     }
 };
@@ -93,9 +99,10 @@ struct Ast_While : Ast_Node {
     Ast_Node *comparison;
     Ast_Block *body;
 
-    Ast_While(Ast_Node *comparison, Ast_Block *body) {
+    Ast_While(Ast_Node *comparison, Ast_Block *body, Code_Site *site) {
         this->comparison = comparison;
         this->body = body;
+        this->site = site;
         this->node_type = Ast_Node::Type::WHILE;
     }
 };
@@ -106,11 +113,12 @@ struct Ast_Loop : Ast_Node {
     Ast_Node *step;
     Ast_Block *body;
 
-    Ast_Loop(Ast_Node *start, Ast_Node *to, Ast_Node *step, Ast_Block *body) {
+    Ast_Loop(Ast_Node *start, Ast_Node *to, Ast_Node *step, Ast_Block *body, Code_Site *site) {
         this->start = start;
         this->to = to;
         this->step = step;
         this->body = body;
+        this->site = site;
         this->node_type = Ast_Node::Type::LOOP;
     }
 };
@@ -118,9 +126,10 @@ struct Ast_Loop : Ast_Node {
 struct Ast_Literal : Ast_Node {
     std::string value;
 
-    Ast_Literal(std::string value, Data_Type type) {
+    Ast_Literal(std::string value, Data_Type type, Code_Site *site) {
         this->value = value;
         this->data_type = type;
+        this->site = site;
         this->node_type = Ast_Node::Type::LITERAL;
     }
 };
@@ -128,8 +137,9 @@ struct Ast_Literal : Ast_Node {
 struct Ast_Function_Argument : Ast_Node {
     std::string name;
 
-    Ast_Function_Argument(std::string name) {
+    Ast_Function_Argument(std::string name, Code_Site *site) {
         this->name = name;
+        this->site = site;
         this->node_type = Ast_Node::Type::FUNCTION_ARGUMENT;
     }
 };
@@ -139,10 +149,11 @@ struct Ast_Function_Definition : Ast_Node {
     std::vector<Ast_Function_Argument *> args;
     std::string name;
 
-    Ast_Function_Definition(Ast_Block *block, std::vector<Ast_Function_Argument *> args, std::string name) {
+    Ast_Function_Definition(Ast_Block *block, std::vector<Ast_Function_Argument *> args, std::string name, Code_Site *site) {
         this->block = block;
         this->args = args;
         this->name = name;
+        this->site = site;
         this->node_type = Ast_Node::Type::FUNCTION_DEFINITION;
     }
 };
@@ -151,9 +162,10 @@ struct Ast_Function_Call : Ast_Node {
     std::string name;
     std::vector<Ast_Node *> args;
 
-    Ast_Function_Call(std::string name, std::vector<Ast_Node *> args) {
+    Ast_Function_Call(std::string name, std::vector<Ast_Node *> args, Code_Site *site) {
         this->name = name;
         this->args = args;
+        this->site = site;
         this->node_type = Ast_Node::Type::FUNCTION_CALL;
     }
 };
@@ -165,6 +177,7 @@ struct Ast_Variable : Ast_Node {
     Ast_Variable(Token *token) {
         this->token = token;
         this->name = token->value;
+        this->site = token->site;
         this->node_type = Ast_Node::Type::VARIABLE;
     }
 };
@@ -174,16 +187,18 @@ struct Ast_Assignment : Ast_Node {
     Ast_Node *right;
     bool is_first_assign;
 
-    Ast_Assignment(Ast_Variable *left, Ast_Node *right, bool is_first_assign) {
+    Ast_Assignment(Ast_Variable *left, Ast_Node *right, bool is_first_assign, Code_Site *site) {
         this->left = left;
         this->right = right;
         this->is_first_assign = is_first_assign;
+        this->site = site;
         this->node_type = Ast_Node::Type::ASSIGNMENT;
     }
 };
 
 struct Ast_Empty : Ast_Node {
-    Ast_Empty() {
+    Ast_Empty(Code_Site *site) {
+        this->site = site;
         this->node_type = Ast_Node::Type::EMPTY;
     }
 };

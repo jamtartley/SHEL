@@ -8,9 +8,9 @@
 #include "scope.hpp"
 #include "shel_lib.hpp"
 
-std::string get_unassigned_variable_error(std::string name, int line_number) {
+std::string get_unassigned_variable_error(std::string name) {
     std::stringstream ss;
-    ss << "Use of unassigned variable '" << name << "' at line: " << line_number << std::endl;
+    ss << "Use of unassigned variable '" << name << "'";
 
     return ss.str();
 }
@@ -20,7 +20,7 @@ void fail_if_binary_op_invalid(Data_Value *left, Data_Value *right, Token *op) {
     Data_Type right_t = right->data_type;
 
     if (left_t != right_t) {
-        report_fatal_error("Cannot perform binary operations on two mismatched expression types");
+        report_fatal_error("Cannot perform binary operations on two mismatched expression types", op->site);
     }
 
     switch (op->type) {
@@ -32,7 +32,7 @@ void fail_if_binary_op_invalid(Data_Value *left, Data_Value *right, Token *op) {
         case Token::Type::LOGICAL_AND:
         case Token::Type::LOGICAL_OR:
             if (left_t != Data_Type::BOOL) {
-                report_fatal_error("Cannot perform logical operations on non bool expressions");
+                report_fatal_error("Cannot perform logical operations on non bool expressions", op->site);
             }
             return;
         case Token::Type::OP_MINUS:
@@ -46,12 +46,12 @@ void fail_if_binary_op_invalid(Data_Value *left, Data_Value *right, Token *op) {
             if (left_t == Data_Type::STR || left_t == Data_Type::BOOL) {
                 std::stringstream ss;
                 ss << "Cannot perform '" << op->value << "' on two string types";
-                report_fatal_error(ss.str());
+                report_fatal_error(ss.str(), op->site);
             }
             return;
         }
         default:
-            report_fatal_error("Invalid binary operator");
+            report_fatal_error("Invalid binary operator", op->site);
             return;
     }
 }
@@ -102,7 +102,7 @@ Data_Value *Interpreter::walk_binary_op_node(Scope *scope, Ast_Binary_Op *node) 
         } else if (left->data_type == Data_Type::STR) {
             return new Data_Value(left->str_val + right->str_val);
         } else {
-            report_fatal_error("Attempted to '+' incompatible expressions");
+            report_fatal_error("Attempted to '+' incompatible expressions", node->op->site);
             return nullptr;
         }
         return new Data_Value(left->num_val + right->num_val);
@@ -131,7 +131,7 @@ Data_Value *Interpreter::walk_unary_op_node(Scope *scope, Ast_Unary_Op *node) {
         if (type == Token::Type::LOGICAL_NOT) {
             return new Data_Value(value->bool_val == false);
         } else {
-            report_fatal_error("Attempted invalid unary operation on bool value");
+            report_fatal_error("Attempted invalid unary operation on bool value", node->site);
             return nullptr;
         }
     }
@@ -142,12 +142,12 @@ Data_Value *Interpreter::walk_unary_op_node(Scope *scope, Ast_Unary_Op *node) {
         } else if (type == Token::Type::OP_MINUS) {
             return new Data_Value(-value->num_val);
         } else {
-            report_fatal_error("Attempted invalid unary operation on num value");
+            report_fatal_error("Attempted invalid unary operation on num value", node->op->site);
             return nullptr;
         }
     }
 
-    report_fatal_error("Attempted invalid unary operation on str value");
+    report_fatal_error("Attempted invalid unary operation on str value", node->op->site);
     return nullptr;
 }
 
@@ -217,19 +217,19 @@ Data_Value *Interpreter::walk_loop(Scope *scope, Ast_Loop *loop_node) {
     Data_Value *step = walk_expression(scope, loop_node->step);
 
     if (from->data_type != Data_Type::NUM || to->data_type != Data_Type::NUM || step->data_type != Data_Type::NUM) {
-        report_fatal_error("Attempted to use non-num expression as control in a from loop");
+        report_fatal_error("Attempted to use non-num expression as control in a from loop", loop_node->site);
     }
 
     if (step->num_val < 0 && from->num_val < to->num_val) {
-        report_fatal_error("from < to but step value is negative");
+        report_fatal_error("from < to but step value is negative", loop_node->site);
     }
 
     if (step->num_val > 0 && from->num_val > to->num_val) {
-        report_fatal_error("to > from but step value is positive");
+        report_fatal_error("to > from but step value is positive", loop_node->site);
     }
 
     if (step->num_val == 0) {
-        report_fatal_error("step value cannot be 0");
+        report_fatal_error("step value cannot be 0", loop_node->site);
     }
 
     Data_Value *ret = NULL;
@@ -279,7 +279,7 @@ Data_Value *Interpreter::get_variable(Scope *scope, Ast_Variable *node) {
         // Variables stored as maps of string name to string value so need to convert to float
         return var->data;
     } else {
-        report_fatal_error(get_unassigned_variable_error(name, node->token->line_number));
+        report_fatal_error(get_unassigned_variable_error(name), node->token->site);
         return nullptr;
     }
 }
@@ -310,7 +310,7 @@ bool Interpreter::evaluate_node_to_bool(Scope *scope, Ast_Node *node) {
         if (value->data_type == Data_Type::BOOL) return value->bool_val;
     }
 
-    report_fatal_error("Invalid comparison");
+    report_fatal_error("Invalid comparison", node->site);
     return false;
 }
 
@@ -319,7 +319,7 @@ bool Interpreter::evaluate_binary_op_to_bool(Scope *scope, Ast_Binary_Op *compar
     Data_Value *right = walk_expression(scope, comparison->right);
 
     if (left->data_type != right->data_type) {
-        report_fatal_error("Attempted to compare expressions of different data types");
+        report_fatal_error("Attempted to compare expressions of different data types", comparison->site);
     }
 
     Data_Type type = left->data_type;
@@ -330,37 +330,34 @@ bool Interpreter::evaluate_binary_op_to_bool(Scope *scope, Ast_Binary_Op *compar
             if (type == Data_Type::NUM) return left->num_val == right->num_val;
             if (type == Data_Type::STR) return left->str_val == right->str_val;
             if (type == Data_Type::BOOL) return left->bool_val == right->bool_val;
-            return false;
+            break;
         case Token::Type::COMPARE_NOT_EQUALS:
             if (type == Data_Type::NUM) return left->num_val != right->num_val;
             if (type == Data_Type::STR) return left->str_val != right->str_val;
             if (type == Data_Type::BOOL) return left->bool_val != right->bool_val;
-            return false;
+            break;
         case Token::Type::COMPARE_GREATER_THAN:
             if (type == Data_Type::NUM) return left->num_val > right->num_val;
-            report_fatal_error("Invalid comparison operator for given data type");
-            return false;
+            break;
         case Token::Type::COMPARE_GREATER_THAN_EQUALS:
             if (type == Data_Type::NUM) return left->num_val >= right->num_val;
-            report_fatal_error("Invalid comparison operator for given data type");
-            return false;
+            break;
         case Token::Type::COMPARE_LESS_THAN:
             if (type == Data_Type::NUM) return left->num_val < right->num_val;
-            report_fatal_error("Invalid comparison operator for given data type");
-            return false;
+            break;
         case Token::Type::COMPARE_LESS_THAN_EQUALS:
             if (type == Data_Type::NUM) return left->num_val <= right->num_val;
-            report_fatal_error("Invalid comparison operator for given data type");
-            return false;
+            break;
         case Token::Type::LOGICAL_OR:
             if (type == Data_Type::BOOL) return left->bool_val || right->bool_val;
-            report_fatal_error("Invalid comparison operator for given data type");
-            return false;
+            break;
         case Token::Type::LOGICAL_AND:
             if (type == Data_Type::BOOL) return left->bool_val && right->bool_val;
-            report_fatal_error("Invalid comparison operator for given data type");
-            return false;
+            break;
     }
+
+    report_fatal_error("Invalid comparison operator for given data type", comparison->site);
+    return false;
 }
 
 void Interpreter::walk_assignment_node(Scope *scope, Ast_Assignment *node) {

@@ -53,14 +53,14 @@ Ast_Node *Parser::parse_expression_factor() {
         }
         case Token::Type::NUMBER:
             eat(token->type);
-            return new Ast_Literal(token->value, Data_Type::NUM);
+            return new Ast_Literal(token->value, Data_Type::NUM, token->site);
         case Token::Type::STRING:
             eat(token->type);
-            return new Ast_Literal(token->value, Data_Type::STR);
+            return new Ast_Literal(token->value, Data_Type::STR, token->site);
         case Token::Type::KEYWORD_TRUE:
         case Token::Type::KEYWORD_FALSE: {
             eat(token->type);
-            return new Ast_Literal(token->value, Data_Type::BOOL);
+            return new Ast_Literal(token->value, Data_Type::BOOL, token->site);
         }
         case Token::Type::IDENT: {
             if (next->type == Token::Type::L_PAREN) {
@@ -75,7 +75,7 @@ Ast_Node *Parser::parse_expression_factor() {
             return node;
         }
         default:
-            return new Ast_Empty();
+            return new Ast_Empty(token->site);
     }
 }
 
@@ -135,11 +135,11 @@ Ast_Node *Parser::parse_statement() {
             eat(Token::Type::TERMINATOR);
             return ret;
         } else {
-            report_fatal_error(unspecified_parse_error(current_token->line_number));
+            report_fatal_error("Cannot parse this line", current_token->site);
             return nullptr;
         }
     } else {
-        report_fatal_error(unspecified_parse_error(current_token->line_number));
+        report_fatal_error("Cannot parse this line", current_token->site);
         return nullptr;
     }
 }
@@ -152,6 +152,7 @@ Ast_Variable *Parser::parse_variable() {
 }
 
 Ast_Function_Definition *Parser::parse_function_definition() {
+    Token *start_token = current_token;
     eat(Token::Type::KEYWORD_FUNCTION);
 
     std::string func_name = parse_ident_name();
@@ -160,17 +161,18 @@ Ast_Function_Definition *Parser::parse_function_definition() {
     std::vector<Ast_Function_Argument *> args;
 
     while (current_token->type == Token::Type::IDENT) {
+        Token *arg_token = current_token;
         std::string arg_name = parse_ident_name();
 
         for (Ast_Function_Argument *other : args) {
             if (other->name == arg_name) {
                 std::stringstream ss;
-                ss << "Error on line " << current_token->line_number <<  ": Argument with the name '" << arg_name << "' already exists in definition of function '" << func_name << "'";
-                report_fatal_error(ss.str());
+                ss << "Argument with the name '" << arg_name << "' already exists in definition of bug '" << func_name << "'";
+                report_fatal_error(ss.str(), arg_token->site);
             }
         }
 
-        args.push_back(new Ast_Function_Argument(arg_name));
+        args.push_back(new Ast_Function_Argument(arg_name, arg_token->site));
 
         if (current_token->type == Token::Type::ARGUMENT_SEPARATOR) eat(Token::Type::ARGUMENT_SEPARATOR);
     }
@@ -179,10 +181,11 @@ Ast_Function_Definition *Parser::parse_function_definition() {
 
     Ast_Block *body = parse_block(false);
 
-    return new Ast_Function_Definition(body, args, func_name);
+    return new Ast_Function_Definition(body, args, func_name, start_token->site);
 }
 
 Ast_Function_Call *Parser::parse_function_call() {
+    Token *call_token = current_token;
     std::string func_name = parse_ident_name();
 
     eat(Token::Type::L_PAREN);
@@ -196,7 +199,7 @@ Ast_Function_Call *Parser::parse_function_call() {
 
     eat(Token::Type::R_PAREN);
 
-    return new Ast_Function_Call(func_name, args);
+    return new Ast_Function_Call(func_name, args, call_token->site);
 }
 
 
@@ -208,20 +211,23 @@ Ast_Assignment *Parser::parse_assignment(bool is_first_assign) {
     }
 
     Ast_Variable *var = parse_variable();
+    Token *ass_token = current_token;
     eat(Token::Type::OP_ASSIGNMENT);
 
     Ast_Node *right = parse_expression();
 
-    return new Ast_Assignment(var, right, is_first_assign);
+    return new Ast_Assignment(var, right, is_first_assign, ass_token->site);
 }
 
 Ast_Return *Parser::parse_return() {
+    Token *ret_token = current_token;
     eat(Token::Type::KEYWORD_RETURN);
 
-    return new Ast_Return(parse_expression());
+    return new Ast_Return(parse_expression(), ret_token->site);
 }
 
 Ast_If *Parser::parse_if() {
+    Token *if_token = current_token;
     eat(Token::Type::KEYWORD_IF);
     eat(Token::Type::L_PAREN);
 
@@ -237,10 +243,11 @@ Ast_If *Parser::parse_if() {
         failure = parse_block(false);
     }
 
-    return new Ast_If(comparison, success, failure);
+    return new Ast_If(comparison, success, failure, if_token->site);
 }
 
 Ast_While *Parser::parse_while() {
+    Token *while_token = current_token;
     eat(Token::Type::KEYWORD_WHILE);
     eat(Token::Type::L_PAREN);
 
@@ -250,10 +257,11 @@ Ast_While *Parser::parse_while() {
 
     Ast_Block *body = parse_block(false);
 
-    return new Ast_While(comparison, body);
+    return new Ast_While(comparison, body, while_token->site);
 }
 
 Ast_Loop *Parser::parse_loop() {
+    Token *loop_token = current_token;
     eat(Token::Type::KEYWORD_LOOP_START);
 
     Ast_Node *start = parse_expression();
@@ -268,14 +276,15 @@ Ast_Loop *Parser::parse_loop() {
 
     Ast_Block *body = parse_block(false);
 
-    return new Ast_Loop(start, to, step, body);
+    return new Ast_Loop(start, to, step, body, loop_token->site);
 }
 
 
 Ast_Block *Parser::parse_block(bool is_global_scope) {
+    Token *start = current_token;
     if (is_global_scope == false) eat(Token::Type::L_BRACE);
     std::vector<Ast_Node *> nodes = parse_statements();
-    Ast_Block *block = new Ast_Block(nodes);
+    Ast_Block *block = new Ast_Block(nodes, start->site);
 
     for (Ast_Node *node : nodes) {
         // First return node in a block wins
@@ -331,7 +340,7 @@ void Parser::accept_or_reject_token(bool is_accepted) {
         current_token = tokens[position];
     } else {
         std::stringstream ss;
-        ss << "Invalid syntax on line " << current_token->line_number;
+        ss << "Invalid syntax on line " << current_token->site->line_number;
         report_fatal_error(ss.str());
     }
 }

@@ -7,9 +7,18 @@
 #include "parser.hpp"
 #include "interp.hpp"
 
-std::string file_to_string(std::ifstream &in) {
+std::string file_to_string(std::string file_name) {
+    std::ifstream in_file(file_name);
+
+    if (!in_file) {
+        std::stringstream error;
+        error << "Cannot open: " << file_name;
+        report_fatal_error(error.str());
+        return "";
+    }
+
     std::stringstream sstr;
-    sstr << in.rdbuf();
+    sstr << in_file.rdbuf();
     return sstr.str();
 }
 
@@ -34,16 +43,9 @@ void print_tokens(std::vector<Token *> tokens) {
 int main(int argc, char *argv[]) {
     // @ROBUSTNESS(LOW) Improve argv control/robustness
     std::string in_file_name = argc > 1 ? argv[1] : "examples/operator_precedence.shel";
-    std::ifstream in_file(in_file_name);
+    std::string file_string = file_to_string(in_file_name);
 
-    if (!in_file) {
-        std::stringstream error;
-        error << "Cannot open: " << in_file_name;
-        report_fatal_error(error.str());
-        return 1;
-    }
-
-    Lexer *lexer = new Lexer(file_to_string(in_file));
+    Lexer *lexer = new Lexer(in_file_name, file_string);
     lexer->lex();
 
     Parser *parser = new Parser(lexer->tokens, Token::Type::END_OF_FILE);
