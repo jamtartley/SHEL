@@ -27,8 +27,8 @@ Ast_Node *Parser::parse_expression_factor() {
         case Token::Type::STRING:
             eat(token->type);
             return new Ast_Literal(token->value, Data_Type::STR);
-        case Token::Type::TRUE:
-        case Token::Type::FALSE: {
+        case Token::Type::KEYWORD_TRUE:
+        case Token::Type::KEYWORD_FALSE: {
             eat(token->type);
             return new Ast_Literal(token->value, Data_Type::BOOL);
         }
@@ -85,7 +85,7 @@ Ast_Node *Parser::parse_statement() {
     Token *next = peek_next_token();
     Ast_Node *ret;
 
-    if (curr->type == Token::Type::BLOCK_OPEN) {
+    if (curr->type == Token::Type::L_BRACE) {
         return parse_block(false);
     } else if (curr->type == Token::Type::KEYWORD_FUNCTION) {
         return parse_function_definition();
@@ -186,7 +186,7 @@ Ast_Assignment *Parser::parse_assignment(bool is_first_assign) {
     }
 
     Ast_Variable *var = parse_variable();
-    eat(Token::Type::ASSIGNMENT);
+    eat(Token::Type::OP_ASSIGNMENT);
 
     Ast_Node *right = parse_expression();
 
@@ -251,7 +251,7 @@ Ast_Loop *Parser::parse_loop() {
 
 
 Ast_Block *Parser::parse_block(bool is_global_scope) {
-    if (is_global_scope == false) eat(Token::Type::BLOCK_OPEN);
+    if (is_global_scope == false) eat(Token::Type::L_BRACE);
     std::vector<Ast_Node *> nodes = parse_statements();
     Ast_Block *block = new Ast_Block(nodes);
 
@@ -263,7 +263,7 @@ Ast_Block *Parser::parse_block(bool is_global_scope) {
         if (node->node_type == Ast_Node::Type::RETURN) block->return_node = (Ast_Return *)node;
     }
 
-    if (is_global_scope == false) eat(Token::Type::BLOCK_CLOSE);
+    if (is_global_scope == false) eat(Token::Type::R_BRACE);
     return block;
 }
 
@@ -283,7 +283,7 @@ std::vector<Ast_Node *> Parser::parse_statements() {
     std::vector<Ast_Node *> nodes;
     Token::Type current_type = current_token->type;
 
-    while (current_type != Token::Type::END_OF_FILE && current_type != Token::Type::BLOCK_CLOSE) {
+    while (current_type != Token::Type::END_OF_FILE && current_type != Token::Type::R_BRACE) {
         nodes.push_back(parse_statement());
         current_type = current_token->type;
     }

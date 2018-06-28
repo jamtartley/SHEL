@@ -17,8 +17,8 @@ void print_tokens(std::vector<Token *> tokens) {
     const int padding = 4;
     int longest_token_type = 0;
 
+    // @CLEANUP(LOW) More functional style max string length from vector
     for (Token *token : tokens) {
-        // @CLEANUP(LOW) More functional style max string length from vector
         int type_len = type_to_string(token->type).size();
         if (type_len > longest_token_type) longest_token_type = type_len;
     }
@@ -43,10 +43,12 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    std::vector<Token *> tokens = lex(file_to_string(in_file));
-    Parser *parser = new Parser(tokens, Token::Type::END_OF_FILE);
-    Interpreter *interp = new Interpreter(parser);
+    Lexer *lexer = new Lexer(file_to_string(in_file));
+    lexer->lex();
 
+    Parser *parser = new Parser(lexer->tokens, Token::Type::END_OF_FILE);
+
+    Interpreter *interp = new Interpreter(parser);
     interp->interpret();
 
     do {
