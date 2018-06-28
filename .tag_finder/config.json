@@ -8,6 +8,7 @@
         "BUG",
         "USABILITY",
         "ROBUSTNESS",
+        "DUPLICATION",
         "CLEANUP"
     ],
     "priorities": [

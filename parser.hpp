@@ -220,6 +220,8 @@ struct Parser {
     Token *peek_next_token();
     Token *peek_next_token(Token *current);
 
+    void accept_or_reject_token(bool is_accepted);
+    void eat(int flags);
     void eat(Token::Type expected_type);
 };
 

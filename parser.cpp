@@ -87,14 +87,10 @@ Ast_Node *Parser::parse_expression() {
 Ast_Node *Parser::parse_expression(Ast_Node *left, int min_precedence) {
     while (get_operator_precedence(current_token) >= min_precedence) {
         Token *op = current_token;
-        // @ROBUSTNESS(MEDIUM) Only eat if operator in expression
-        // At the minute, eat only accepts types rather than flags,
-        // needs to be able to be sent an OPERATOR flag to check against 
-        // a range of options at once. This should fail with an 'unable to
-        // parse message' but instead segfaults because this token is eaten 
-        // regardless.
-        eat(current_token->type);
+        eat(Token::Flags::OPERATOR | Token::Flags::COMPARISON | Token::Flags::LOGICAL);
         Ast_Node *right = parse_expression_factor();
+
+        if (right->node_type == Ast_Node::Type::EMPTY) report_fatal_error("Invalid operation in expression");
 
         while ((get_operator_precedence(current_token) > get_operator_precedence(op)) || (current_token->flags & Token::Flags::RIGHT_TO_LEFT && get_operator_precedence(current_token) == get_operator_precedence(op))) {
             right = parse_expression(right, get_operator_precedence(current_token));
@@ -329,16 +325,25 @@ Token *Parser::peek_next_token(Token *current) {
     return next_pos < tokens_len ? tokens[next_pos] : nullptr;
 }
 
-void Parser::eat(Token::Type expected_type) {
-    if (position == tokens.size() - 1) report_fatal_error("Reached last token and attempted further eat");
-
-    if (current_token->type == expected_type) {
+void Parser::accept_or_reject_token(bool is_accepted) {
+    if (is_accepted) {
         position++;
         current_token = tokens[position];
     } else {
         std::stringstream ss;
-        ss << "Invalid syntax on line " << current_token->line_number << ", expected '" << type_to_string(expected_type) << "', found '" << type_to_string(current_token->type) << "'.";
+        ss << "Invalid syntax on line " << current_token->line_number;
         report_fatal_error(ss.str());
     }
+}
+
+void Parser::eat(int flags) {
+    // @DUPLICATION(LOW) Parser::eat(int flags)
+    if (position == tokens.size() - 1) report_fatal_error("Reached last token and attempted further eat");
+    accept_or_reject_token(current_token->flags & flags);
+}
+
+void Parser::eat(Token::Type expected_type) {
+    if (position == tokens.size() - 1) report_fatal_error("Reached last token and attempted further eat");
+    accept_or_reject_token(current_token->type == expected_type);
 }
 
