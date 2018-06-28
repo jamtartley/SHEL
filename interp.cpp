@@ -349,7 +349,6 @@ bool Interpreter::evaluate_binary_op_to_bool(Scope *scope, Ast_Binary_Op *compar
 
 void Interpreter::walk_assignment_node(Scope *scope, Ast_Assignment *node) {
     std::string name = node->left->name;
-    Ast_Node::Type type = node->right->node_type;
     Data_Value *expr = walk_expression(scope, node->right);
 
     if (node->is_first_assign) {

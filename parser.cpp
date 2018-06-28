@@ -92,6 +92,7 @@ Ast_Node *Parser::parse_statement() {
     } else if (curr->type == Token::Type::KEYWORD_RETURN) {
         ret = parse_return();
         eat(Token::Type::TERMINATOR);
+        return ret;
     } else if (curr->type == Token::Type::KEYWORD_IF) {
         return parse_if();
     } else if (curr->type == Token::Type::KEYWORD_WHILE) {
@@ -101,26 +102,27 @@ Ast_Node *Parser::parse_statement() {
     } else if (curr->type == Token::Type::KEYWORD_ASSIGN_VARIABLE) {
         ret = parse_assignment(true);
         eat(Token::Type::TERMINATOR);
+        return ret;
     } else if (curr->type == Token::Type::KEYWORD_REASSIGN_VARIABLE) {
         ret = parse_assignment(false);
         eat(Token::Type::TERMINATOR);
+        return ret;
     } else if (curr->type == Token::Type::IDENT && next != nullptr) {
         if (next->type == Token::Type::L_PAREN) {
             ret = parse_function_call();
             eat(Token::Type::TERMINATOR);
+            return ret;
         } else {
             report_fatal_error(unspecified_parse_error(current_token->line_number));
+            return nullptr;
         }
     } else {
         report_fatal_error(unspecified_parse_error(current_token->line_number));
+        return nullptr;
     }
-
-    return ret;
 }
 
 Ast_Variable *Parser::parse_variable() {
-    Token::Type type = current_token->type;
-
     Ast_Variable *var = new Ast_Variable(current_token);
     eat(Token::Type::IDENT);
 
@@ -129,7 +131,6 @@ Ast_Variable *Parser::parse_variable() {
 
 Ast_Function_Definition *Parser::parse_function_definition() {
     eat(Token::Type::KEYWORD_FUNCTION);
-    Token::Type ret_type = current_token->type;
 
     std::string func_name = parse_ident_name();
 
