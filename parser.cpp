@@ -11,50 +11,37 @@ std::string unspecified_parse_error(int line_number) {
     return ss.str();
 }
 
-void eat(Parser *parser, Token::Type expected_type) {
-    if (parser->position == parser->tokens.size() - 1) report_fatal_error("Reached last token and attempted further eat");
-
-    if (parser->current_token->type == expected_type) {
-        parser->position++;
-        parser->current_token = parser->tokens[parser->position];
-    } else {
-        std::stringstream ss;
-        ss << "Invalid syntax on line " << parser->current_token->line_number << ", expected '" << type_to_string(expected_type) << "', found '" << type_to_string(parser->current_token->type) << "'.";
-        report_fatal_error(ss.str());
-    }
-}
-
-Ast_Node *parse_expression_factor(Parser *parser) {
-    Token *token = parser->current_token;
-    Token *next = peek_next_token(parser);
+Ast_Node *Parser::parse_expression_factor() {
+    Token *token = current_token;
+    Token *next = peek_next_token();
 
     switch (token->type) {
         case Token::Type::OP_PLUS:
         case Token::Type::OP_MINUS: {
-            eat(parser, token->type);
-            return new Ast_Unary_Op(token, parse_expression_factor(parser));
+            eat(token->type);
+            return new Ast_Unary_Op(token, parse_expression_factor());
         }
         case Token::Type::NUMBER:
-            eat(parser, token->type);
+            eat(token->type);
             return new Ast_Literal(token->value, Data_Type::NUM);
         case Token::Type::STRING:
-            eat(parser, token->type);
+            eat(token->type);
             return new Ast_Literal(token->value, Data_Type::STR);
         case Token::Type::TRUE:
         case Token::Type::FALSE: {
-            eat(parser, token->type);
+            eat(token->type);
             return new Ast_Literal(token->value, Data_Type::BOOL);
         }
         case Token::Type::IDENT: {
             if (next->type == Token::Type::L_PAREN) {
-                return parse_function_call(parser);
+                return parse_function_call();
             }
-            return parse_variable(parser);
+            return parse_variable();
         }
         case Token::Type::L_PAREN: {
-            eat(parser, Token::Type::L_PAREN);
-            Ast_Node *node = parse_expression(parser);
-            eat(parser, Token::Type::R_PAREN);
+            eat(Token::Type::L_PAREN);
+            Ast_Node *node = parse_expression();
+            eat(Token::Type::R_PAREN);
             return node;
         }
         default:
@@ -62,176 +49,209 @@ Ast_Node *parse_expression_factor(Parser *parser) {
     }
 }
 
-Ast_Node *parse_expression_term(Parser *parser, Token *token) {
-    Ast_Node *node = parse_expression_factor(parser);
+Ast_Node *Parser::parse_expression_term(Token *token) {
+    Ast_Node *node = parse_expression_factor();
 
-    while (parser->current_token->type == Token::Type::OP_MULTIPLY 
-            || parser->current_token->type == Token::Type::OP_DIVIDE 
-            || parser->current_token->type == Token::Type::OP_MODULO
-            || parser->current_token->flags & Token::Flags::COMPARISON) {
-        Token *token = parser->current_token;
-        eat(parser, parser->current_token->type);
+    while (current_token->type == Token::Type::OP_MULTIPLY 
+            || current_token->type == Token::Type::OP_DIVIDE 
+            || current_token->type == Token::Type::OP_MODULO
+            || current_token->flags & Token::Flags::COMPARISON) {
+        Token *token = current_token;
+        eat(current_token->type);
 
-        node = new Ast_Binary_Op(node, parse_expression_factor(parser), token);
+        node = new Ast_Binary_Op(node, parse_expression_factor(), token);
     }
 
     return node;
 }
 
-Ast_Node *parse_expression(Parser *parser) {
-    Ast_Node *node = parse_expression_term(parser, parser->current_token);
+Ast_Node *Parser::parse_expression() {
+    Ast_Node *node = parse_expression_term(current_token);
 
-    while (parser->current_token->type == Token::Type::OP_PLUS 
-        || parser->current_token->type == Token::Type::OP_MINUS 
-        || parser->current_token->flags & Token::Flags::LOGICAL) {
-        Token *token = parser->current_token;
-        eat(parser, parser->current_token->type);
+    while (current_token->type == Token::Type::OP_PLUS 
+        || current_token->type == Token::Type::OP_MINUS 
+        || current_token->flags & Token::Flags::LOGICAL) {
+        Token *token = current_token;
+        eat(current_token->type);
 
-        node = new Ast_Binary_Op(node, parse_expression_term(parser, token), token);
+        node = new Ast_Binary_Op(node, parse_expression_term(token), token);
     }
 
     return node;
 }
 
-Ast_Variable *parse_variable(Parser *parser) {
-    Token::Type type = parser->current_token->type;
+Ast_Node *Parser::parse_statement() {
+    Token *curr = current_token;
+    Token *next = peek_next_token();
+    Ast_Node *ret;
 
-    Ast_Variable *var = new Ast_Variable(parser->current_token);
-    eat(parser, Token::Type::IDENT);
+    if (curr->type == Token::Type::BLOCK_OPEN) {
+        return parse_block(false);
+    } else if (curr->type == Token::Type::KEYWORD_FUNCTION) {
+        return parse_function_definition();
+    } else if (curr->type == Token::Type::KEYWORD_RETURN) {
+        ret = parse_return();
+        eat(Token::Type::TERMINATOR);
+    } else if (curr->type == Token::Type::KEYWORD_IF) {
+        return parse_if();
+    } else if (curr->type == Token::Type::KEYWORD_WHILE) {
+        return parse_while();
+    } else if (curr->type == Token::Type::KEYWORD_LOOP_START) {
+        return parse_loop();
+    } else if (curr->type == Token::Type::KEYWORD_ASSIGN_VARIABLE) {
+        ret = parse_assignment(true);
+        eat(Token::Type::TERMINATOR);
+    } else if (curr->type == Token::Type::KEYWORD_REASSIGN_VARIABLE) {
+        ret = parse_assignment(false);
+        eat(Token::Type::TERMINATOR);
+    } else if (curr->type == Token::Type::IDENT && next != nullptr) {
+        if (next->type == Token::Type::L_PAREN) {
+            ret = parse_function_call();
+            eat(Token::Type::TERMINATOR);
+        } else {
+            report_fatal_error(unspecified_parse_error(current_token->line_number));
+        }
+    } else {
+        report_fatal_error(unspecified_parse_error(current_token->line_number));
+    }
+
+    return ret;
+}
+
+Ast_Variable *Parser::parse_variable() {
+    Token::Type type = current_token->type;
+
+    Ast_Variable *var = new Ast_Variable(current_token);
+    eat(Token::Type::IDENT);
 
     return var;
 }
 
-Ast_Function_Definition *parse_function_definition(Parser *parser) {
-    eat(parser, Token::Type::KEYWORD_FUNCTION);
-    Token::Type ret_type = parser->current_token->type;
+Ast_Function_Definition *Parser::parse_function_definition() {
+    eat(Token::Type::KEYWORD_FUNCTION);
+    Token::Type ret_type = current_token->type;
 
-    std::string func_name = parse_ident_name(parser);
+    std::string func_name = parse_ident_name();
 
-    eat(parser, Token::Type::L_PAREN);
+    eat(Token::Type::L_PAREN);
     std::vector<Ast_Function_Argument *> args;
 
-    while (parser->current_token->type == Token::Type::IDENT) {
-        std::string arg_name = parse_ident_name(parser);
+    while (current_token->type == Token::Type::IDENT) {
+        std::string arg_name = parse_ident_name();
 
         for (Ast_Function_Argument *other : args) {
             if (other->name == arg_name) {
                 std::stringstream ss;
-                ss << "Error on line " << parser->current_token->line_number <<  ": Argument with the name '" << arg_name << "' already exists in definition of function '" << func_name << "'";
+                ss << "Error on line " << current_token->line_number <<  ": Argument with the name '" << arg_name << "' already exists in definition of function '" << func_name << "'";
                 report_fatal_error(ss.str());
             }
         }
 
         args.push_back(new Ast_Function_Argument(arg_name));
 
-        if (parser->current_token->type == Token::Type::ARGUMENT_SEPARATOR) eat(parser, Token::Type::ARGUMENT_SEPARATOR);
+        if (current_token->type == Token::Type::ARGUMENT_SEPARATOR) eat(Token::Type::ARGUMENT_SEPARATOR);
     }
 
-    eat(parser, Token::Type::R_PAREN);
+    eat(Token::Type::R_PAREN);
 
-    Ast_Block *body = parse_block(parser, false);
+    Ast_Block *body = parse_block(false);
 
     return new Ast_Function_Definition(body, args, func_name);
 }
 
-Ast_Function_Call *parse_function_call(Parser *parser) {
-    std::string func_name = parse_ident_name(parser);
+Ast_Function_Call *Parser::parse_function_call() {
+    std::string func_name = parse_ident_name();
 
-    eat(parser, Token::Type::L_PAREN);
+    eat(Token::Type::L_PAREN);
     std::vector<Ast_Node *> args;
 
-    while (parser->current_token->type != Token::Type::ARGUMENT_SEPARATOR && parser->current_token->type != Token::Type::R_PAREN) {
-        args.push_back(parse_expression(parser));
+    while (current_token->type != Token::Type::ARGUMENT_SEPARATOR && current_token->type != Token::Type::R_PAREN) {
+        args.push_back(parse_expression());
 
-        if (parser->current_token->type == Token::Type::ARGUMENT_SEPARATOR) eat(parser, Token::Type::ARGUMENT_SEPARATOR);
+        if (current_token->type == Token::Type::ARGUMENT_SEPARATOR) eat(Token::Type::ARGUMENT_SEPARATOR);
     }
 
-    eat(parser, Token::Type::R_PAREN);
+    eat(Token::Type::R_PAREN);
 
     return new Ast_Function_Call(func_name, args);
 }
 
-std::string parse_ident_name(Parser *parser) {
-    std::string name = parser->current_token->value;
-    eat(parser, Token::Type::IDENT);
 
-    return name;
-}
-
-Ast_Assignment *parse_assignment(Parser *parser, bool is_first_assign) {
+Ast_Assignment *Parser::parse_assignment(bool is_first_assign) {
     if (is_first_assign) {
-        eat(parser, Token::Type::KEYWORD_ASSIGN_VARIABLE);
+        eat(Token::Type::KEYWORD_ASSIGN_VARIABLE);
     } else {
-        eat(parser, Token::Type::KEYWORD_REASSIGN_VARIABLE);
+        eat(Token::Type::KEYWORD_REASSIGN_VARIABLE);
     }
 
-    Ast_Variable *var = parse_variable(parser);
-    eat(parser, Token::Type::ASSIGNMENT);
+    Ast_Variable *var = parse_variable();
+    eat(Token::Type::ASSIGNMENT);
 
-    Ast_Node *right = parse_expression(parser);
+    Ast_Node *right = parse_expression();
 
     return new Ast_Assignment(var, right, is_first_assign);
 }
 
-Ast_Return *parse_return(Parser *parser) {
-    eat(parser, Token::Type::KEYWORD_RETURN);
+Ast_Return *Parser::parse_return() {
+    eat(Token::Type::KEYWORD_RETURN);
 
-    return new Ast_Return(parse_expression(parser));
+    return new Ast_Return(parse_expression());
 }
 
-Ast_If *parse_if(Parser *parser) {
-    eat(parser, Token::Type::KEYWORD_IF);
-    eat(parser, Token::Type::L_PAREN);
+Ast_If *Parser::parse_if() {
+    eat(Token::Type::KEYWORD_IF);
+    eat(Token::Type::L_PAREN);
 
-    Ast_Node *comparison = parse_expression(parser);
+    Ast_Node *comparison = parse_expression();
 
-    eat(parser, Token::Type::R_PAREN);
-    Ast_Block *success = parse_block(parser, false);
+    eat(Token::Type::R_PAREN);
+    Ast_Block *success = parse_block(false);
 
     Ast_Block *failure = nullptr;
 
-    if (parser->current_token->type == Token::Type::KEYWORD_ELSE) {
-        eat(parser, Token::Type::KEYWORD_ELSE);
-        failure = parse_block(parser, false);
+    if (current_token->type == Token::Type::KEYWORD_ELSE) {
+        eat(Token::Type::KEYWORD_ELSE);
+        failure = parse_block(false);
     }
 
     return new Ast_If(comparison, success, failure);
 }
 
-Ast_While *parse_while(Parser *parser) {
-    eat(parser, Token::Type::KEYWORD_WHILE);
-    eat(parser, Token::Type::L_PAREN);
+Ast_While *Parser::parse_while() {
+    eat(Token::Type::KEYWORD_WHILE);
+    eat(Token::Type::L_PAREN);
 
-    Ast_Binary_Op *comparison = (Ast_Binary_Op *)parse_expression(parser);
+    Ast_Binary_Op *comparison = (Ast_Binary_Op *)parse_expression();
 
-    eat(parser, Token::Type::R_PAREN);
+    eat(Token::Type::R_PAREN);
 
-    Ast_Block *body = parse_block(parser, false);
+    Ast_Block *body = parse_block(false);
 
     return new Ast_While(comparison, body);
 }
 
-Ast_Loop *parse_loop(Parser *parser) {
-    eat(parser, Token::Type::KEYWORD_LOOP_START);
+Ast_Loop *Parser::parse_loop() {
+    eat(Token::Type::KEYWORD_LOOP_START);
 
-    Ast_Node *start = parse_expression(parser);
+    Ast_Node *start = parse_expression();
 
-    eat(parser, Token::Type::KEYWORD_LOOP_TO);
+    eat(Token::Type::KEYWORD_LOOP_TO);
 
-    Ast_Node *to = parse_expression(parser);
+    Ast_Node *to = parse_expression();
 
-    eat(parser, Token::Type::KEYWORD_LOOP_STEP);
+    eat(Token::Type::KEYWORD_LOOP_STEP);
 
-    Ast_Node *step = parse_expression(parser);
+    Ast_Node *step = parse_expression();
 
-    Ast_Block *body = parse_block(parser, false);
+    Ast_Block *body = parse_block(false);
 
     return new Ast_Loop(start, to, step, body);
 }
 
-Ast_Block *parse_block(Parser *parser, bool is_global_scope) {
-    if (is_global_scope == false) eat(parser, Token::Type::BLOCK_OPEN);
-    std::vector<Ast_Node *> nodes = parse_statements(parser);
+
+Ast_Block *Parser::parse_block(bool is_global_scope) {
+    if (is_global_scope == false) eat(Token::Type::BLOCK_OPEN);
+    std::vector<Ast_Node *> nodes = parse_statements();
     Ast_Block *block = new Ast_Block(nodes);
 
     for (Ast_Node *node : nodes) {
@@ -242,73 +262,56 @@ Ast_Block *parse_block(Parser *parser, bool is_global_scope) {
         if (node->node_type == Ast_Node::Type::RETURN) block->return_node = (Ast_Return *)node;
     }
 
-    if (is_global_scope == false) eat(parser, Token::Type::BLOCK_CLOSE);
+    if (is_global_scope == false) eat(Token::Type::BLOCK_CLOSE);
     return block;
 }
 
-std::vector<Ast_Node *> parse_statements(Parser *parser) {
+Ast_Block *Parser::parse() {
+    if (tokens.size() == 0) return nullptr;
+    return parse_block(true);
+}
+
+std::string Parser::parse_ident_name() {
+    std::string name = current_token->value;
+    eat(Token::Type::IDENT);
+
+    return name;
+}
+
+std::vector<Ast_Node *> Parser::parse_statements() {
     std::vector<Ast_Node *> nodes;
-    Token::Type current_type = parser->current_token->type;
+    Token::Type current_type = current_token->type;
 
     while (current_type != Token::Type::END_OF_FILE && current_type != Token::Type::BLOCK_CLOSE) {
-        nodes.push_back(parse_statement(parser));
-        current_type = parser->current_token->type;
+        nodes.push_back(parse_statement());
+        current_type = current_token->type;
     }
 
     return nodes;
 }
 
-Token *peek_next_token(Parser *parser, Token *current) {
-    int pos = find(parser->tokens.begin(), parser->tokens.end(), current) - parser->tokens.begin();
+Token *Parser::peek_next_token() {
+    return peek_next_token(current_token);
+}
+
+Token *Parser::peek_next_token(Token *current) {
+    int pos = find(tokens.begin(), tokens.end(), current) - tokens.begin();
     int next_pos = pos + 1;
-    int tokens_len = parser->tokens.size();
+    int tokens_len = tokens.size();
 
-    return next_pos < tokens_len ? parser->tokens[next_pos] : nullptr;
+    return next_pos < tokens_len ? tokens[next_pos] : nullptr;
 }
 
-Token *peek_next_token(Parser *parser) {
-    return peek_next_token(parser, parser->current_token);
-}
+void Parser::eat(Token::Type expected_type) {
+    if (position == tokens.size() - 1) report_fatal_error("Reached last token and attempted further eat");
 
-Ast_Node *parse_statement(Parser *parser) {
-    Token *curr = parser->current_token;
-    Token *next = peek_next_token(parser);
-    Ast_Node *ret;
-
-    if (curr->type == Token::Type::BLOCK_OPEN) {
-        return parse_block(parser, false);
-    } else if (curr->type == Token::Type::KEYWORD_FUNCTION) {
-        return parse_function_definition(parser);
-    } else if (curr->type == Token::Type::KEYWORD_RETURN) {
-        ret = parse_return(parser);
-        eat(parser, Token::Type::TERMINATOR);
-    } else if (curr->type == Token::Type::KEYWORD_IF) {
-        return parse_if(parser);
-    } else if (curr->type == Token::Type::KEYWORD_WHILE) {
-        return parse_while(parser);
-    } else if (curr->type == Token::Type::KEYWORD_LOOP_START) {
-        return parse_loop(parser);
-    } else if (curr->type == Token::Type::KEYWORD_ASSIGN_VARIABLE) {
-        ret = parse_assignment(parser, true);
-        eat(parser, Token::Type::TERMINATOR);
-    } else if (curr->type == Token::Type::KEYWORD_REASSIGN_VARIABLE) {
-        ret = parse_assignment(parser, false);
-        eat(parser, Token::Type::TERMINATOR);
-    } else if (curr->type == Token::Type::IDENT && next != nullptr) {
-        if (next->type == Token::Type::L_PAREN) {
-            ret = parse_function_call(parser);
-            eat(parser, Token::Type::TERMINATOR);
-        } else {
-            report_fatal_error(unspecified_parse_error(parser->current_token->line_number));
-        }
+    if (current_token->type == expected_type) {
+        position++;
+        current_token = tokens[position];
     } else {
-        report_fatal_error(unspecified_parse_error(parser->current_token->line_number));
+        std::stringstream ss;
+        ss << "Invalid syntax on line " << current_token->line_number << ", expected '" << type_to_string(expected_type) << "', found '" << type_to_string(current_token->type) << "'.";
+        report_fatal_error(ss.str());
     }
-
-    return ret;
 }
 
-Ast_Block *parse(Parser *parser) {
-    if (parser->tokens.size() == 0) return nullptr;
-    return parse_block(parser, true);
-}

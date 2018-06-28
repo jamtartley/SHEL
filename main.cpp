@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
     Parser *parser = new Parser(tokens, Token::Type::END_OF_FILE);
     Interpreter *interp = new Interpreter(parser);
 
-    interpret(interp);
+    interp->interpret();
 
     do {
         std::cout << "Press a key to continue...";

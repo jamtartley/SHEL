@@ -5,20 +5,6 @@
 #include "lexer.hpp"
 #include "typer.hpp"
 
-struct Parser {
-    std::vector<Token *> tokens;
-    Token::Type stop_type;
-    Token *current_token;
-    int position;
-
-    Parser(std::vector<Token *> tokens, Token::Type stop_type) {
-        this->tokens = tokens;
-        this->stop_type = stop_type;
-        this->current_token = tokens[0];
-        this->position = 0;
-    }
-};
-
 struct Ast_Node {
     // @ROBUSTNESS(MEDIUM) @CLEANUP Storing type enum value in Ast_Node
     // This is a bit of a workaround for determining the type of a node
@@ -202,38 +188,39 @@ struct Ast_Empty : Ast_Node {
     }
 };
 
-void eat(Parser *parser, Token::Type expected_type);
+struct Parser {
+    std::vector<Token *> tokens;
+    Token::Type stop_type;
+    Token *current_token;
+    int position;
 
-Ast_Node *parse_expression_factor(Parser *parser);
-Ast_Node *parse_expression_term(Parser *parser, Token *token);
-Ast_Node *parse_expression(Parser *parser);
-Ast_Node *parse_statement(Parser *parser);
+    Parser(std::vector<Token *> tokens, Token::Type stop_type) {
+        this->tokens = tokens;
+        this->stop_type = stop_type;
+        this->current_token = tokens[0];
+        this->position = 0;
+    }
 
-Ast_Variable *parse_variable(Parser *parser);
+    Ast_Node *parse_expression_factor();
+    Ast_Node *parse_expression_term(Token *token);
+    Ast_Node *parse_expression();
+    Ast_Node *parse_statement();
+    Ast_Variable *parse_variable();
+    Ast_Function_Definition *parse_function_definition();
+    Ast_Function_Call *parse_function_call();
+    Ast_Assignment *parse_assignment(bool is_first_assign);
+    Ast_Return *parse_return();
+    Ast_If *parse_if();
+    Ast_While *parse_while();
+    Ast_Loop *parse_loop();
+    Ast_Block *parse_block(bool is_global_scope);
+    Ast_Block *parse();
+    std::string parse_ident_name();
+    std::vector<Ast_Node *> parse_statements();
+    Token *peek_next_token();
+    Token *peek_next_token(Token *current);
 
-Ast_Function_Definition *parse_function_definition(Parser *parser);
-
-Ast_Function_Call *parse_function_call(Parser *parser);
-
-Ast_Assignment *parse_assignment(Parser *parser, bool is_first_assign);
-
-Ast_Return *parse_return(Parser *parser);
-
-Ast_If *parse_if(Parser *parser);
-
-Ast_While *parse_while(Parser *parser);
-
-Ast_Loop *parse_loop(Parser *parser);
-
-Ast_Block *parse_block(Parser *parser, bool is_global_scope);
-
-std::string parse_ident_name(Parser *parser);
-
-std::vector<Ast_Node *> parse_statements(Parser *parser);
-
-Ast_Block *parse(Parser *parser);
-
-Token *peek_next_token(Parser *parser);
-Token *peek_next_token(Parser *parser, Token *current);
+    void eat(Token::Type expected_type);
+};
 
 #endif
