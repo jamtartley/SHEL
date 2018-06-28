@@ -66,8 +66,8 @@ struct Token {
         COMPARE_GREATER_THAN,
         COMPARE_LESS_THAN_EQUALS,
         COMPARE_GREATER_THAN_EQUALS,
-        COMPARE_LOGICAL_OR,
-        COMPARE_LOGICAL_AND,
+        LOGICAL_OR,
+        LOGICAL_AND,
         TERMINATOR,
         END_OF_FILE
     };
@@ -136,8 +136,8 @@ inline const std::string type_to_string(Token::Type type) {
         case Token::Type::COMPARE_GREATER_THAN: return "COMPARE_GREATER_THAN";
         case Token::Type::COMPARE_LESS_THAN_EQUALS: return "COMPARE_LESS_THAN_EQUALS";
         case Token::Type::COMPARE_GREATER_THAN_EQUALS: return "COMPARE_GREATER_THAN_EQUALS";
-        case Token::Type::COMPARE_LOGICAL_OR: return "COMPARE_LOGICAL_OR";
-        case Token::Type::COMPARE_LOGICAL_AND: return "COMPARE_LOGICAL_AND";
+        case Token::Type::LOGICAL_OR: return "LOGICAL_OR";
+        case Token::Type::LOGICAL_AND: return "LOGICAL_AND";
         default: return "INVALID TOKEN TYPE";
     }
 }

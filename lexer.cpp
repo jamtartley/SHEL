@@ -146,8 +146,8 @@ Token *Lexer::scan_ident(const std::string input, const std::regex end_match) {
     keyword_map.insert(std::make_pair("step", new Token(Token::Type::KEYWORD_LOOP_STEP, "step", line_number, column_position, Token::Flags::KEYWORD)));
     keyword_map.insert(std::make_pair("true", new Token(Token::Type::KEYWORD_TRUE, "true", line_number, column_position, Token::Flags::KEYWORD)));
     keyword_map.insert(std::make_pair("false", new Token(Token::Type::KEYWORD_FALSE, "false", line_number, column_position, Token::Flags::KEYWORD)));
-    keyword_map.insert(std::make_pair("and", new Token(Token::Type::COMPARE_LOGICAL_AND, "and", line_number, column_position, Token::Flags::LOGICAL)));
-    keyword_map.insert(std::make_pair("or", new Token(Token::Type::COMPARE_LOGICAL_OR, "or", line_number, column_position, Token::Flags::LOGICAL)));
+    keyword_map.insert(std::make_pair("and", new Token(Token::Type::LOGICAL_AND, "and", line_number, column_position, Token::Flags::LOGICAL)));
+    keyword_map.insert(std::make_pair("or", new Token(Token::Type::LOGICAL_OR, "or", line_number, column_position, Token::Flags::LOGICAL)));
 
     std::string raw = scan_other(input, end_match);
 

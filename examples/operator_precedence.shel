@@ -1,0 +1,7 @@
+bug t() {
+    return true;
+}
+
+let a = 8 + 2 == 4 + 1 * 3 and t();
+
+print("%", a);

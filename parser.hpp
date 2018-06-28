@@ -202,8 +202,8 @@ struct Parser {
     }
 
     Ast_Node *parse_expression_factor();
-    Ast_Node *parse_expression_term(Token *token);
     Ast_Node *parse_expression();
+    Ast_Node *parse_expression(Ast_Node *left, int min_precedence);
     Ast_Node *parse_statement();
     Ast_Variable *parse_variable();
     Ast_Function_Definition *parse_function_definition();

@@ -11,6 +11,33 @@ std::string unspecified_parse_error(int line_number) {
     return ss.str();
 }
 
+int get_operator_precedence(Token *token) {
+    Token::Type type = token->type;
+    unsigned int flags = token->flags;
+
+    if (flags & Token::Flags::OPERATOR) {
+        if (type == Token::Type::OP_MULTIPLY || type == Token::Type::OP_DIVIDE || type == Token::Type::OP_MODULO) {
+            return 5;
+        } else if (type == Token::Type::OP_PLUS || type == Token::Type::OP_MINUS) {
+            return 4;
+        }
+    } else if (flags & Token::Flags::COMPARISON) {
+        if (type == Token::Type::COMPARE_EQUALS || type == Token::Type::COMPARE_NOT_EQUALS) {
+            return 2;
+        } else {
+            return 3;
+        }
+    } else if (flags & Token::Flags::LOGICAL) {
+        if (type == Token::Type::LOGICAL_AND) {
+            return 1;
+        } else if (type == Token::Type::LOGICAL_OR) {
+            return 0;
+        }
+    }
+
+    return -1;
+}
+
 Ast_Node *Parser::parse_expression_factor() {
     Token *token = current_token;
     Token *next = peek_next_token();
@@ -49,35 +76,31 @@ Ast_Node *Parser::parse_expression_factor() {
     }
 }
 
-Ast_Node *Parser::parse_expression_term(Token *token) {
-    Ast_Node *node = parse_expression_factor();
-
-    while (current_token->type == Token::Type::OP_MULTIPLY 
-            || current_token->type == Token::Type::OP_DIVIDE 
-            || current_token->type == Token::Type::OP_MODULO
-            || current_token->flags & Token::Flags::COMPARISON) {
-        Token *token = current_token;
-        eat(current_token->type);
-
-        node = new Ast_Binary_Op(node, parse_expression_factor(), token);
-    }
-
-    return node;
+Ast_Node *Parser::parse_expression() {
+    Ast_Node *left = parse_expression_factor();
+    return parse_expression(left, 0);
 }
 
-Ast_Node *Parser::parse_expression() {
-    Ast_Node *node = parse_expression_term(current_token);
-
-    while (current_token->type == Token::Type::OP_PLUS 
-        || current_token->type == Token::Type::OP_MINUS 
-        || current_token->flags & Token::Flags::LOGICAL) {
-        Token *token = current_token;
+Ast_Node *Parser::parse_expression(Ast_Node *left, int min_precedence) {
+    while (get_operator_precedence(current_token) >= min_precedence) {
+        Token *op = current_token;
+        // @ROBUSTNESS(MEDIUM) Only eat if operator in expression
+        // At the minute, eat only accepts types rather than flags,
+        // needs to be able to be sent an OPERATOR flag to check against 
+        // a range of options at once. This should fail with an 'unable to
+        // parse message' but instead segfaults because this token is eaten 
+        // regardless.
         eat(current_token->type);
+        Ast_Node *right = parse_expression_factor();
 
-        node = new Ast_Binary_Op(node, parse_expression_term(token), token);
+        while (get_operator_precedence(current_token) > get_operator_precedence(op)) {
+            right = parse_expression(right, get_operator_precedence(current_token));
+        }
+
+        left = new Ast_Binary_Op(left, right, op);
     }
 
-    return node;
+    return left;
 }
 
 Ast_Node *Parser::parse_statement() {
