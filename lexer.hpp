@@ -50,8 +50,8 @@ struct Token {
     enum Type {
         KEYWORD_IF, KEYWORD_ELIF, KEYWORD_ELSE, KEYWORD_WHILE, KEYWORD_LOOP_START, KEYWORD_LOOP_TO, KEYWORD_LOOP_STEP, KEYWORD_RETURN,
         KEYWORD_STRUCT, KEYWORD_FUNCTION, KEYWORD_REASSIGN_VARIABLE, KEYWORD_TRUE, KEYWORD_FALSE,
-        KEYWORD_NUM, KEYWORD_STR, KEYWORD_BOOL, KEYWORD_VOID,
-        L_PAREN, R_PAREN, L_BRACE, R_BRACE, ARGUMENT_SEPARATOR,
+        KEYWORD_NUM, KEYWORD_STR, KEYWORD_BOOL, KEYWORD_ARRAY, KEYWORD_VOID,
+        L_PAREN, R_PAREN, L_BRACE, R_BRACE, L_ARRAY, R_ARRAY, ARGUMENT_SEPARATOR,
         OP_ASSIGNMENT, OP_PLUS, OP_MINUS, OP_MULTIPLY, OP_DIVIDE, OP_MODULO,
         IDENT, NUMBER, STRING,
         COMPARE_EQUALS, COMPARE_NOT_EQUALS, COMPARE_LESS_THAN, COMPARE_GREATER_THAN, COMPARE_LESS_THAN_EQUALS, COMPARE_GREATER_THAN_EQUALS,
@@ -105,6 +105,7 @@ inline const std::string type_to_string(Token::Type type) {
         case Token::Type::KEYWORD_NUM: return "KEYWORD_NUM";
         case Token::Type::KEYWORD_STR: return "KEYWORD_STR";
         case Token::Type::KEYWORD_BOOL: return "KEYWORD_BOOL";
+        case Token::Type::KEYWORD_ARRAY: return "KEYWORD_ARRAY";
         case Token::Type::KEYWORD_VOID: return "KEYWORD_VOID";
         case Token::Type::IDENT: return "IDENT";
         case Token::Type::NUMBER: return "NUMBER";
@@ -113,6 +114,8 @@ inline const std::string type_to_string(Token::Type type) {
         case Token::Type::R_PAREN: return "R_PAREN";
         case Token::Type::L_BRACE: return "L_BRACE";
         case Token::Type::R_BRACE: return "R_BRACE";
+        case Token::Type::L_ARRAY: return "L_ARRAY";
+        case Token::Type::R_ARRAY: return "R_ARRAY";
         case Token::Type::ARGUMENT_SEPARATOR: return "ARGUMENT_SEPARATOR";
         case Token::Type::TERMINATOR: return "TERMINATOR";
         case Token::Type::END_OF_FILE: return "END_OF_FILE";

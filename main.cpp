@@ -42,7 +42,7 @@ void print_tokens(std::vector<Token *> tokens) {
 
 int main(int argc, char *argv[]) {
     // @ROBUSTNESS(LOW) Improve argv control/robustness
-    std::string in_file_name = argc > 1 ? argv[1] : "examples/flow_control.shel";
+    std::string in_file_name = argc > 1 ? argv[1] : "examples/variables.shel";
     std::string file_string = file_to_string(in_file_name);
 
     auto *lexer = new Lexer(in_file_name, file_string);

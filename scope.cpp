@@ -18,11 +18,11 @@ Func_With_Success *get_func(Scope *scope, std::string name) {
     return new Func_With_Success(NULL, false);
 }
 
-void assign_var(Scope *scope, std::string name, Data_Value *value) {
+void assign_var(Scope *scope, std::string name, Data_Atom *value) {
     scope->variables[name] = value;
 }
 
-void reassign_var(Scope *scope, std::string name, Data_Value *value, Code_Site *site) {
+void reassign_var(Scope *scope, std::string name, Data_Atom *value, Code_Site *site) {
     Scope *current = scope;
 
     // Move up scopes looking for a variable of the given name to reassign

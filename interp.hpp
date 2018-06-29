@@ -13,17 +13,17 @@ struct Interpreter {
         this->parser = parser;
     }
 
-    Data_Value *walk_block_node(Scope *scope, Ast_Block *root);
-    Data_Value *walk_expression(Scope *scope, Ast_Node *node);
-    Data_Value *walk_binary_op_node(Scope *scope, Ast_Binary_Op *node);
-    Data_Value *walk_unary_op_node(Scope *scope, Ast_Unary_Op *node);
-    Data_Value *walk_function_call(Scope *scope, Ast_Function_Call *call);
-    Data_Value *walk_if(Scope *scope, Ast_If *if_node);
-    Data_Value *walk_while(Scope *scope, Ast_While *while_node);
-    Data_Value *walk_loop(Scope *scope, Ast_Loop *loop_node);
-    Data_Value *walk_from_root(Scope *scope, Ast_Node *root);
-    Data_Value *get_variable(Scope *scope, Ast_Variable *node);
-    Data_Value *get_data_from_literal(Scope *scope, Ast_Literal *lit);
+    Data_Atom *walk_block_node(Scope *scope, Ast_Block *root);
+    Data_Atom *walk_expression(Scope *scope, Ast_Node *node);
+    Data_Atom *walk_binary_op_node(Scope *scope, Ast_Binary_Op *node);
+    Data_Atom *walk_unary_op_node(Scope *scope, Ast_Unary_Op *node);
+    Data_Atom *walk_function_call(Scope *scope, Ast_Function_Call *call);
+    Data_Atom *walk_if(Scope *scope, Ast_If *if_node);
+    Data_Atom *walk_while(Scope *scope, Ast_While *while_node);
+    Data_Atom *walk_loop(Scope *scope, Ast_Loop *loop_node);
+    Data_Atom *walk_from_root(Scope *scope, Ast_Node *root);
+    Data_Atom *get_variable(Scope *scope, Ast_Variable *node);
+    Data_Atom *get_data_from_literal(Scope *scope, Ast_Literal *lit);
 
     bool evaluate_node_to_bool(Scope *scope, Ast_Node *node);
     bool evaluate_binary_op_to_bool(Scope *scope, Ast_Binary_Op *node);
@@ -33,8 +33,8 @@ struct Interpreter {
     void interpret();
 };
 
-std::string get_string_from_return_value(Data_Value *ret);
+std::string get_string_from_return_value(Data_Atom *ret);
 bool is_num(std::string str);
-void fail_if_binary_op_invalid(Data_Value *left, Data_Value *right, Token *op);
+void fail_if_binary_op_invalid(Data_Atom *left, Data_Atom *right, Token *op);
 
 #endif

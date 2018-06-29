@@ -34,6 +34,7 @@ std::string get_column_marker(std::string line, int column) {
 }
 
 void report_fatal_error(std::string error) {
+    // @TODO(MEDIUM) Type of fatal error - LEXING, PARSING, INTERPRETING
     std::cerr << "[FATAL ERROR] " << error << std::endl;
     std::cerr << "Exiting..." << std::endl;
 

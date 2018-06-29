@@ -221,6 +221,12 @@ Ast_Function_Call *Parser::parse_function_call() {
 
 Ast_Assignment *Parser::parse_assignment(bool is_first_assign) {
     Data_Type data_type = Data_Type::UNKNOWN;
+    bool is_array = false;
+
+    if (current_token->type == Token::Type::KEYWORD_ARRAY) {
+        is_array = true;
+        eat(Token::Type::KEYWORD_ARRAY);
+    }
 
     if (is_first_assign) {
         auto type = current_token->type;
@@ -245,7 +251,6 @@ Ast_Assignment *Parser::parse_assignment(bool is_first_assign) {
     var->data_type = data_type;
     Token *ass_token = current_token;
     eat(Token::Type::OP_ASSIGNMENT);
-
     Ast_Node *right = parse_expression();
 
     return new Ast_Assignment(var, right, is_first_assign, ass_token->site);

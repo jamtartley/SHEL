@@ -2,40 +2,54 @@
 #define TYPER_H
 
 #include <string>
+#include <vector>
 #include "lexer.hpp"
 
 enum Data_Type {
     NUM,
     STR,
     BOOL,
+    ARRAY,
     VOID,
     UNKNOWN
 };
 
-struct Data_Value {
-    float num_val;
-    std::string str_val;
-    bool bool_val;
-
+struct Data_Atom {
     Data_Type data_type = Data_Type::UNKNOWN;
+};
 
-    Data_Value() {
-        this->data_type = Data_Type::VOID;
-    }
+struct Num_Atom : Data_Atom {
+    float value;
 
-    Data_Value(float num_val) {
-        this->num_val = num_val;
+    Num_Atom(float value) {
+        this->value = value;
         this->data_type = Data_Type::NUM;
     }
+};
 
-    Data_Value(std::string str_val) {
-        this->str_val = str_val;
+struct Str_Atom : Data_Atom {
+    std::string value;
+
+    Str_Atom(std::string value) {
+        this->value = value;
         this->data_type = Data_Type::STR;
     }
+};
 
-    Data_Value(bool bool_val) {
-        this->bool_val = bool_val;
+struct Bool_Atom : Data_Atom {
+    bool value;
+
+    Bool_Atom(bool value) {
+        this->value = value;
         this->data_type = Data_Type::BOOL;
+    }
+};
+
+struct Array_Atom : Data_Atom  {
+    std::vector<Data_Atom *> value;
+
+    Array_Atom() {
+        this->data_type = Data_Type::ARRAY;
     }
 };
 
