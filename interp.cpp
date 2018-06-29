@@ -370,9 +370,16 @@ void Interpreter::walk_assignment_node(Scope *scope, Ast_Assignment *node) {
     Data_Value *expr = walk_expression(scope, node->right);
 
     if (node->is_first_assign) {
+        if (node->left->data_type != expr->data_type) {
+            std::stringstream ss;
+            ss << "Tried to assign expression of type '" <<  data_type_to_string(expr->data_type)
+                << "' to variable of type '" << data_type_to_string(node->left->data_type) << "'";
+            report_fatal_error(ss.str(), node->right->site);
+        }
+
         assign_var(scope, name, expr);
     } else {
-        reassign_var(scope, name, expr);
+        reassign_var(scope, name, expr, node->right->site);
     }
 }
 

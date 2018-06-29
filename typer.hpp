@@ -1,6 +1,8 @@
 #ifndef TYPER_H
 #define TYPER_H
 
+#include <string>
+
 enum Data_Type {
     NUM,
     STR,
@@ -30,5 +32,7 @@ struct Data_Value {
         this->data_type = Data_Type::BOOL;
     }
 };
+
+std::string data_type_to_string(Data_Type type);
 
 #endif

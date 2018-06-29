@@ -22,12 +22,19 @@ void assign_var(Scope *scope, std::string name, Data_Value *value) {
     scope->variables[name] = value;
 }
 
-void reassign_var(Scope *scope, std::string name, Data_Value *value) {
+void reassign_var(Scope *scope, std::string name, Data_Value *value, Code_Site *site) {
     Scope *current = scope;
 
     // Move up scopes looking for a variable of the given name to reassign
     while (current != NULL) {
         if (is_var_in_scope(current, name)) {
+            if (current->variables[name]->data_type != value->data_type) {
+                std::stringstream ss;
+                ss << "Tried to reassign variable of type '" <<  data_type_to_string(current->variables[name]->data_type)
+                    << "' to expression of type '" << data_type_to_string(value->data_type) << "'";
+                report_fatal_error(ss.str(), site);
+            }
+
             current->variables[name] = value;
             return;
         }
