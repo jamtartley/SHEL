@@ -13,6 +13,7 @@ struct Ast_Node {
         BINARY_OP,
         UNARY_OP,
         LITERAL,
+        ARRAY,
         BLOCK,
         IF,
         WHILE,
@@ -175,6 +176,7 @@ struct Ast_Function_Call : Ast_Node {
 
 struct Ast_Variable : Ast_Node {
     Token *token;
+    bool is_array;
     std::string name;
 
     // This Data_Type will be set at parse time if the variable is on the LHS of
@@ -185,6 +187,7 @@ struct Ast_Variable : Ast_Node {
 
     Ast_Variable(Token *token) {
         this->token = token;
+        this->is_array = false;
         this->type = Data_Type::UNKNOWN;
         this->name = token->value;
         this->site = token->site;
@@ -203,6 +206,13 @@ struct Ast_Assignment : Ast_Node {
         this->is_first_assign = is_first_assign;
         this->site = site;
         this->node_type = Ast_Node::Type::ASSIGNMENT;
+    }
+};
+
+struct Ast_Array : Ast_Node {
+    Ast_Array(Code_Site *site) {
+        this->site = site;
+        this->node_type = Ast_Node::Type::ARRAY;
     }
 };
 

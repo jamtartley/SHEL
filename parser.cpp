@@ -113,7 +113,7 @@ Ast_Node *Parser::parse_statement() {
     if (curr->flags & Token::Flags::DATA_TYPE) {
         if (next->type == Token::Type::KEYWORD_FUNCTION) {
             return parse_function_definition();
-        } else if (next->type == Token::Type::IDENT) {
+        } else {
             ret = parse_assignment(true);
             eat(Token::Type::TERMINATOR);
             return ret;
@@ -223,11 +223,6 @@ Ast_Assignment *Parser::parse_assignment(bool is_first_assign) {
     Data_Type data_type = Data_Type::UNKNOWN;
     bool is_array = false;
 
-    if (current_token->type == Token::Type::KEYWORD_ARRAY) {
-        is_array = true;
-        eat(Token::Type::KEYWORD_ARRAY);
-    }
-
     if (is_first_assign) {
         auto type = current_token->type;
 
@@ -243,15 +238,31 @@ Ast_Assignment *Parser::parse_assignment(bool is_first_assign) {
         } else {
             report_fatal_error("Variables must be assigned a data type at the point of declaration", current_token->site);
         }
+
+        if (current_token->type == Token::Type::KEYWORD_ARRAY) {
+            is_array = true;
+            eat(Token::Type::KEYWORD_ARRAY);
+        }
     } else {
         eat(Token::Type::KEYWORD_REASSIGN_VARIABLE);
     }
 
     Ast_Variable *var = parse_variable();
+    var->is_array = is_array;
     var->data_type = data_type;
+
     Token *ass_token = current_token;
     eat(Token::Type::OP_ASSIGNMENT);
-    Ast_Node *right = parse_expression();
+
+    Ast_Node *right;
+
+    if (is_array) {
+        eat(Token::Type::L_ARRAY);
+        eat(Token::Type::R_ARRAY);
+        right = new Ast_Array(current_token->site);
+    } else {
+        right = parse_expression();
+    }
 
     return new Ast_Assignment(var, right, is_first_assign, ass_token->site);
 }

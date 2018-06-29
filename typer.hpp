@@ -47,9 +47,11 @@ struct Bool_Atom : Data_Atom {
 
 struct Array_Atom : Data_Atom  {
     std::vector<Data_Atom *> value;
+    Data_Type atom_type;
 
-    Array_Atom() {
+    Array_Atom(Data_Type atom_type) {
         this->data_type = Data_Type::ARRAY;
+        this->atom_type = atom_type;
     }
 };
 
