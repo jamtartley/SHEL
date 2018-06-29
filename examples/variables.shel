@@ -18,8 +18,8 @@ print("Let f is c + c:  %", f);
 
 print("");
 
-relet a = 5;
-relet c = 2;
+now a = 5;
+now c = 2;
 
-print("Relet a is %", a);
-print("c was str, relet to num: %", c);
+print("now a is %", a);
+print("c was str, now to num: %", c);

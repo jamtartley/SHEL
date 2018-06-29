@@ -176,8 +176,15 @@ struct Ast_Variable : Ast_Node {
     Token *token;
     std::string name;
 
+    // This Data_Type will be set at parse time if the variable is on the LHS of
+    // an assignment, but will default to UNKNOWN if this node was parsed from
+    // the RHS of an expression. The interpreter detects this and fills in/checks this
+    // at interp time.
+    Data_Type type;
+
     Ast_Variable(Token *token) {
         this->token = token;
+        this->type = Data_Type::UNKNOWN;
         this->name = token->value;
         this->site = token->site;
         this->node_type = Ast_Node::Type::VARIABLE;

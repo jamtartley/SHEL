@@ -49,7 +49,8 @@ struct Code_Site {
 struct Token {
     enum Type {
         KEYWORD_IF, KEYWORD_ELIF, KEYWORD_ELSE, KEYWORD_WHILE, KEYWORD_LOOP_START, KEYWORD_LOOP_TO, KEYWORD_LOOP_STEP, KEYWORD_RETURN,
-        KEYWORD_STRUCT, KEYWORD_FUNCTION, KEYWORD_ASSIGN_VARIABLE, KEYWORD_REASSIGN_VARIABLE, KEYWORD_TRUE, KEYWORD_FALSE,
+        KEYWORD_STRUCT, KEYWORD_FUNCTION, KEYWORD_REASSIGN_VARIABLE, KEYWORD_TRUE, KEYWORD_FALSE,
+        KEYWORD_NUM, KEYWORD_STR, KEYWORD_BOOL,
         L_PAREN, R_PAREN, L_BRACE, R_BRACE, ARGUMENT_SEPARATOR,
         OP_ASSIGNMENT, OP_PLUS, OP_MINUS, OP_MULTIPLY, OP_DIVIDE, OP_MODULO,
         IDENT, NUMBER, STRING,
@@ -65,8 +66,9 @@ struct Token {
         KEYWORD       = 1 << 3,
         LOGICAL       = 1 << 4,
         LITERAL       = 1 << 5,
-        LEFT_TO_RIGHT = 1 << 6,
-        RIGHT_TO_LEFT = 1 << 7
+        DATA_TYPE     = 1 << 6,
+        LEFT_TO_RIGHT = 1 << 7,
+        RIGHT_TO_LEFT = 1 << 8
     };
 
     Token::Type type;
@@ -97,10 +99,12 @@ inline const std::string type_to_string(Token::Type type) {
         case Token::Type::KEYWORD_RETURN: return "KEYWORD_RETURN";
         case Token::Type::KEYWORD_STRUCT: return "KEYWORD_STRUCT";
         case Token::Type::KEYWORD_FUNCTION: return "KEYWORD_FUNCTION";
-        case Token::Type::KEYWORD_ASSIGN_VARIABLE: return "KEYWORD_ASSIGN_VARIABLE";
         case Token::Type::KEYWORD_REASSIGN_VARIABLE: return "KEYWORD_REASSIGN_VARIABLE";
         case Token::Type::KEYWORD_TRUE: return "KEYWORD_TRUE";
         case Token::Type::KEYWORD_FALSE: return "KEYWORD_FALSE";
+        case Token::Type::KEYWORD_NUM: return "KEYWORD_NUM";
+        case Token::Type::KEYWORD_STR: return "KEYWORD_STR";
+        case Token::Type::KEYWORD_BOOL: return "KEYWORD_BOOL";
         case Token::Type::IDENT: return "IDENT";
         case Token::Type::NUMBER: return "NUMBER";
         case Token::Type::STRING: return "STRING";

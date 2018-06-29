@@ -16,11 +16,11 @@ bug check(a) {
     }
 }
 
-let a = 1;
+num a = 1;
 check(a);
-relet a = 3;
+now a = 3;
 check(a);
-relet a = 5;
+now a = 5;
 check(a);
 
 # While in SHEL works exactly as you'd expect if coming from any C-style language.
@@ -33,7 +33,7 @@ print("");
 
 while (a <= 5) {
     print("a is %", a);
-    relet a = a + 1;
+    now a = a + 1;
 }
 
 # Loops in SHEL work over a closed range,
@@ -50,7 +50,7 @@ from 0 to 5 step 1 {
 
     # If you want to access this value from inside an inner loop,
     # simply assign it to a variable before and access that.
-    let i = idx;
+    num i = idx;
 
     from 10 to 5 step -1 {
         print("Inner loop idx is %", idx);

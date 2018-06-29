@@ -9,5 +9,5 @@ bug useless() {
     return 0;
 }
 
-relet a = useless(); # Why
+now a = useless(); # Why
 print("a after assigning the value of the useless() bug is %", a);

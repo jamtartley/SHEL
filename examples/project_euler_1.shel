@@ -10,7 +10,7 @@ let sum = 0;
 
 from 1 to 999 step 1 {
     if (is_divisible_by_3(idx) or is_divisible_by_5(idx)) {
-        relet sum = sum + idx;
+        now sum = sum + idx;
     }
 }
 

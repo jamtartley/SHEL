@@ -92,7 +92,8 @@ Ast_Node *Parser::parse_expression(Ast_Node *left, int min_precedence) {
 
         if (right->node_type == Ast_Node::Type::EMPTY) report_fatal_error("Invalid operation in expression");
 
-        while ((get_operator_precedence(current_token) > get_operator_precedence(op)) || (current_token->flags & Token::Flags::RIGHT_TO_LEFT && get_operator_precedence(current_token) == get_operator_precedence(op))) {
+        while ((get_operator_precedence(current_token) > get_operator_precedence(op))
+                || (current_token->flags & Token::Flags::RIGHT_TO_LEFT && get_operator_precedence(current_token) == get_operator_precedence(op))) {
             right = parse_expression(right, get_operator_precedence(current_token));
         }
 
@@ -106,6 +107,14 @@ Ast_Node *Parser::parse_statement() {
     Token *curr = current_token;
     Token *next = peek_next_token();
     Ast_Node *ret;
+
+    // @CLEANUP(LOW) Mixing between checking Token types/flags when parsing statement
+    // Maybe there could be some more unified data type stored on the Token to do this.
+    if (curr->flags & Token::Flags::DATA_TYPE) {
+        ret = parse_assignment(true);
+        eat(Token::Type::TERMINATOR);
+        return ret;
+    }
 
     if (curr->type == Token::Type::L_BRACE) {
         return parse_block(false);
@@ -121,10 +130,6 @@ Ast_Node *Parser::parse_statement() {
         return parse_while();
     } else if (curr->type == Token::Type::KEYWORD_LOOP_START) {
         return parse_loop();
-    } else if (curr->type == Token::Type::KEYWORD_ASSIGN_VARIABLE) {
-        ret = parse_assignment(true);
-        eat(Token::Type::TERMINATOR);
-        return ret;
     } else if (curr->type == Token::Type::KEYWORD_REASSIGN_VARIABLE) {
         ret = parse_assignment(false);
         eat(Token::Type::TERMINATOR);
@@ -135,7 +140,7 @@ Ast_Node *Parser::parse_statement() {
             eat(Token::Type::TERMINATOR);
             return ret;
         } else {
-            report_fatal_error("Cannot parse this line", current_token->site);
+            report_fatal_error("Unexpected identifier", current_token->site);
             return nullptr;
         }
     } else {
@@ -203,15 +208,30 @@ Ast_Function_Call *Parser::parse_function_call() {
     return new Ast_Function_Call(func_name, args, call_token->site, open_paren->site);
 }
 
-
 Ast_Assignment *Parser::parse_assignment(bool is_first_assign) {
+    Data_Type data_type = Data_Type::UNKNOWN;
+
     if (is_first_assign) {
-        eat(Token::Type::KEYWORD_ASSIGN_VARIABLE);
+        auto type = current_token->type;
+
+        if (type == Token::Type::KEYWORD_NUM) {
+            eat(Token::Type::KEYWORD_NUM);
+            data_type = Data_Type::NUM;
+        } else if (type == Token::Type::KEYWORD_STR) {
+            eat(Token::Type::KEYWORD_STR);
+            data_type = Data_Type::STR;
+        } else if (type == Token::Type::KEYWORD_BOOL) {
+            eat(Token::Type::KEYWORD_BOOL);
+            data_type = Data_Type::BOOL;
+        } else {
+            report_fatal_error("Variables must be assigned a data type at the point of declaration", current_token->site);
+        }
     } else {
         eat(Token::Type::KEYWORD_REASSIGN_VARIABLE);
     }
 
     Ast_Variable *var = parse_variable();
+    var->data_type = data_type;
     Token *ass_token = current_token;
     eat(Token::Type::OP_ASSIGNMENT);
 
@@ -242,7 +262,7 @@ Ast_If *Parser::parse_if() {
 
     while (current_token->type == Token::Type::KEYWORD_ELSE || current_token->type == Token::Type::KEYWORD_ELIF) {
         Code_Site *site = current_token->site;
-        Ast_If *curr;
+        Ast_If *curr = nullptr;
 
         if (current_token->type == Token::Type::KEYWORD_ELIF) {
             eat(Token::Type::KEYWORD_ELIF);

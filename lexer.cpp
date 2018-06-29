@@ -138,10 +138,12 @@ Token *Lexer::scan_ident(Code_Site *site, const std::string input, const std::re
     else if (raw == "else")   return new Token(Token::Type::KEYWORD_ELSE, "else", site, Token::Flags::KEYWORD);
     else if (raw == "while")  return new Token(Token::Type::KEYWORD_WHILE, "while", site, Token::Flags::KEYWORD);
     else if (raw == "return") return new Token(Token::Type::KEYWORD_RETURN, "return", site, Token::Flags::KEYWORD);
+    else if (raw == "num")    return new Token(Token::Type::KEYWORD_NUM, "num", site, Token::Flags::KEYWORD | Token::Flags::DATA_TYPE);
+    else if (raw == "str")    return new Token(Token::Type::KEYWORD_STR, "str", site, Token::Flags::KEYWORD | Token::Flags::DATA_TYPE);
+    else if (raw == "bool")   return new Token(Token::Type::KEYWORD_BOOL, "bool", site, Token::Flags::KEYWORD | Token::Flags::DATA_TYPE);
     else if (raw == "shel")   return new Token(Token::Type::KEYWORD_STRUCT, "shel", site, Token::Flags::KEYWORD);
     else if (raw == "bug")    return new Token(Token::Type::KEYWORD_FUNCTION, "bug", site, Token::Flags::KEYWORD);
-    else if (raw == "let")    return new Token(Token::Type::KEYWORD_ASSIGN_VARIABLE, "let", site, Token::Flags::KEYWORD);
-    else if (raw == "relet")  return new Token(Token::Type::KEYWORD_REASSIGN_VARIABLE, "relet", site, Token::Flags::KEYWORD);
+    else if (raw == "now")    return new Token(Token::Type::KEYWORD_REASSIGN_VARIABLE, "now", site, Token::Flags::KEYWORD);
     else if (raw == "from")   return new Token(Token::Type::KEYWORD_LOOP_START, "from", site, Token::Flags::KEYWORD);
     else if (raw == "to")     return new Token(Token::Type::KEYWORD_LOOP_TO, "to", site, Token::Flags::KEYWORD);
     else if (raw == "step")   return new Token(Token::Type::KEYWORD_LOOP_STEP, "step", site, Token::Flags::KEYWORD);
