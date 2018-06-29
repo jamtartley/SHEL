@@ -17,7 +17,7 @@ void Lexer::lex() {
 
     while (index < file_size) {
         std::string curr = std::string(1, file_string.at(index));
-        Token *next_token = nullptr;
+        Token *next_token = NULL;
         Code_Site *site = new Code_Site(file_name, line_number, column_position);
 
         if (curr == " ")                                    { move_next_char(); continue; }
@@ -92,7 +92,7 @@ void Lexer::move_next_line() {
 std::string Lexer::peek_next_chars(unsigned int jump) {
     unsigned int next = index + jump;
 
-    if (index >= file_string.size()) return nullptr;
+    if (index >= file_string.size()) return NULL;
     return std::string(1, file_string.at(next));
 }
 
@@ -141,6 +141,7 @@ Token *Lexer::scan_ident(Code_Site *site, const std::string input, const std::re
     else if (raw == "num")    return new Token(Token::Type::KEYWORD_NUM, "num", site, Token::Flags::KEYWORD | Token::Flags::DATA_TYPE);
     else if (raw == "str")    return new Token(Token::Type::KEYWORD_STR, "str", site, Token::Flags::KEYWORD | Token::Flags::DATA_TYPE);
     else if (raw == "bool")   return new Token(Token::Type::KEYWORD_BOOL, "bool", site, Token::Flags::KEYWORD | Token::Flags::DATA_TYPE);
+    else if (raw == "void")   return new Token(Token::Type::KEYWORD_VOID, "void", site, Token::Flags::KEYWORD | Token::Flags::DATA_TYPE);
     else if (raw == "shel")   return new Token(Token::Type::KEYWORD_STRUCT, "shel", site, Token::Flags::KEYWORD);
     else if (raw == "bug")    return new Token(Token::Type::KEYWORD_FUNCTION, "bug", site, Token::Flags::KEYWORD);
     else if (raw == "now")    return new Token(Token::Type::KEYWORD_REASSIGN_VARIABLE, "now", site, Token::Flags::KEYWORD);

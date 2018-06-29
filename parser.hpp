@@ -89,7 +89,7 @@ struct Ast_If : Ast_Node {
     Ast_If(Ast_Node *comparison, Ast_Block *success, Code_Site *site) {
         this->comparison = comparison;
         this->success = success;
-        this->failure = nullptr; // Not known at the point of construction
+        this->failure = NULL; // Not known at the point of construction
         this->site = site;
         this->node_type = Ast_Node::Type::IF;
     }
@@ -149,8 +149,9 @@ struct Ast_Function_Definition : Ast_Node {
     std::vector<Ast_Function_Argument *> args;
     std::string name;
 
-    Ast_Function_Definition(Ast_Block *block, std::vector<Ast_Function_Argument *> args, std::string name, Code_Site *site) {
+    Ast_Function_Definition(Ast_Block *block, Data_Type return_type, std::vector<Ast_Function_Argument *> args, std::string name, Code_Site *site) {
         this->block = block;
+        this->data_type = return_type;
         this->args = args;
         this->name = name;
         this->site = site;

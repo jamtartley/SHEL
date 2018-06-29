@@ -111,19 +111,24 @@ Ast_Node *Parser::parse_statement() {
     // @CLEANUP(LOW) Mixing between checking Token types/flags when parsing statement
     // Maybe there could be some more unified data type stored on the Token to do this.
     if (curr->flags & Token::Flags::DATA_TYPE) {
-        ret = parse_assignment(true);
-        eat(Token::Type::TERMINATOR);
-        return ret;
+        if (next->type == Token::Type::KEYWORD_FUNCTION) {
+            return parse_function_definition();
+        } else if (next->type == Token::Type::IDENT) {
+            ret = parse_assignment(true);
+            eat(Token::Type::TERMINATOR);
+            return ret;
+        }
     }
 
     if (curr->type == Token::Type::L_BRACE) {
         return parse_block(false);
-    } else if (curr->type == Token::Type::KEYWORD_FUNCTION) {
-        return parse_function_definition();
     } else if (curr->type == Token::Type::KEYWORD_RETURN) {
         ret = parse_return();
         eat(Token::Type::TERMINATOR);
         return ret;
+    } else if (curr->type == Token::Type::KEYWORD_FUNCTION) {
+        report_fatal_error("Must specify return type of bug at point of declaration", current_token->site);
+        return NULL;
     } else if (curr->type == Token::Type::KEYWORD_IF) {
         return parse_if();
     } else if (curr->type == Token::Type::KEYWORD_WHILE) {
@@ -134,18 +139,18 @@ Ast_Node *Parser::parse_statement() {
         ret = parse_assignment(false);
         eat(Token::Type::TERMINATOR);
         return ret;
-    } else if (curr->type == Token::Type::IDENT && next != nullptr) {
+    } else if (curr->type == Token::Type::IDENT && next != NULL) {
         if (next->type == Token::Type::L_PAREN) {
             ret = parse_function_call();
             eat(Token::Type::TERMINATOR);
             return ret;
         } else {
             report_fatal_error("Unexpected identifier", current_token->site);
-            return nullptr;
+            return NULL;
         }
     } else {
         report_fatal_error("Cannot parse this line", current_token->site);
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -161,6 +166,9 @@ Ast_Variable *Parser::parse_variable() {
 
 Ast_Function_Definition *Parser::parse_function_definition() {
     Token *start_token = current_token;
+    Data_Type return_type = token_to_data_type(current_token);
+
+    eat(current_token->type); // Data type
     eat(Token::Type::KEYWORD_FUNCTION);
 
     std::string func_name = parse_ident_name();
@@ -189,7 +197,7 @@ Ast_Function_Definition *Parser::parse_function_definition() {
 
     Ast_Block *body = parse_block(false);
 
-    return new Ast_Function_Definition(body, args, func_name, start_token->site);
+    return new Ast_Function_Definition(body, return_type, args, func_name, start_token->site);
 }
 
 Ast_Function_Call *Parser::parse_function_call() {
@@ -265,7 +273,7 @@ Ast_If *Parser::parse_if() {
 
     while (current_token->type == Token::Type::KEYWORD_ELSE || current_token->type == Token::Type::KEYWORD_ELIF) {
         Code_Site *site = current_token->site;
-        Ast_If *curr = nullptr;
+        Ast_If *curr = NULL;
 
         if (current_token->type == Token::Type::KEYWORD_ELIF) {
             eat(Token::Type::KEYWORD_ELIF);
@@ -276,7 +284,7 @@ Ast_If *Parser::parse_if() {
             curr = new Ast_If(elif_comparison, parse_block(false), site);
         } else if (current_token->type == Token::Type::KEYWORD_ELSE) {
             eat(Token::Type::KEYWORD_ELSE);
-            curr = new Ast_If(nullptr, parse_block(false), site);
+            curr = new Ast_If(NULL, parse_block(false), site);
         }
 
         root->failure = curr;
@@ -339,7 +347,7 @@ Ast_Block *Parser::parse_block(bool is_global_scope) {
 }
 
 Ast_Block *Parser::parse() {
-    if (tokens.size() == 0) return nullptr;
+    if (tokens.size() == 0) return NULL;
     return parse_block(true);
 }
 
@@ -371,7 +379,7 @@ Token *Parser::peek_next_token(Token *current) {
     int next_pos = pos + 1;
     int tokens_len = tokens.size();
 
-    return next_pos < tokens_len ? tokens[next_pos] : nullptr;
+    return next_pos < tokens_len ? tokens[next_pos] : NULL;
 }
 
 void Parser::accept_or_reject_token(bool is_accepted) {

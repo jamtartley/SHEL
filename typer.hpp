@@ -2,11 +2,13 @@
 #define TYPER_H
 
 #include <string>
+#include "lexer.hpp"
 
 enum Data_Type {
     NUM,
     STR,
     BOOL,
+    VOID,
     UNKNOWN
 };
 
@@ -16,6 +18,10 @@ struct Data_Value {
     bool bool_val;
 
     Data_Type data_type = Data_Type::UNKNOWN;
+
+    Data_Value() {
+        this->data_type = Data_Type::VOID;
+    }
 
     Data_Value(float num_val) {
         this->num_val = num_val;
@@ -34,5 +40,6 @@ struct Data_Value {
 };
 
 std::string data_type_to_string(Data_Type type);
+Data_Type token_to_data_type(Token *token);
 
 #endif

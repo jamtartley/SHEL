@@ -7,22 +7,24 @@
 
 struct Scope {
     int depth; // @CLEANUP Does scope need depth?
+    bool is_global_scope;
     Scope *parent;
     std::map<std::string, Data_Value *> variables;
     std::map<std::string, Ast_Function_Definition *> functions;
 
     Scope(Scope *parent) {
         this->parent = parent;
-        this->depth = parent == nullptr ? 0 : parent->depth + 1;
+        this->depth = parent == NULL ? 0 : parent->depth + 1;
+        this->is_global_scope = depth == 0;
     }
 };
 
 struct Func_With_Success {
-    Ast_Function_Definition *body;
+    Ast_Function_Definition *func_def;
     bool was_success;
 
-    Func_With_Success(Ast_Function_Definition *body, bool was_success) {
-        this->body = body;
+    Func_With_Success(Ast_Function_Definition *func_def, bool was_success) {
+        this->func_def = func_def;
         this->was_success = was_success;
     }
 };

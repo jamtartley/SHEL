@@ -66,12 +66,16 @@ std::string get_string_from_return_value(Data_Value *ret) {
 }
 
 Data_Value *Interpreter::walk_block_node(Scope *scope, Ast_Block *root) {
+    // @TODO(HIGH) Clean up return weirdness
+    // Return doesn't really work as you would expect coming from most languages
+    // at the minute in that it only returns from the immediate block. It should
+    // really bubble up until it finds a a function definition or leaves global scope.
     for (Ast_Node *child : root->children) {
         Data_Value *ret = walk_from_root(scope, child);
-        if (ret != NULL) return ret;
+        if (ret != NULL && child->node_type == Ast_Node::Type::RETURN) return ret;
     }
 
-    return nullptr;
+    return NULL;
 }
 
 Data_Value *Interpreter::walk_expression(Scope *scope, Ast_Node *node) {
@@ -86,7 +90,7 @@ Data_Value *Interpreter::walk_expression(Scope *scope, Ast_Node *node) {
     } else if (node->node_type == Ast_Node::Type::VARIABLE) {
         return get_variable(scope, (Ast_Variable *)node);
     } else {
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -103,7 +107,7 @@ Data_Value *Interpreter::walk_binary_op_node(Scope *scope, Ast_Binary_Op *node) 
             return new Data_Value(left->str_val + right->str_val);
         } else {
             report_fatal_error("Attempted to '+' incompatible expressions", node->op->site);
-            return nullptr;
+            return NULL;
         }
         return new Data_Value(left->num_val + right->num_val);
     } else if (node->op->type == Token::Type::OP_MINUS) {
@@ -119,7 +123,7 @@ Data_Value *Interpreter::walk_binary_op_node(Scope *scope, Ast_Binary_Op *node) 
             return new Data_Value(evaluate_node_to_bool(scope, node));
         }
 
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -132,7 +136,7 @@ Data_Value *Interpreter::walk_unary_op_node(Scope *scope, Ast_Unary_Op *node) {
             return new Data_Value(value->bool_val == false);
         } else {
             report_fatal_error("Attempted invalid unary operation on bool value", node->site);
-            return nullptr;
+            return NULL;
         }
     }
 
@@ -143,12 +147,12 @@ Data_Value *Interpreter::walk_unary_op_node(Scope *scope, Ast_Unary_Op *node) {
             return new Data_Value(-value->num_val);
         } else {
             report_fatal_error("Attempted invalid unary operation on num value", node->op->site);
-            return nullptr;
+            return NULL;
         }
     }
 
     report_fatal_error("Attempted invalid unary operation on str value", node->op->site);
-    return nullptr;
+    return NULL;
 }
 
 Data_Value *Interpreter::walk_function_call(Scope *scope, Ast_Function_Call *call) {
@@ -156,24 +160,37 @@ Data_Value *Interpreter::walk_function_call(Scope *scope, Ast_Function_Call *cal
 
     if (fs->was_success) {
         Scope *func_scope = new Scope(scope);
+        auto func_def = fs->func_def;
 
-        if (call->args.size() != fs->body->args.size()) {
+        if (call->args.size() != func_def->args.size()) {
             std::stringstream ss;
-            ss << "Attempted to call '" << fs->body->name << "' with an incorrect number of args. Expected " << fs->body->args.size()
+            ss << "Attempted to call '" << func_def->name << "' with an incorrect number of args. Expected " << func_def->args.size()
                 << ", got " << call->args.size() << ".";
             report_fatal_error(ss.str(), call->args_start_site);
         }
 
         // Match calculated values to function names and insert them into the function scope
         // before we walk the main function block
-        for (int i = 0; i < fs->body->args.size(); i++) {
-            Ast_Function_Argument *current = fs->body->args[i];
+        for (int i = 0; i < func_def->args.size(); i++) {
+            Ast_Function_Argument *current = func_def->args[i];
             Data_Value *expr = walk_expression(scope, call->args[i]);
 
             assign_var(func_scope, current->name, expr);
         }
 
-        return walk_block_node(func_scope, fs->body->block);
+        auto block_return = walk_block_node(func_scope, func_def->block);
+
+        // Programmer didn't write an explicit return statement, so we return void for them
+        if (block_return == NULL) return new Data_Value();
+
+        if (block_return->data_type != func_def->data_type) {
+            std::stringstream ss;
+            ss << "Unexpected return type from function - wanted " << data_type_to_string(func_def->data_type)
+                << ", but got " << data_type_to_string(block_return->data_type);
+            report_fatal_error(ss.str(), func_def->block->return_node->site);
+        }
+
+        return block_return;
     } else {
         // @HACK(HIGH) Horrible call out to native print
         if (call->name == "print") {
@@ -187,7 +204,7 @@ Data_Value *Interpreter::walk_function_call(Scope *scope, Ast_Function_Call *cal
 
             print_native(main_string, args);
         }
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -201,7 +218,7 @@ Data_Value *Interpreter::walk_if(Scope *scope, Ast_If *if_node) {
         if_node = if_node->failure;
     }
 
-    return nullptr;
+    return NULL;
 }
 
 Data_Value *Interpreter::walk_while(Scope *scope, Ast_While *while_node) {
@@ -257,9 +274,11 @@ Data_Value *Interpreter::walk_from_root(Scope *scope, Ast_Node *root) {
         return walk_block_node(scope, (Ast_Block *)root);
     } else if (root->node_type == Ast_Node::Type::FUNCTION_DEFINITION) {
         add_function_def_to_scope(scope, (Ast_Function_Definition *)root);
-        return nullptr;
+        return NULL;
     } else if (root->node_type == Ast_Node::Type::RETURN) {
-        return walk_expression(scope, ((Ast_Return *)root)->value);
+        Data_Value *val = walk_expression(scope, ((Ast_Return *)root)->value);
+        if (val == NULL) return new Data_Value(); // void return
+        else return val;
     } else if (root->node_type == Ast_Node::Type::IF) {
         return walk_if(scope, (Ast_If *)root);
     } else if (root->node_type == Ast_Node::Type::WHILE) {
@@ -270,9 +289,9 @@ Data_Value *Interpreter::walk_from_root(Scope *scope, Ast_Node *root) {
         return walk_function_call(scope, (Ast_Function_Call *)root);
     } else if (root->node_type == Ast_Node::Type::ASSIGNMENT) {
         walk_assignment_node(scope, (Ast_Assignment *)root);
-        return nullptr;
+        return NULL;
     } else {
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -285,7 +304,7 @@ Data_Value *Interpreter::get_variable(Scope *scope, Ast_Variable *node) {
         return var->data;
     } else {
         report_fatal_error(get_unassigned_variable_error(name), node->token->site);
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -294,7 +313,7 @@ Data_Value *Interpreter::get_data_from_literal(Scope *scope, Ast_Literal *lit) {
         case Data_Type::NUM: return new Data_Value(std::stof(lit->value));
         case Data_Type::STR: return new Data_Value(lit->value);
         case Data_Type::BOOL: return new Data_Value(lit->value == "true" ? true : false);
-        default: return nullptr;
+        default: return NULL;
     }
 }
 
@@ -388,7 +407,7 @@ void Interpreter::add_function_def_to_scope(Scope *scope, Ast_Function_Definitio
 }
 
 void Interpreter::interpret() {
-    Scope *global_scope = new Scope(nullptr);
+    Scope *global_scope = new Scope(NULL);
 
     Ast_Block *root = parser->parse();
     walk_from_root(global_scope, root);

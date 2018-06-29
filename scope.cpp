@@ -8,14 +8,14 @@
 
 Var_With_Success *get_var(Scope *scope, std::string name) {
     if (is_var_in_scope(scope, name)) return new Var_With_Success(scope->variables[name], true);
-    if (scope->parent != nullptr) return get_var(scope->parent, name);
-    return new Var_With_Success(nullptr, false);
+    if (scope->parent != NULL) return get_var(scope->parent, name);
+    return new Var_With_Success(NULL, false);
 }
 
 Func_With_Success *get_func(Scope *scope, std::string name) {
     if (is_func_in_scope(scope, name)) return new Func_With_Success(scope->functions[name], true);
-    if (scope->parent != nullptr) return get_func(scope->parent, name);
-    return new Func_With_Success(nullptr, false);
+    if (scope->parent != NULL) return get_func(scope->parent, name);
+    return new Func_With_Success(NULL, false);
 }
 
 void assign_var(Scope *scope, std::string name, Data_Value *value) {
