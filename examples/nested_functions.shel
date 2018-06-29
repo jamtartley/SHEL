@@ -1,0 +1,16 @@
+num bug to_the_eighteenth(x) {
+    num bug square(x) {
+        return x * x;
+    }
+
+    num bug cube(x) {
+        return x * x * x;
+    }
+    return cube(square(cube(x)));
+}
+
+num x = 2;
+print("%", to_the_eighteenth(x));
+
+# bug "square" is not in scope here so this would raise an error at runtime
+# num y = square(5);

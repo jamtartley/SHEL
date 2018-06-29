@@ -72,7 +72,7 @@ Data_Value *Interpreter::walk_block_node(Scope *scope, Ast_Block *root) {
     // really bubble up until it finds a a function definition or leaves global scope.
     for (Ast_Node *child : root->children) {
         Data_Value *ret = walk_from_root(scope, child);
-        if (ret != NULL && child->node_type == Ast_Node::Type::RETURN) return ret;
+        if (ret != NULL) return ret;
     }
 
     return NULL;
@@ -159,8 +159,8 @@ Data_Value *Interpreter::walk_function_call(Scope *scope, Ast_Function_Call *cal
     Func_With_Success *fs = get_func(scope, call->name);
 
     if (fs->was_success) {
-        Scope *func_scope = new Scope(scope);
-        auto func_def = fs->func_def;
+        auto *func_scope = new Scope(scope);
+        auto *func_def = fs->func_def;
 
         if (call->args.size() != func_def->args.size()) {
             std::stringstream ss;
@@ -178,10 +178,10 @@ Data_Value *Interpreter::walk_function_call(Scope *scope, Ast_Function_Call *cal
             assign_var(func_scope, current->name, expr);
         }
 
-        auto block_return = walk_block_node(func_scope, func_def->block);
+        Data_Value *block_return = walk_block_node(func_scope, func_def->block);
 
         // Programmer didn't write an explicit return statement, so we return void for them
-        if (block_return == NULL) return new Data_Value();
+        if (block_return == NULL) return NULL;
 
         if (block_return->data_type != func_def->data_type) {
             std::stringstream ss;
@@ -203,7 +203,14 @@ Data_Value *Interpreter::walk_function_call(Scope *scope, Ast_Function_Call *cal
             }
 
             print_native(main_string, args);
+
+            return NULL;
         }
+
+        std::stringstream ss;
+        ss << "Attempted to call bug '" << call->name << "', which is either not in scope or does not exist";
+        report_fatal_error(ss.str(), call->site);
+
         return NULL;
     }
 }
@@ -258,7 +265,7 @@ Data_Value *Interpreter::walk_loop(Scope *scope, Ast_Loop *loop_node) {
     bool is_going_up = to->num_val > from->num_val;
 
     for (float i = from->num_val; is_going_up ? i <= to->num_val : i >= to->num_val; i += step->num_val) {
-        Scope *body_scope = new Scope(scope);
+        auto *body_scope = new Scope(scope);
         assign_var(body_scope, "idx", new Data_Value(float(i)));
 
         ret = walk_block_node(body_scope, loop_node->body);
@@ -407,7 +414,7 @@ void Interpreter::add_function_def_to_scope(Scope *scope, Ast_Function_Definitio
 }
 
 void Interpreter::interpret() {
-    Scope *global_scope = new Scope(NULL);
+    auto *global_scope = new Scope(NULL);
 
     Ast_Block *root = parser->parse();
     walk_from_root(global_scope, root);

@@ -155,7 +155,7 @@ Ast_Node *Parser::parse_statement() {
 }
 
 Ast_Variable *Parser::parse_variable() {
-    Ast_Variable *var = new Ast_Variable(current_token);
+    auto *var = new Ast_Variable(current_token);
 
     if (current_token->flags & Token::Flags::KEYWORD) report_fatal_error("SHEL keyword used as variable name", current_token->site);
 
@@ -268,8 +268,8 @@ Ast_If *Parser::parse_if() {
 
     eat(Token::Type::R_PAREN);
 
-    Ast_If *root = new Ast_If(comparison, parse_block(false), if_token->site);
-    Ast_If *ret = root;
+    auto *root = new Ast_If(comparison, parse_block(false), if_token->site);
+    auto *ret = root;
 
     while (current_token->type == Token::Type::KEYWORD_ELSE || current_token->type == Token::Type::KEYWORD_ELIF) {
         Code_Site *site = current_token->site;
@@ -332,7 +332,7 @@ Ast_Block *Parser::parse_block(bool is_global_scope) {
     Token *start = current_token;
     if (is_global_scope == false) eat(Token::Type::L_BRACE);
     std::vector<Ast_Node *> nodes = parse_statements();
-    Ast_Block *block = new Ast_Block(nodes, start->site);
+    auto *block = new Ast_Block(nodes, start->site);
 
     for (Ast_Node *node : nodes) {
         // First return node in a block wins

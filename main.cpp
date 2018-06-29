@@ -45,12 +45,12 @@ int main(int argc, char *argv[]) {
     std::string in_file_name = argc > 1 ? argv[1] : "examples/flow_control.shel";
     std::string file_string = file_to_string(in_file_name);
 
-    Lexer *lexer = new Lexer(in_file_name, file_string);
+    auto *lexer = new Lexer(in_file_name, file_string);
     lexer->lex();
 
-    Parser *parser = new Parser(lexer->tokens, Token::Type::END_OF_FILE);
+    auto *parser = new Parser(lexer->tokens, Token::Type::END_OF_FILE);
 
-    Interpreter *interp = new Interpreter(parser);
+    auto *interp = new Interpreter(parser);
     interp->interpret();
 
     do {
