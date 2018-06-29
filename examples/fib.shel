@@ -6,7 +6,7 @@ bug fib(x) {
     return fib(x - 1) + fib(x - 2);
 }
 
-let terms_to_calculate = 10;
-let result = fib(terms_to_calculate);
+num terms_to_calculate = 10;
+num result = fib(terms_to_calculate);
 
 print("The %th element of the Fibonacci sequence is %", terms_to_calculate, result);

@@ -151,6 +151,9 @@ Ast_Node *Parser::parse_statement() {
 
 Ast_Variable *Parser::parse_variable() {
     Ast_Variable *var = new Ast_Variable(current_token);
+
+    if (current_token->flags & Token::Flags::KEYWORD) report_fatal_error("SHEL keyword used as variable name", current_token->site);
+
     eat(Token::Type::IDENT);
 
     return var;
@@ -376,9 +379,7 @@ void Parser::accept_or_reject_token(bool is_accepted) {
         position++;
         current_token = tokens[position];
     } else {
-        std::stringstream ss;
-        ss << "Invalid syntax on line " << current_token->site->line_number;
-        report_fatal_error(ss.str());
+        report_fatal_error("Unexpected token", current_token->site);
     }
 }
 

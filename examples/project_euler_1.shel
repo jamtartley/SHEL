@@ -6,7 +6,7 @@ bug is_divisible_by_5(x) {
     return x % 5 == 0;
 }
 
-let sum = 0;
+num sum = 0;
 
 from 1 to 999 step 1 {
     if (is_divisible_by_3(idx) or is_divisible_by_5(idx)) {

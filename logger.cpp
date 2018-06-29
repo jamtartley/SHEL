@@ -44,7 +44,7 @@ void report_fatal_error(std::string error, Code_Site *site) {
     std::string line_of_error;
     std::string line_string = get_line_by_number(site);
 
-    std::cerr << "[FATAL ERROR] at line " << site->line_number << ", column " << site->column_position << ": " << error << std::endl;
+    std::cerr << "[FATAL ERROR] in " << site->file_name << " at line " << site->line_number << ", column " << site->column_position << ": " << error << std::endl;
     std::cerr << std::endl;
     std::cerr << line_string << std::endl;
     std::cerr << get_column_marker(line_string, site->column_position) << std::endl;

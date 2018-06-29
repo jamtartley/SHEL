@@ -1,6 +1,6 @@
 # This is a comment
 
-let a = 1; # Set a to 1 (P.S. Don't write useless comments)
+num a = 1; # Set a to 1 (P.S. Don't write useless comments)
 
 print("a == %", a); # Print a
 

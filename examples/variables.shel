@@ -1,20 +1,20 @@
-let a = 1;
-let b = 2;
-let c = "test";
-let d = true;
+num a = 1;
+num b = 2;
+str c = "test";
+bool d = true;
 
-let e = a + b;
-let f = c + c;
+num e = a + b;
+str f = c + c;
 
-print("Let a is %", a);
-print("Let b is %", b);
-print("Let c is %", c);
-print("Let d is %", d);
+print("num a is %", a);
+print("num b is %", b);
+print("str c is %", c);
+print("bool d is %", d);
 
 print("");
 
-print("Let e is a + b:  %", e);
-print("Let f is c + c:  %", f);
+print("num e is a + b:  %", e);
+print("str f is c + c:  %", f);
 
 print("");
 

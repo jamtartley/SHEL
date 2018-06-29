@@ -2,6 +2,6 @@ bug t(is_true) {
     return not is_true;
 }
 
-let a = not (1 == 2 * 3) and not not t(false);
+bool a = not (1 == 2 * 3) and not not t(false);
 
 print("%", a);
