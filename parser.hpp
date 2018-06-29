@@ -84,12 +84,12 @@ struct Ast_Block : Ast_Node {
 struct Ast_If : Ast_Node {
     Ast_Node *comparison;
     Ast_Block *success;
-    Ast_Block *failure;
+    Ast_If *failure;
 
-    Ast_If(Ast_Node *comparison, Ast_Block *success, Ast_Block *failure, Code_Site *site) {
+    Ast_If(Ast_Node *comparison, Ast_Block *success, Code_Site *site) {
         this->comparison = comparison;
         this->success = success;
-        this->failure = failure;
+        this->failure = nullptr; // Not known at the point of construction
         this->site = site;
         this->node_type = Ast_Node::Type::IF;
     }
@@ -161,11 +161,13 @@ struct Ast_Function_Definition : Ast_Node {
 struct Ast_Function_Call : Ast_Node {
     std::string name;
     std::vector<Ast_Node *> args;
+    Code_Site *args_start_site;
 
-    Ast_Function_Call(std::string name, std::vector<Ast_Node *> args, Code_Site *site) {
+    Ast_Function_Call(std::string name, std::vector<Ast_Node *> args, Code_Site *site, Code_Site *args_start_site) {
         this->name = name;
         this->args = args;
         this->site = site;
+        this->args_start_site = args_start_site;
         this->node_type = Ast_Node::Type::FUNCTION_CALL;
     }
 };

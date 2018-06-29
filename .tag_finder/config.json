@@ -17,8 +17,7 @@
         "HIGH"
     ],
     "extensions": [
-        "hpp",
-        "cpp"
+        "*"
     ],
     "ignore": "IGNORE",
     "exclude": []

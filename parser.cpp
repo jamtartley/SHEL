@@ -188,6 +188,7 @@ Ast_Function_Call *Parser::parse_function_call() {
     Token *call_token = current_token;
     std::string func_name = parse_ident_name();
 
+    Token *open_paren = current_token;
     eat(Token::Type::L_PAREN);
     std::vector<Ast_Node *> args;
 
@@ -199,7 +200,7 @@ Ast_Function_Call *Parser::parse_function_call() {
 
     eat(Token::Type::R_PAREN);
 
-    return new Ast_Function_Call(func_name, args, call_token->site);
+    return new Ast_Function_Call(func_name, args, call_token->site, open_paren->site);
 }
 
 
@@ -228,22 +229,38 @@ Ast_Return *Parser::parse_return() {
 
 Ast_If *Parser::parse_if() {
     Token *if_token = current_token;
+
     eat(Token::Type::KEYWORD_IF);
     eat(Token::Type::L_PAREN);
 
     Ast_Node *comparison = parse_expression();
 
     eat(Token::Type::R_PAREN);
-    Ast_Block *success = parse_block(false);
 
-    Ast_Block *failure = nullptr;
+    Ast_If *root = new Ast_If(comparison, parse_block(false), if_token->site);
+    Ast_If *ret = root;
 
-    if (current_token->type == Token::Type::KEYWORD_ELSE) {
-        eat(Token::Type::KEYWORD_ELSE);
-        failure = parse_block(false);
+    while (current_token->type == Token::Type::KEYWORD_ELSE || current_token->type == Token::Type::KEYWORD_ELIF) {
+        Code_Site *site = current_token->site;
+        Ast_If *curr;
+
+        if (current_token->type == Token::Type::KEYWORD_ELIF) {
+            eat(Token::Type::KEYWORD_ELIF);
+            eat(Token::Type::L_PAREN);
+            Ast_Node *elif_comparison = parse_expression();
+            eat(Token::Type::R_PAREN);
+
+            curr = new Ast_If(elif_comparison, parse_block(false), site);
+        } else if (current_token->type == Token::Type::KEYWORD_ELSE) {
+            eat(Token::Type::KEYWORD_ELSE);
+            curr = new Ast_If(nullptr, parse_block(false), site);
+        }
+
+        root->failure = curr;
+        root = curr;
     }
 
-    return new Ast_If(comparison, success, failure, if_token->site);
+    return ret;
 }
 
 Ast_While *Parser::parse_while() {

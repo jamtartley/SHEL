@@ -48,44 +48,14 @@ struct Code_Site {
 
 struct Token {
     enum Type {
-        KEYWORD_IF,
-        KEYWORD_ELSE,
-        KEYWORD_WHILE,
-        KEYWORD_LOOP_START,
-        KEYWORD_LOOP_TO,
-        KEYWORD_LOOP_STEP,
-        KEYWORD_RETURN,
-        KEYWORD_STRUCT,
-        KEYWORD_FUNCTION,
-        KEYWORD_ASSIGN_VARIABLE,
-        KEYWORD_REASSIGN_VARIABLE,
-        KEYWORD_TRUE,
-        KEYWORD_FALSE,
-        L_PAREN,
-        R_PAREN,
-        L_BRACE,
-        R_BRACE,
-        ARGUMENT_SEPARATOR,
-        OP_ASSIGNMENT,
-        OP_PLUS,
-        OP_MINUS,
-        OP_MULTIPLY,
-        OP_DIVIDE,
-        OP_MODULO,
-        IDENT,
-        NUMBER,
-        STRING,
-        COMPARE_EQUALS,
-        COMPARE_NOT_EQUALS,
-        COMPARE_LESS_THAN,
-        COMPARE_GREATER_THAN,
-        COMPARE_LESS_THAN_EQUALS,
-        COMPARE_GREATER_THAN_EQUALS,
-        LOGICAL_OR,
-        LOGICAL_AND,
-        LOGICAL_NOT,
-        TERMINATOR,
-        END_OF_FILE
+        KEYWORD_IF, KEYWORD_ELIF, KEYWORD_ELSE, KEYWORD_WHILE, KEYWORD_LOOP_START, KEYWORD_LOOP_TO, KEYWORD_LOOP_STEP, KEYWORD_RETURN,
+        KEYWORD_STRUCT, KEYWORD_FUNCTION, KEYWORD_ASSIGN_VARIABLE, KEYWORD_REASSIGN_VARIABLE, KEYWORD_TRUE, KEYWORD_FALSE,
+        L_PAREN, R_PAREN, L_BRACE, R_BRACE, ARGUMENT_SEPARATOR,
+        OP_ASSIGNMENT, OP_PLUS, OP_MINUS, OP_MULTIPLY, OP_DIVIDE, OP_MODULO,
+        IDENT, NUMBER, STRING,
+        COMPARE_EQUALS, COMPARE_NOT_EQUALS, COMPARE_LESS_THAN, COMPARE_GREATER_THAN, COMPARE_LESS_THAN_EQUALS, COMPARE_GREATER_THAN_EQUALS,
+        LOGICAL_OR, LOGICAL_AND, LOGICAL_NOT,
+        TERMINATOR, END_OF_FILE
     };
 
     enum Flags {
@@ -118,6 +88,7 @@ struct Token {
 inline const std::string type_to_string(Token::Type type) {
     switch (type) {
         case Token::Type::KEYWORD_IF: return "KEYWORD_IF";
+        case Token::Type::KEYWORD_ELIF: return "KEYWORD_ELIF";
         case Token::Type::KEYWORD_ELSE: return "KEYWORD_ELSE";
         case Token::Type::KEYWORD_WHILE: return "KEYWORD_WHILE";
         case Token::Type::KEYWORD_LOOP_START: return "KEYWORD_LOOP_START";

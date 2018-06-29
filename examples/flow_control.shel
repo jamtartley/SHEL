@@ -1,17 +1,27 @@
-let a = 1;
-
-# The if statement works as in other C-style languages, except there
-# is no support for 'else if' or similar at the minute.
+# The if statement works as in other C-style languages
 
 print("");
 print("--------IF--------");
 print("");
 
-if (a == 1) {
-    print("a equals 1");
-} else {
-    print("a does not equal 1");
+bug check(a) {
+    if (a == 1) {
+        print("a equals 1");
+    } elif (a == 2) {
+        print("a equals 2");
+    } elif (a == 3) {
+        print("a equals 3");
+    } else {
+        print("a is unknown");
+    }
 }
+
+let a = 1;
+check(a);
+relet a = 3;
+check(a);
+relet a = 5;
+check(a);
 
 # While in SHEL works exactly as you'd expect if coming from any C-style language.
 # The body of the statement is evaluated every time the conditional in

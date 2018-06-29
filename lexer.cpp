@@ -134,6 +134,7 @@ Token *Lexer::scan_ident(Code_Site *site, const std::string input, const std::re
     std::string raw = scan_other(site, input, end_match);
 
     if (raw == "if")          return new Token(Token::Type::KEYWORD_IF, "if", site, Token::Flags::KEYWORD);
+    else if (raw == "elif")   return new Token(Token::Type::KEYWORD_ELIF, "elif", site, Token::Flags::KEYWORD);
     else if (raw == "else")   return new Token(Token::Type::KEYWORD_ELSE, "else", site, Token::Flags::KEYWORD);
     else if (raw == "while")  return new Token(Token::Type::KEYWORD_WHILE, "while", site, Token::Flags::KEYWORD);
     else if (raw == "return") return new Token(Token::Type::KEYWORD_RETURN, "return", site, Token::Flags::KEYWORD);

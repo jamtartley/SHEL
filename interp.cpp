@@ -157,6 +157,13 @@ Data_Value *Interpreter::walk_function_call(Scope *scope, Ast_Function_Call *cal
     if (fs->was_success) {
         Scope *func_scope = new Scope(scope);
 
+        if (call->args.size() != fs->body->args.size()) {
+            std::stringstream ss;
+            ss << "Attempted to call '" << fs->body->name << "' with an incorrect number of args. Expected " << fs->body->args.size()
+                << ", got " << call->args.size() << ".";
+            report_fatal_error(ss.str(), call->args_start_site);
+        }
+
         // Match calculated values to function names and insert them into the function scope
         // before we walk the main function block
         for (int i = 0; i < fs->body->args.size(); i++) {
@@ -185,15 +192,13 @@ Data_Value *Interpreter::walk_function_call(Scope *scope, Ast_Function_Call *cal
 }
 
 Data_Value *Interpreter::walk_if(Scope *scope, Ast_If *if_node) {
-    // @TODO(HIGH) Allow 'else if' branching in if statement
-    bool is_success = evaluate_node_to_bool(scope, if_node->comparison);
-
-    if (is_success) {
-        return walk_block_node(new Scope(scope), if_node->success);
-    } else {
-        if (if_node->failure != NULL) {
-            return walk_block_node(new Scope(scope), if_node->failure);
+    while (if_node != NULL) {
+        // Comparison is NULL in else node, so if we get there assume true
+        if (if_node->comparison == NULL || evaluate_node_to_bool(scope, if_node->comparison)) {
+            return walk_block_node(new Scope(scope), if_node->success);
         }
+
+        if_node = if_node->failure;
     }
 
     return nullptr;
