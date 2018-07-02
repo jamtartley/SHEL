@@ -1,11 +1,13 @@
-num arr bug get_steps_lyrics() {
+arr bug get_steps_lyrics() {
     return [5, 6, 7, 8];
 }
 
-num arr x = [1, 2, 3, 4, 5];
-str arr hello = ["Hello", "world", "!"];
-num arr steps = get_steps_lyrics();
+arr x = [1, 2, 3, 4, 5];
+arr hello = ["Hello", "world", "!"];
+arr steps = get_steps_lyrics();
 
-from 0 to array_len(steps) - 1 step 1 {
-    print(array_get(steps, it));
-}
+print(steps);
+
+array_add(steps, 9);
+
+print(steps);

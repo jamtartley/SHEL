@@ -1,5 +1,5 @@
-num arr bug get_fibonacci_upto(num limit) {
-    num arr fibs = [0, 1];
+arr bug get_fibonacci_upto(num limit) {
+    arr fibs = [0, 1];
     num len = array_len(fibs);
 
     while (array_get(fibs, len - 1) <= limit) {
@@ -16,7 +16,7 @@ bool bug is_even(num x) {
 
 num sum = 0;
 num limit = 4000000;
-num arr fibs = get_fibonacci_upto(limit);
+arr fibs = get_fibonacci_upto(limit);
 
 from 0 to array_len(fibs) - 1 step 1 {
     num current = array_get(fibs, it);
@@ -26,4 +26,5 @@ from 0 to array_len(fibs) - 1 step 1 {
     }
 }
 
+print(fibs);
 print("Sum of all even numbers upto % in the Fibonacci sequence is %", limit, sum);

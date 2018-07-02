@@ -177,7 +177,6 @@ Ast_Node *Parser::parse_statement() {
 
 Ast_Variable *Parser::parse_variable(bool is_first_assign) {
     Data_Type data_type = Data_Type::VOID;
-    bool is_array = false;
 
     if (is_first_assign) {
         auto type = current_token->type;
@@ -191,23 +190,17 @@ Ast_Variable *Parser::parse_variable(bool is_first_assign) {
         } else if (type == Token::Type::KEYWORD_BOOL) {
             eat(Token::Type::KEYWORD_BOOL);
             data_type = Data_Type::BOOL;
+        } else if (type == Token::Type::KEYWORD_ARRAY) {
+            eat(Token::Type::KEYWORD_ARRAY);
+            data_type = Data_Type::ARRAY;
         } else {
             report_fatal_error("Variables must be assigned a data type at the point of declaration", current_token->site);
-        }
-
-        if (current_token->type == Token::Type::KEYWORD_ARRAY) {
-            is_array = true;
-            eat(Token::Type::KEYWORD_ARRAY);
         }
     }
 
     auto *var = new Ast_Variable(current_token);
 
-    if (is_first_assign) {
-        var->is_array = is_array;
-        var->data_type = data_type;
-    }
-
+    if (is_first_assign) var->data_type = data_type;
     if (current_token->flags & Token::Flags::KEYWORD) report_fatal_error("SHEL keyword used as variable name", current_token->site);
 
     eat(Token::Type::IDENT);
@@ -220,12 +213,6 @@ Ast_Function_Definition *Parser::parse_function_definition() {
     Data_Type return_type = token_to_data_type(current_token);
 
     eat(current_token->type);
-
-    if (current_token->type == Token::Type::KEYWORD_ARRAY) {
-        return_type = Data_Type::ARRAY;
-        eat(Token::Type::KEYWORD_ARRAY);
-    }
-
     eat(Token::Type::KEYWORD_FUNCTION);
 
     std::string func_name = parse_ident_name();

@@ -137,8 +137,6 @@ struct Ast_Literal : Ast_Node {
 struct Ast_Variable : Ast_Node {
     Token *token;
     std::string name;
-    bool is_array;
-    Ast_Node *index;
 
     // This Data_Type will be set at parse time if the variable is on the LHS of
     // an assignment, but will default to VOID if this node was parsed from
@@ -148,8 +146,6 @@ struct Ast_Variable : Ast_Node {
 
     Ast_Variable(Token *token) {
         this->token = token;
-        this->is_array = false;
-        this->index = NULL;
         this->type = Data_Type::VOID;
         this->name = token->value;
         this->site = token->site;

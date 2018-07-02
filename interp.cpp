@@ -142,11 +142,7 @@ Array_Atom *Interpreter::walk_array_node(Scope *scope, Ast_Array *array) {
         items.push_back(walk_expression(scope, item));
     }
 
-    Data_Type type = Data_Type::VOID;
-
-    if (items.size() > 0) type = items[0]->data_type;
-
-    return new Array_Atom(items, type);
+    return new Array_Atom(items);
 }
 
 Data_Atom *Interpreter::walk_unary_op_node(Scope *scope, Ast_Unary_Op *node) {
@@ -327,11 +323,6 @@ Data_Atom *Interpreter::get_variable(Scope *scope, Ast_Variable *node) {
     Var_With_Success *var = get_var(scope, name);
 
     if (var->was_success) {
-        if (var->data->data_type == Data_Type::ARRAY) {
-            if (node->index == NULL)  return ((Array_Atom *)var->data);
-            int index = ((Num_Atom *)walk_expression(scope, node->index))->value;
-            return ((Array_Atom *)var->data)->items.at(index);
-        } 
         return var->data;
     } else {
         report_fatal_error(get_unassigned_variable_error(name), node->token->site);
@@ -419,14 +410,9 @@ void Interpreter::walk_assignment_node(Scope *scope, Ast_Assignment *node) {
     std::string name = node->left->name;
     Data_Atom *expr = walk_expression(scope, node->right);
 
-    if (expr->data_type == Data_Type::ARRAY) {
-        auto arr = (Array_Atom *)expr;
-        arr->atom_type = node->left->data_type;
-    }
-
     if (node->is_first_assign) {
         auto left_data_type = node->left->data_type;
-        auto right_data_type = expr->data_type == Data_Type::ARRAY ? ((Array_Atom *)expr)->atom_type : expr->data_type;
+        auto right_data_type = expr->data_type;
 
         if (left_data_type != right_data_type) {
             std::stringstream ss;

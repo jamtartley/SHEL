@@ -48,6 +48,8 @@ Native_Return_Data *print(std::vector<Data_Atom *> args, Code_Site *site) {
 }
 
 Native_Return_Data *array_get(std::vector<Data_Atom *> args, Code_Site *site) {
+    if (args.size() != 2) report_fatal_error("Incorrect number of args passed", site);
+
     auto arr = (Array_Atom *)args[0];
     auto index = ((Num_Atom *)args[1])->value;
 
@@ -57,6 +59,8 @@ Native_Return_Data *array_get(std::vector<Data_Atom *> args, Code_Site *site) {
 }
 
 Native_Return_Data *array_set(std::vector<Data_Atom *> args, Code_Site *site) {
+    if (args.size() != 2) report_fatal_error("Incorrect number of args passed", site);
+
     auto arr = (Array_Atom *)args[0];
     auto index = ((Num_Atom *)args[1])->value;
     auto value = args[2];
@@ -67,12 +71,16 @@ Native_Return_Data *array_set(std::vector<Data_Atom *> args, Code_Site *site) {
 }
 
 Native_Return_Data *array_len(std::vector<Data_Atom *> args, Code_Site *site) {
+    if (args.size() != 1) report_fatal_error("Incorrect number of args passed", site);
+
     auto arr = (Array_Atom *)args[0];
 
     return new Native_Return_Data(true, new Num_Atom(arr->items.size()));
 }
 
 Native_Return_Data *array_add(std::vector<Data_Atom *> args, Code_Site *site) {
+    if (args.size() != 2) report_fatal_error("Incorrect number of args passed", site);
+
     auto arr = (Array_Atom *)args[0];
     auto value = args[1];
 
