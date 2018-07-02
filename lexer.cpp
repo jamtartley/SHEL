@@ -30,11 +30,13 @@ void Lexer::lex() {
         else if (curr == "*" && peek_next_char() == "=")    { next_token = new Token(Token::Type::OP_MULTIPLY_EQUALS, "+=", site, Token::Flags::OPERATOR); }
         else if (curr == "/" && peek_next_char() == "=")    { next_token = new Token(Token::Type::OP_DIVIDE_EQUALS, "+=", site, Token::Flags::OPERATOR); }
         else if (curr == "%" && peek_next_char() == "=")    { next_token = new Token(Token::Type::OP_MODULO_EQUALS, "+=", site, Token::Flags::OPERATOR); }
+        else if (curr == "^" && peek_next_char() == "=")    { next_token = new Token(Token::Type::OP_EXPONENT_EQUALS, "^=", site, Token::Flags::OPERATOR); }
         else if (curr == "+")                               { next_token = new Token(Token::Type::OP_PLUS, "+", site, Token::Flags::OPERATOR); }
         else if (curr == "-")                               { next_token = new Token(Token::Type::OP_MINUS, "-", site, Token::Flags::OPERATOR); }
         else if (curr == "*")                               { next_token = new Token(Token::Type::OP_MULTIPLY, "*", site, Token::Flags::OPERATOR); }
         else if (curr == "/")                               { next_token = new Token(Token::Type::OP_DIVIDE, "/", site, Token::Flags::OPERATOR); }
         else if (curr == "%")                               { next_token = new Token(Token::Type::OP_MODULO, "%", site, Token::Flags::OPERATOR); }
+        else if (curr == "^")                               { next_token = new Token(Token::Type::OP_EXPONENT, "^", site, Token::Flags::OPERATOR); }
 
         else if (curr == "(")                               { next_token = new Token(Token::Type::L_PAREN, "(", site); }
         else if (curr == ")")                               { next_token = new Token(Token::Type::R_PAREN, ")", site); }

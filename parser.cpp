@@ -16,7 +16,9 @@ int get_operator_precedence(Token *token) {
     unsigned int flags = token->flags;
 
     if (flags & Token::Flags::OPERATOR) {
-        if (type == Token::Type::OP_MULTIPLY || type == Token::Type::OP_DIVIDE || type == Token::Type::OP_MODULO) {
+        if (type == Token::Type::OP_EXPONENT) {
+            return 6;
+        } else if (type == Token::Type::OP_MULTIPLY || type == Token::Type::OP_DIVIDE || type == Token::Type::OP_MODULO) {
             return 5;
         } else if (type == Token::Type::OP_PLUS || type == Token::Type::OP_MINUS) {
             return 4;
@@ -33,7 +35,7 @@ int get_operator_precedence(Token *token) {
         } else if (type == Token::Type::LOGICAL_OR) {
             return 0;
         } else if (type == Token::Type::LOGICAL_NOT) {
-            return 6;
+            return 7;
         }
     }
 
@@ -284,6 +286,7 @@ Ast_Assignment *Parser::parse_assignment(bool is_first_assign) {
         case Token::Type::OP_MULTIPLY_EQUALS:
         case Token::Type::OP_DIVIDE_EQUALS:
         case Token::Type::OP_MODULO_EQUALS:
+        case Token::Type::OP_EXPONENT_EQUALS:
             right = new Ast_Binary_Op(var, parse_expression(), ass_op_token);
             break;
         default:

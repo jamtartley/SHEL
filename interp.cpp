@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 #include <sstream>
 
@@ -40,10 +41,12 @@ void fail_if_binary_op_invalid(Data_Atom *left, Data_Atom *right, Token *op) {
         case Token::Type::OP_MULTIPLY:
         case Token::Type::OP_DIVIDE:
         case Token::Type::OP_MODULO:
+        case Token::Type::OP_EXPONENT:
         case Token::Type::OP_MINUS_EQUALS:
         case Token::Type::OP_MULTIPLY_EQUALS:
         case Token::Type::OP_DIVIDE_EQUALS:
         case Token::Type::OP_MODULO_EQUALS:
+        case Token::Type::OP_EXPONENT_EQUALS:
         case Token::Type::COMPARE_GREATER_THAN:
         case Token::Type::COMPARE_LESS_THAN:
         case Token::Type::COMPARE_GREATER_THAN_EQUALS:
@@ -126,6 +129,8 @@ Data_Atom *Interpreter::walk_binary_op_node(Scope *scope, Ast_Binary_Op *node) {
         Num_Atom *l = (Num_Atom *)left;
         Num_Atom *r = (Num_Atom *)right;
         return new Num_Atom(float(int(l->value) % int(r->value)));
+    } else if (node->op->type == Token::Type::OP_EXPONENT || node->op->type == Token::Type::OP_EXPONENT_EQUALS) {
+        return new Num_Atom(pow(((Num_Atom *)left)->value, ((Num_Atom *)right)->value));
     } else {
         if (node->op->flags & Token::Flags::COMPARISON || node->op->flags & Token::Flags::LOGICAL) {
             return new Bool_Atom(evaluate_node_to_bool(scope, node));
