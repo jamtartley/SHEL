@@ -176,7 +176,7 @@ Ast_Node *Parser::parse_statement() {
 }
 
 Ast_Variable *Parser::parse_variable(bool is_first_assign) {
-    Data_Type data_type = Data_Type::UNKNOWN;
+    Data_Type data_type = Data_Type::VOID;
     bool is_array = false;
 
     if (is_first_assign) {

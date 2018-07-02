@@ -10,12 +10,11 @@ enum Data_Type {
     STR,
     BOOL,
     ARRAY,
-    VOID,
-    UNKNOWN
+    VOID
 };
 
 struct Data_Atom {
-    Data_Type data_type = Data_Type::UNKNOWN;
+    Data_Type data_type = Data_Type::VOID;
 };
 
 struct Num_Atom : Data_Atom {

@@ -29,7 +29,7 @@ struct Ast_Node {
     // @TODO(MEDIUM) Add flags to Ast_Node
     // Attaching some metadata to these at some point might be useful
     Type node_type;
-    Data_Type data_type = Data_Type::UNKNOWN;
+    Data_Type data_type = Data_Type::VOID;
     Code_Site *site;
 };
 
@@ -141,7 +141,7 @@ struct Ast_Variable : Ast_Node {
     Ast_Node *index;
 
     // This Data_Type will be set at parse time if the variable is on the LHS of
-    // an assignment, but will default to UNKNOWN if this node was parsed from
+    // an assignment, but will default to VOID if this node was parsed from
     // the RHS of an expression. The interpreter detects this and fills in/checks this
     // at interp time.
     Data_Type type;
@@ -150,7 +150,7 @@ struct Ast_Variable : Ast_Node {
         this->token = token;
         this->is_array = false;
         this->index = NULL;
-        this->type = Data_Type::UNKNOWN;
+        this->type = Data_Type::VOID;
         this->name = token->value;
         this->site = token->site;
         this->node_type = Ast_Node::Type::VARIABLE;
@@ -213,6 +213,7 @@ struct Ast_Array : Ast_Node {
 struct Ast_Empty : Ast_Node {
     Ast_Empty(Code_Site *site) {
         this->site = site;
+        this->data_type = Data_Type::VOID;
         this->node_type = Ast_Node::Type::EMPTY;
     }
 };

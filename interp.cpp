@@ -137,7 +137,7 @@ Array_Atom *Interpreter::walk_array_node(Scope *scope, Ast_Array *array) {
         items.push_back(walk_expression(scope, item));
     }
 
-    Data_Type type = Data_Type::UNKNOWN;
+    Data_Type type = Data_Type::VOID;
 
     if (items.size() > 0) type = items[0]->data_type;
 
@@ -201,7 +201,7 @@ Data_Atom *Interpreter::walk_function_call(Scope *scope, Ast_Function_Call *call
         Data_Atom *block_return = walk_block_node(func_scope, func_def->block);
 
         // Programmer didn't write an explicit return statement, so we return void for them
-        if (block_return == NULL) return NULL;
+        if (block_return == NULL || block_return->data_type == Data_Type::VOID) return NULL;
 
         if (block_return->data_type != func_def->data_type) {
             std::stringstream ss;
