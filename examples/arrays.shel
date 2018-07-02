@@ -3,7 +3,8 @@ num bug get_5() {
 }
 
 num[] x = [2+3, "test", get_5()];
+array_add(x, 10);
 
-num y = x[2];
+num y = array_get(x, 3);
 
 print("%", y);

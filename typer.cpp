@@ -11,6 +11,15 @@ std::string data_type_to_string(Data_Type type) {
     }
 }
 
+std::string atom_to_string(Data_Atom *atom) {
+    switch (atom->data_type) {
+        case Data_Type::NUM:     return std::to_string(((Num_Atom *)atom)->value);
+        case Data_Type::STR:     return ((Str_Atom *)atom)->value;
+        case Data_Type::BOOL:    return ((Bool_Atom *)atom)->value ? "true" : "false";
+        default:                 return "";
+    }
+}
+
 Data_Type token_to_data_type(Token *token) {
     switch (token->type) {
         case Token::Type::KEYWORD_NUM:  return Data_Type::NUM;

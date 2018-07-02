@@ -212,20 +212,15 @@ Data_Atom *Interpreter::walk_function_call(Scope *scope, Ast_Function_Call *call
 
         return block_return;
     } else {
-        // @HACK(HIGH) Horrible call out to native print
-        if (call->name == "print") {
-            // This just isn't very nice
-            std::string main_string = ((Ast_Literal *)call->args[0])->value;
-            std::vector<std::string> args;
+        std::vector<Data_Atom *> args;
 
-            for (int i = 1; i < call->args.size(); i++) {
-                args.push_back(get_string_from_return_value(walk_expression(scope, call->args[i])));
-            }
-
-            print_native(main_string, args);
-
-            return NULL;
+        for (Ast_Node *arg : call->args) {
+            args.push_back(walk_expression(scope, arg));
         }
+
+        Native_Return_Data *ret = call_native_function(call->name, args);
+
+        if (ret->was_success) return ((Data_Atom *)ret->return_value);
 
         std::stringstream ss;
         ss << "Attempted to call bug '" << call->name << "', which is either not in scope or does not exist";
@@ -329,7 +324,9 @@ Data_Atom *Interpreter::get_variable(Scope *scope, Ast_Variable *node) {
     if (var->was_success) {
         // @ROBUSTNESS(HIGH) Getting array variable item
         if (var->data->data_type == Data_Type::ARRAY) {
-            return ((Array_Atom *)var->data)->items.at(((Num_Atom *)walk_expression(scope, node->index))->value);
+            if (node->index == NULL)  return ((Array_Atom *)var->data);
+            int index = ((Num_Atom *)walk_expression(scope, node->index))->value;
+            return ((Array_Atom *)var->data)->items.at(index);
         } 
         return var->data;
     } else {

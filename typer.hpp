@@ -57,6 +57,7 @@ struct Array_Atom : Data_Atom  {
 };
 
 std::string data_type_to_string(Data_Type type);
+std::string atom_to_string(Data_Atom *atom);
 Data_Type token_to_data_type(Token *token);
 
 #endif
