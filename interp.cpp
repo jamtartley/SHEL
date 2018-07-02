@@ -280,7 +280,7 @@ Data_Atom *Interpreter::walk_loop(Scope *scope, Ast_Loop *loop_node) {
     Data_Atom *ret = NULL;
     bool is_going_up = to->value > from->value;
 
-    for (float i = from->value; is_going_up ? i <= to->value : i >= to->value; i += step->value) {
+    for (float i = from->value; is_going_up ? i < to->value : i > to->value; i += step->value) {
         auto *body_scope = new Scope(scope);
         assign_var(body_scope, "it", new Num_Atom(float(i)));
 

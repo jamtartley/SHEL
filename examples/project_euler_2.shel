@@ -18,7 +18,7 @@ num sum = 0;
 num limit = 4000000;
 arr fibs = get_fibonacci_upto(limit);
 
-from 0 to array_len(fibs) - 1 step 1 {
+from 0 to array_len(fibs) step 1 {
     num current = array_get(fibs, it);
 
     if (is_even(current)) {

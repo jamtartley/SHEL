@@ -38,8 +38,8 @@ while (x <= 5) {
     now x += 1;
 }
 
-# Loops in SHEL work over a closed range,
-# that is to say that both end values are included.
+# Loops in SHEL work over a half range,
+# that is to say that the start is inclusive but end is exclusive are included.
 # it is a special variable that is injected into the
 # scope of the body of the loop, and it provides the current
 # iteration index of the loop.

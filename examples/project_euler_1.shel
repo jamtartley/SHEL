@@ -8,7 +8,7 @@ bool bug is_divisible_by_5(num x) {
 
 num sum = 0;
 
-from 1 to 999 step 1 {
+from 1 to 1000 step 1 {
     if (is_divisible_by_3(it) or is_divisible_by_5(it)) {
         now sum += it;
     }
