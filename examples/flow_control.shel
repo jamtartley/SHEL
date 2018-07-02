@@ -40,7 +40,7 @@ while (x <= 5) {
 
 # Loops in SHEL work over a closed range,
 # that is to say that both end values are included.
-# idx is a special variable that is injected into the
+# it is a special variable that is injected into the
 # scope of the body of the loop, and it provides the current
 # iteration index of the loop.
 print("");
@@ -48,13 +48,13 @@ print("--------FROM TO--------");
 
 from 0 to 5 step 1 {
     print("");
-    print("Outer loop idx is %", idx);
+    print("Outer loop it is %", it);
 
     # If you want to access this value from inside an inner loop,
     # simply assign it to a variable before and access that.
-    num i = idx;
+    num i = it;
 
     from 10 to 5 step -1 {
-        print("Inner loop idx is %", idx);
+        print("Inner loop it is %", it);
     }
 }

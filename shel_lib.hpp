@@ -12,8 +12,9 @@ struct Native_Return_Data {
     }
 };
 
-Native_Return_Data *call_native_function(std::string name, std::vector<Data_Atom *> args);
-Native_Return_Data *print(std::vector<Data_Atom *> args);
-Native_Return_Data *array_get(std::vector<Data_Atom *> args);
-Native_Return_Data *array_set(std::vector<Data_Atom *> args);
-Native_Return_Data *array_add(std::vector<Data_Atom *> args);
+Native_Return_Data *call_native_function(std::string name, std::vector<Data_Atom *> args, Code_Site *site);
+Native_Return_Data *print(std::vector<Data_Atom *> args, Code_Site *site);
+Native_Return_Data *array_get(std::vector<Data_Atom *> args, Code_Site *site);
+Native_Return_Data *array_set(std::vector<Data_Atom *> args, Code_Site *site);
+Native_Return_Data *array_len(std::vector<Data_Atom *> args, Code_Site *site);
+Native_Return_Data *array_add(std::vector<Data_Atom *> args, Code_Site *site);

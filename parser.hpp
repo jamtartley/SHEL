@@ -258,7 +258,7 @@ struct Parser {
     std::string parse_ident_name();
     std::vector<Ast_Node *> parse_statements();
     Token *peek_next_token();
-    Token *peek_next_token(Token *current);
+    Token *peek_next_token(int jump);
 
     void accept_or_reject_token(bool is_accepted);
     void eat(int flags);

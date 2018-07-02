@@ -218,7 +218,7 @@ Data_Atom *Interpreter::walk_function_call(Scope *scope, Ast_Function_Call *call
             args.push_back(walk_expression(scope, arg));
         }
 
-        Native_Return_Data *ret = call_native_function(call->name, args);
+        Native_Return_Data *ret = call_native_function(call->name, args, call->site);
 
         if (ret->was_success) return ((Data_Atom *)ret->return_value);
 
@@ -281,7 +281,7 @@ Data_Atom *Interpreter::walk_loop(Scope *scope, Ast_Loop *loop_node) {
 
     for (float i = from->value; is_going_up ? i <= to->value : i >= to->value; i += step->value) {
         auto *body_scope = new Scope(scope);
-        assign_var(body_scope, "idx", new Num_Atom(float(i)));
+        assign_var(body_scope, "it", new Num_Atom(float(i)));
 
         ret = walk_block_node(body_scope, loop_node->body);
 
@@ -322,7 +322,6 @@ Data_Atom *Interpreter::get_variable(Scope *scope, Ast_Variable *node) {
     Var_With_Success *var = get_var(scope, name);
 
     if (var->was_success) {
-        // @ROBUSTNESS(HIGH) Getting array variable item
         if (var->data->data_type == Data_Type::ARRAY) {
             if (node->index == NULL)  return ((Array_Atom *)var->data);
             int index = ((Num_Atom *)walk_expression(scope, node->index))->value;
@@ -414,6 +413,11 @@ bool Interpreter::evaluate_binary_op_to_bool(Scope *scope, Ast_Binary_Op *compar
 void Interpreter::walk_assignment_node(Scope *scope, Ast_Assignment *node) {
     std::string name = node->left->name;
     Data_Atom *expr = walk_expression(scope, node->right);
+
+    if (expr->data_type == Data_Type::ARRAY) {
+        auto arr = (Array_Atom *)expr;
+        arr->atom_type = node->left->data_type;
+    }
 
     if (node->is_first_assign) {
         auto left_data_type = node->left->data_type;

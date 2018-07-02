@@ -82,7 +82,7 @@ Ast_Node *Parser::parse_expression_factor() {
                 eat(Token::Type::R_ARRAY);
                 return new Ast_Array(items, token->site);
             }
-            
+
             items.push_back(parse_expression());
 
             while (current_token->type == Token::Type::ARGUMENT_SEPARATOR) {
@@ -131,7 +131,8 @@ Ast_Node *Parser::parse_statement() {
     // @CLEANUP(LOW) Mixing between checking Token types/flags when parsing statement
     // Maybe there could be some more unified data type stored on the Token to do this.
     if (curr->flags & Token::Flags::DATA_TYPE) {
-        if (next->type == Token::Type::KEYWORD_FUNCTION) {
+        if (next->type == Token::Type::KEYWORD_FUNCTION 
+                || (next->type == Token::Type::KEYWORD_ARRAY && peek_next_token(2)->type == Token::Type::KEYWORD_FUNCTION)) {
             return parse_function_definition();
         } else {
             ret = parse_assignment(true);
@@ -180,14 +181,6 @@ Ast_Variable *Parser::parse_variable() {
     if (current_token->flags & Token::Flags::KEYWORD) report_fatal_error("SHEL keyword used as variable name", current_token->site);
 
     eat(Token::Type::IDENT);
-    
-    // Parsing subscript into array
-    if (current_token->type == Token::Type::L_ARRAY) {
-        eat(Token::Type::L_ARRAY);
-        var->index = parse_expression();
-        var->is_array = true;
-        eat(Token::Type::R_ARRAY);
-    }
 
     return var;
 }
@@ -196,7 +189,13 @@ Ast_Function_Definition *Parser::parse_function_definition() {
     Token *start_token = current_token;
     Data_Type return_type = token_to_data_type(current_token);
 
-    eat(current_token->type); // Data type
+    eat(current_token->type);
+
+    if (current_token->type == Token::Type::KEYWORD_ARRAY) {
+        return_type = Data_Type::ARRAY;
+        eat(Token::Type::KEYWORD_ARRAY);
+    }
+
     eat(Token::Type::KEYWORD_FUNCTION);
 
     std::string func_name = parse_ident_name();
@@ -267,10 +266,9 @@ Ast_Assignment *Parser::parse_assignment(bool is_first_assign) {
             report_fatal_error("Variables must be assigned a data type at the point of declaration", current_token->site);
         }
 
-        if (current_token->type == Token::Type::L_ARRAY && peek_next_token()->type == Token::Type::R_ARRAY) {
+        if (current_token->type == Token::Type::KEYWORD_ARRAY) {
             is_array = true;
-            eat(Token::Type::L_ARRAY);
-            eat(Token::Type::R_ARRAY);
+            eat(Token::Type::KEYWORD_ARRAY);
         }
     } else {
         eat(Token::Type::KEYWORD_REASSIGN_VARIABLE);
@@ -408,12 +406,12 @@ std::vector<Ast_Node *> Parser::parse_statements() {
 }
 
 Token *Parser::peek_next_token() {
-    return peek_next_token(current_token);
+    return peek_next_token(1);
 }
 
-Token *Parser::peek_next_token(Token *current) {
-    int pos = find(tokens.begin(), tokens.end(), current) - tokens.begin();
-    int next_pos = pos + 1;
+Token *Parser::peek_next_token(int step) {
+    int pos = find(tokens.begin(), tokens.end(), current_token) - tokens.begin();
+    int next_pos = pos + step;
     int tokens_len = tokens.size();
 
     return next_pos < tokens_len ? tokens[next_pos] : NULL;
