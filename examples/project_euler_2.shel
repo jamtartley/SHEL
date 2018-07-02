@@ -1,0 +1,28 @@
+num arr bug get_fibonacci_upto(limit) {
+    num arr fibs = [0, 1];
+    num len = array_len(fibs);
+
+    while (array_get(fibs, len - 1) <= limit) {
+        array_add(fibs, array_get(fibs, len - 1) + array_get(fibs, len - 2));
+        now len = array_len(fibs);
+    }
+
+    return fibs;
+}
+
+bool bug is_even(x) {
+    return x % 2 == 0;
+}
+
+num sum = 0;
+num arr fibs = get_fibonacci_upto(4000000);
+
+from 0 to array_len(fibs) - 1 step 1 {
+    num current = array_get(fibs, it);
+
+    if (is_even(current)) {
+        now sum = sum + current;
+    }
+}
+
+print(sum);
