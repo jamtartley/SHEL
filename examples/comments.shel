@@ -5,9 +5,12 @@ num a = 1; # Set a to 1 (P.S. Don't write useless comments)
 print("a == %", a); # Print a
 
 # Best function ever
-bug useless() {
+num bug useless() {
     return 0;
 }
 
+void bug empty() { return; }
+
 now a = useless(); # Why
+empty();
 print("a after assigning the value of the useless() bug is %", a);

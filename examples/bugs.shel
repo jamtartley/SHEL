@@ -1,4 +1,4 @@
-bug square(x) {
+num bug square(num x) {
     return x * x;
 }
 

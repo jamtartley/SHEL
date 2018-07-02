@@ -22,7 +22,6 @@ struct Ast_Node {
         VARIABLE,
         FUNCTION_DEFINITION,
         FUNCTION_CALL,
-        FUNCTION_ARGUMENT,
         RETURN,
         EMPTY
     };
@@ -135,45 +134,6 @@ struct Ast_Literal : Ast_Node {
     }
 };
 
-struct Ast_Function_Argument : Ast_Node {
-    std::string name;
-
-    Ast_Function_Argument(std::string name, Code_Site *site) {
-        this->name = name;
-        this->site = site;
-        this->node_type = Ast_Node::Type::FUNCTION_ARGUMENT;
-    }
-};
-
-struct Ast_Function_Definition : Ast_Node {
-    Ast_Block *block;
-    std::vector<Ast_Function_Argument *> args;
-    std::string name;
-
-    Ast_Function_Definition(Ast_Block *block, Data_Type return_type, std::vector<Ast_Function_Argument *> args, std::string name, Code_Site *site) {
-        this->block = block;
-        this->data_type = return_type;
-        this->args = args;
-        this->name = name;
-        this->site = site;
-        this->node_type = Ast_Node::Type::FUNCTION_DEFINITION;
-    }
-};
-
-struct Ast_Function_Call : Ast_Node {
-    std::string name;
-    std::vector<Ast_Node *> args;
-    Code_Site *args_start_site;
-
-    Ast_Function_Call(std::string name, std::vector<Ast_Node *> args, Code_Site *site, Code_Site *args_start_site) {
-        this->name = name;
-        this->args = args;
-        this->site = site;
-        this->args_start_site = args_start_site;
-        this->node_type = Ast_Node::Type::FUNCTION_CALL;
-    }
-};
-
 struct Ast_Variable : Ast_Node {
     Token *token;
     std::string name;
@@ -194,6 +154,35 @@ struct Ast_Variable : Ast_Node {
         this->name = token->value;
         this->site = token->site;
         this->node_type = Ast_Node::Type::VARIABLE;
+    }
+};
+
+struct Ast_Function_Definition : Ast_Node {
+    Ast_Block *block;
+    std::vector<Ast_Variable *> args;
+    std::string name;
+
+    Ast_Function_Definition(Ast_Block *block, Data_Type return_type, std::vector<Ast_Variable *> args, std::string name, Code_Site *site) {
+        this->block = block;
+        this->data_type = return_type;
+        this->args = args;
+        this->name = name;
+        this->site = site;
+        this->node_type = Ast_Node::Type::FUNCTION_DEFINITION;
+    }
+};
+
+struct Ast_Function_Call : Ast_Node {
+    std::string name;
+    std::vector<Ast_Node *> args;
+    Code_Site *args_start_site;
+
+    Ast_Function_Call(std::string name, std::vector<Ast_Node *> args, Code_Site *site, Code_Site *args_start_site) {
+        this->name = name;
+        this->args = args;
+        this->site = site;
+        this->args_start_site = args_start_site;
+        this->node_type = Ast_Node::Type::FUNCTION_CALL;
     }
 };
 
@@ -245,7 +234,7 @@ struct Parser {
     Ast_Node *parse_expression();
     Ast_Node *parse_expression(Ast_Node *left, int min_precedence);
     Ast_Node *parse_statement();
-    Ast_Variable *parse_variable();
+    Ast_Variable *parse_variable(bool is_first_assign);
     Ast_Function_Definition *parse_function_definition();
     Ast_Function_Call *parse_function_call();
     Ast_Assignment *parse_assignment(bool is_first_assign);

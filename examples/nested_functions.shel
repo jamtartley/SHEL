@@ -1,9 +1,9 @@
-num bug to_the_eighteenth(x) {
-    num bug square(x) {
+num bug to_the_eighteenth(num x) {
+    num bug square(num x) {
         return x * x;
     }
 
-    num bug cube(x) {
+    num bug cube(num x) {
         return x * x * x;
     }
     return cube(square(cube(x)));

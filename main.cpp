@@ -42,12 +42,11 @@ void print_tokens(std::vector<Token *> tokens) {
 
 int main(int argc, char *argv[]) {
     // @ROBUSTNESS(LOW) Improve argv control/robustness
-    std::string in_file_name = argc > 1 ? argv[1] : "examples/arrays.shel";
+    std::string in_file_name = argc > 1 ? argv[1] : "examples/project_euler_2.shel";
     std::string file_string = file_to_string(in_file_name);
 
     auto *lexer = new Lexer(in_file_name, file_string);
     lexer->lex();
-    print_tokens(lexer->tokens);
 
     auto *parser = new Parser(lexer->tokens, Token::Type::END_OF_FILE);
 

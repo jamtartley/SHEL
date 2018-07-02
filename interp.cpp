@@ -192,7 +192,7 @@ Data_Atom *Interpreter::walk_function_call(Scope *scope, Ast_Function_Call *call
         // Match calculated values to function names and insert them into the function scope
         // before we walk the main function block
         for (int i = 0; i < func_def->args.size(); i++) {
-            Ast_Function_Argument *current = func_def->args[i];
+            Ast_Variable *current = func_def->args[i];
             Data_Atom *expr = walk_expression(scope, call->args[i]);
 
             assign_var(func_scope, current->name, expr);

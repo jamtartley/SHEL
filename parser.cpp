@@ -66,7 +66,7 @@ Ast_Node *Parser::parse_expression_factor() {
             if (next->type == Token::Type::L_PAREN) {
                 return parse_function_call();
             }
-            return parse_variable();
+            return parse_variable(false);
         }
         case Token::Type::L_PAREN: {
             eat(Token::Type::L_PAREN);
@@ -175,8 +175,38 @@ Ast_Node *Parser::parse_statement() {
     }
 }
 
-Ast_Variable *Parser::parse_variable() {
+Ast_Variable *Parser::parse_variable(bool is_first_assign) {
+    Data_Type data_type = Data_Type::UNKNOWN;
+    bool is_array = false;
+
+    if (is_first_assign) {
+        auto type = current_token->type;
+
+        if (type == Token::Type::KEYWORD_NUM) {
+            eat(Token::Type::KEYWORD_NUM);
+            data_type = Data_Type::NUM;
+        } else if (type == Token::Type::KEYWORD_STR) {
+            eat(Token::Type::KEYWORD_STR);
+            data_type = Data_Type::STR;
+        } else if (type == Token::Type::KEYWORD_BOOL) {
+            eat(Token::Type::KEYWORD_BOOL);
+            data_type = Data_Type::BOOL;
+        } else {
+            report_fatal_error("Variables must be assigned a data type at the point of declaration", current_token->site);
+        }
+
+        if (current_token->type == Token::Type::KEYWORD_ARRAY) {
+            is_array = true;
+            eat(Token::Type::KEYWORD_ARRAY);
+        }
+    }
+
     auto *var = new Ast_Variable(current_token);
+
+    if (is_first_assign) {
+        var->is_array = is_array;
+        var->data_type = data_type;
+    }
 
     if (current_token->flags & Token::Flags::KEYWORD) report_fatal_error("SHEL keyword used as variable name", current_token->site);
 
@@ -201,24 +231,25 @@ Ast_Function_Definition *Parser::parse_function_definition() {
     std::string func_name = parse_ident_name();
 
     eat(Token::Type::L_PAREN);
-    std::vector<Ast_Function_Argument *> args;
+    std::vector<Ast_Variable *> args;
 
-    while (current_token->type == Token::Type::IDENT) {
-        Token *arg_token = current_token;
-        std::string arg_name = parse_ident_name();
+    while (current_token->flags & Token::Flags::DATA_TYPE) {
+        Ast_Variable *arg = parse_variable(true);
 
-        for (Ast_Function_Argument *other : args) {
-            if (other->name == arg_name) {
+        for (Ast_Variable *other : args) {
+            if (other->name == arg->name) {
                 std::stringstream ss;
-                ss << "Argument with the name '" << arg_name << "' already exists in definition of bug '" << func_name << "'";
-                report_fatal_error(ss.str(), arg_token->site);
+                ss << "Argument with the name '" << arg->name << "' already exists in definition of bug '" << func_name << "'";
+                report_fatal_error(ss.str(), other->token->site);
             }
         }
 
-        args.push_back(new Ast_Function_Argument(arg_name, arg_token->site));
+        args.push_back(arg);
 
         if (current_token->type == Token::Type::ARGUMENT_SEPARATOR) eat(Token::Type::ARGUMENT_SEPARATOR);
     }
+
+    if (current_token->type == Token::Type::IDENT) report_fatal_error("Must specify data type of function argument before identifier", current_token->site);
 
     eat(Token::Type::R_PAREN);
 
@@ -247,36 +278,11 @@ Ast_Function_Call *Parser::parse_function_call() {
 }
 
 Ast_Assignment *Parser::parse_assignment(bool is_first_assign) {
-    Data_Type data_type = Data_Type::UNKNOWN;
-    bool is_array = false;
-
-    if (is_first_assign) {
-        auto type = current_token->type;
-
-        if (type == Token::Type::KEYWORD_NUM) {
-            eat(Token::Type::KEYWORD_NUM);
-            data_type = Data_Type::NUM;
-        } else if (type == Token::Type::KEYWORD_STR) {
-            eat(Token::Type::KEYWORD_STR);
-            data_type = Data_Type::STR;
-        } else if (type == Token::Type::KEYWORD_BOOL) {
-            eat(Token::Type::KEYWORD_BOOL);
-            data_type = Data_Type::BOOL;
-        } else {
-            report_fatal_error("Variables must be assigned a data type at the point of declaration", current_token->site);
-        }
-
-        if (current_token->type == Token::Type::KEYWORD_ARRAY) {
-            is_array = true;
-            eat(Token::Type::KEYWORD_ARRAY);
-        }
-    } else {
+    if (is_first_assign == false) {
         eat(Token::Type::KEYWORD_REASSIGN_VARIABLE);
     }
 
-    Ast_Variable *var = parse_variable();
-    var->is_array = is_array;
-    var->data_type = data_type;
+    Ast_Variable *var = parse_variable(is_first_assign);
 
     Token *ass_token = current_token;
     eat(Token::Type::OP_ASSIGNMENT);

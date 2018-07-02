@@ -1,4 +1,4 @@
-bug t(is_true) {
+bool bug t(bool is_true) {
     return not is_true;
 }
 

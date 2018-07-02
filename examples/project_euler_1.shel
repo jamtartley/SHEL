@@ -1,8 +1,8 @@
-bug is_divisible_by_3(x) {
+bool bug is_divisible_by_3(num x) {
     return x % 3 == 0;
 }
 
-bug is_divisible_by_5(x) {
+bool bug is_divisible_by_5(num x) {
     return x % 5 == 0;
 }
 
