@@ -284,12 +284,27 @@ Ast_Assignment *Parser::parse_assignment(bool is_first_assign) {
 
     Ast_Variable *var = parse_variable(is_first_assign);
 
-    Token *ass_token = current_token;
-    eat(Token::Type::OP_ASSIGNMENT);
+    Token *ass_op_token = current_token;
+    eat(Token::Flags::OPERATOR);
+    Ast_Node *right = NULL;
 
-    Ast_Node *right = parse_expression();
+    switch (ass_op_token->type) {
+        case Token::Type::OP_ASSIGNMENT: 
+            right = parse_expression();
+            break;
+        case Token::Type::OP_PLUS_EQUALS:
+        case Token::Type::OP_MINUS_EQUALS:
+        case Token::Type::OP_MULTIPLY_EQUALS:
+        case Token::Type::OP_DIVIDE_EQUALS:
+        case Token::Type::OP_MODULO_EQUALS:
+            right = new Ast_Binary_Op(var, parse_expression(), ass_op_token);
+            break;
+        default:
+            report_fatal_error("Unrecognised assignment operator", ass_op_token->site);
+            return NULL;
+    }
 
-    return new Ast_Assignment(var, right, is_first_assign, ass_token->site);
+    return new Ast_Assignment(var, right, is_first_assign, ass_op_token->site);
 }
 
 Ast_Return *Parser::parse_return() {

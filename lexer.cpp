@@ -25,6 +25,11 @@ void Lexer::lex() {
         else if (curr == "#")                               { consume_comment(); continue; }
 
         else if (curr == "=" && peek_next_char() != "=")    { next_token = new Token(Token::Type::OP_ASSIGNMENT, "=", site, Token::Flags::OPERATOR); }
+        else if (curr == "+" && peek_next_char() == "=")    { next_token = new Token(Token::Type::OP_PLUS_EQUALS, "+=", site, Token::Flags::OPERATOR); }
+        else if (curr == "-" && peek_next_char() == "=")    { next_token = new Token(Token::Type::OP_MINUS_EQUALS, "+=", site, Token::Flags::OPERATOR); }
+        else if (curr == "*" && peek_next_char() == "=")    { next_token = new Token(Token::Type::OP_MULTIPLY_EQUALS, "+=", site, Token::Flags::OPERATOR); }
+        else if (curr == "/" && peek_next_char() == "=")    { next_token = new Token(Token::Type::OP_DIVIDE_EQUALS, "+=", site, Token::Flags::OPERATOR); }
+        else if (curr == "%" && peek_next_char() == "=")    { next_token = new Token(Token::Type::OP_MODULO_EQUALS, "+=", site, Token::Flags::OPERATOR); }
         else if (curr == "+")                               { next_token = new Token(Token::Type::OP_PLUS, "+", site, Token::Flags::OPERATOR); }
         else if (curr == "-")                               { next_token = new Token(Token::Type::OP_MINUS, "-", site, Token::Flags::OPERATOR); }
         else if (curr == "*")                               { next_token = new Token(Token::Type::OP_MULTIPLY, "*", site, Token::Flags::OPERATOR); }
@@ -40,10 +45,10 @@ void Lexer::lex() {
         else if (curr == ";")                               { next_token = new Token(Token::Type::TERMINATOR, ";", site); }
         else if (curr == ",")                               { next_token = new Token(Token::Type::ARGUMENT_SEPARATOR, ",", site); }
 
-        else if (curr == "=" and peek_next_char() == "=")   { next_token = new Token(Token::Type::COMPARE_EQUALS, "==", site, Token::Flags::COMPARISON); }
-        else if (curr == "!" and peek_next_char() == "=")   { next_token = new Token(Token::Type::COMPARE_NOT_EQUALS, "!=", site, Token::Flags::COMPARISON); }
-        else if (curr == "<" and peek_next_char() == "=")   { next_token = new Token(Token::Type::COMPARE_LESS_THAN_EQUALS, "<=", site, Token::Flags::COMPARISON); }
-        else if (curr == ">" and peek_next_char() == "=")   { next_token = new Token(Token::Type::COMPARE_GREATER_THAN_EQUALS, ">=", site, Token::Flags::COMPARISON); }
+        else if (curr == "=" && peek_next_char() == "=")   { next_token = new Token(Token::Type::COMPARE_EQUALS, "==", site, Token::Flags::COMPARISON); }
+        else if (curr == "!" && peek_next_char() == "=")   { next_token = new Token(Token::Type::COMPARE_NOT_EQUALS, "!=", site, Token::Flags::COMPARISON); }
+        else if (curr == "<" && peek_next_char() == "=")   { next_token = new Token(Token::Type::COMPARE_LESS_THAN_EQUALS, "<=", site, Token::Flags::COMPARISON); }
+        else if (curr == ">" && peek_next_char() == "=")   { next_token = new Token(Token::Type::COMPARE_GREATER_THAN_EQUALS, ">=", site, Token::Flags::COMPARISON); }
         else if (curr == "<")                               { next_token = new Token(Token::Type::COMPARE_LESS_THAN, "<", site, Token::Flags::COMPARISON); }
         else if (curr == ">")                               { next_token = new Token(Token::Type::COMPARE_GREATER_THAN, ">", site, Token::Flags::COMPARISON); }
 

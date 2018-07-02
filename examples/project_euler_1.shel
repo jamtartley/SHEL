@@ -10,7 +10,7 @@ num sum = 0;
 
 from 1 to 999 step 1 {
     if (is_divisible_by_3(it) or is_divisible_by_5(it)) {
-        now sum = sum + it;
+        now sum += it;
     }
 }
 

@@ -22,7 +22,7 @@ from 0 to array_len(fibs) - 1 step 1 {
     num current = array_get(fibs, it);
 
     if (is_even(current)) {
-        now sum = sum + current;
+        now sum += current;
     }
 }
 

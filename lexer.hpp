@@ -53,6 +53,7 @@ struct Token {
         KEYWORD_NUM, KEYWORD_STR, KEYWORD_BOOL, KEYWORD_ARRAY, KEYWORD_VOID,
         L_PAREN, R_PAREN, L_BRACE, R_BRACE, L_ARRAY, R_ARRAY, ARGUMENT_SEPARATOR,
         OP_ASSIGNMENT, OP_PLUS, OP_MINUS, OP_MULTIPLY, OP_DIVIDE, OP_MODULO,
+        OP_PLUS_EQUALS, OP_MINUS_EQUALS, OP_MULTIPLY_EQUALS, OP_DIVIDE_EQUALS, OP_MODULO_EQUALS,
         IDENT, NUMBER, STRING,
         COMPARE_EQUALS, COMPARE_NOT_EQUALS, COMPARE_LESS_THAN, COMPARE_GREATER_THAN, COMPARE_LESS_THAN_EQUALS, COMPARE_GREATER_THAN_EQUALS,
         LOGICAL_OR, LOGICAL_AND, LOGICAL_NOT,
@@ -125,6 +126,11 @@ inline const std::string type_to_string(Token::Type type) {
         case Token::Type::OP_MULTIPLY: return "OP_MULTIPLY";
         case Token::Type::OP_DIVIDE: return "OP_DIVIDE";
         case Token::Type::OP_MODULO: return "OP_MODULO";
+        case Token::Type::OP_PLUS_EQUALS: return "OP_PLUS_EQUALS";
+        case Token::Type::OP_MINUS_EQUALS: return "OP_MINUS_EQUALS";
+        case Token::Type::OP_MULTIPLY_EQUALS: return "OP_MULTIPLY_EQUALS";
+        case Token::Type::OP_DIVIDE_EQUALS: return "OP_DIVIDE_EQUALS";
+        case Token::Type::OP_MODULO_EQUALS: return "OP_MODULO_EQUALS";
         case Token::Type::COMPARE_EQUALS: return "COMPARE_EQUALS";
         case Token::Type::COMPARE_NOT_EQUALS: return "COMPARE_NOT_EQUALS";
         case Token::Type::COMPARE_LESS_THAN: return "COMPARE_LESS_THAN";

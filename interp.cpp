@@ -25,6 +25,7 @@ void fail_if_binary_op_invalid(Data_Atom *left, Data_Atom *right, Token *op) {
 
     switch (op->type) {
         case Token::Type::OP_PLUS:
+        case Token::Type::OP_PLUS_EQUALS:
         case Token::Type::COMPARE_EQUALS:
         case Token::Type::COMPARE_NOT_EQUALS:
             // Can + both num and str
@@ -39,6 +40,10 @@ void fail_if_binary_op_invalid(Data_Atom *left, Data_Atom *right, Token *op) {
         case Token::Type::OP_MULTIPLY:
         case Token::Type::OP_DIVIDE:
         case Token::Type::OP_MODULO:
+        case Token::Type::OP_MINUS_EQUALS:
+        case Token::Type::OP_MULTIPLY_EQUALS:
+        case Token::Type::OP_DIVIDE_EQUALS:
+        case Token::Type::OP_MODULO_EQUALS:
         case Token::Type::COMPARE_GREATER_THAN:
         case Token::Type::COMPARE_LESS_THAN:
         case Token::Type::COMPARE_GREATER_THAN_EQUALS:
@@ -102,7 +107,7 @@ Data_Atom *Interpreter::walk_binary_op_node(Scope *scope, Ast_Binary_Op *node) {
 
     fail_if_binary_op_invalid(left, right, node->op);
 
-    if (node->op->type == Token::Type::OP_PLUS) {
+    if (node->op->type == Token::Type::OP_PLUS || node->op->type == Token::Type::OP_PLUS_EQUALS) {
         if (left->data_type == Data_Type::NUM) {
             return new Num_Atom(((Num_Atom *)left)->value + ((Num_Atom *)right)->value);
         } else if (left->data_type == Data_Type::STR) {
@@ -111,13 +116,13 @@ Data_Atom *Interpreter::walk_binary_op_node(Scope *scope, Ast_Binary_Op *node) {
             report_fatal_error("Attempted to '+' incompatible expressions", node->op->site);
             return NULL;
         }
-    } else if (node->op->type == Token::Type::OP_MINUS) {
+    } else if (node->op->type == Token::Type::OP_MINUS || node->op->type == Token::Type::OP_MINUS_EQUALS) {
         return new Num_Atom(((Num_Atom *)left)->value - ((Num_Atom *)right)->value);
-    } else if (node->op->type == Token::Type::OP_MULTIPLY) {
+    } else if (node->op->type == Token::Type::OP_MULTIPLY || node->op->type == Token::Type::OP_MULTIPLY_EQUALS) {
         return new Num_Atom(((Num_Atom *)left)->value * ((Num_Atom *)right)->value);
-    } else if (node->op->type == Token::Type::OP_DIVIDE) {
+    } else if (node->op->type == Token::Type::OP_DIVIDE || node->op->type == Token::Type::OP_DIVIDE_EQUALS) {
         return new Num_Atom(((Num_Atom *)left)->value / ((Num_Atom *)right)->value);
-    } else if (node->op->type == Token::Type::OP_MODULO) {
+    } else if (node->op->type == Token::Type::OP_MODULO || node->op->type == Token::Type::OP_MODULO_EQUALS) {
         Num_Atom *l = (Num_Atom *)left;
         Num_Atom *r = (Num_Atom *)right;
         return new Num_Atom(float(int(l->value) % int(r->value)));

@@ -6,6 +6,7 @@ num bug to_the_eighteenth(num x) {
     num bug cube(num x) {
         return x * x * x;
     }
+
     return cube(square(cube(x)));
 }
 
