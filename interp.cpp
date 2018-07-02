@@ -86,8 +86,7 @@ Data_Atom *Interpreter::walk_expression(Scope *scope, Ast_Node *node) {
     } else if (node->node_type == Ast_Node::Type::LITERAL) {
         return get_data_from_literal(scope, (Ast_Literal *)node);
     } else if (node->node_type == Ast_Node::Type::ARRAY) {
-        // @TODO(MEDIUM) Support inline initialisation of array items
-        return new Array_Atom(Data_Type::UNKNOWN);
+        return walk_array_node(scope, (Ast_Array *)node);
     } else if (node->node_type == Ast_Node::Type::FUNCTION_CALL) {
         return walk_function_call(scope, (Ast_Function_Call *)node);
     } else if (node->node_type == Ast_Node::Type::VARIABLE) {
@@ -129,6 +128,20 @@ Data_Atom *Interpreter::walk_binary_op_node(Scope *scope, Ast_Binary_Op *node) {
 
         return NULL;
     }
+}
+
+Array_Atom *Interpreter::walk_array_node(Scope *scope, Ast_Array *array) {
+    std::vector<Data_Atom *> items;
+
+    for (Ast_Node *item : array->items) {
+        items.push_back(walk_expression(scope, item));
+    }
+
+    Data_Type type = Data_Type::UNKNOWN;
+
+    if (items.size() > 0) type = items[0]->data_type;
+
+    return new Array_Atom(items, type);
 }
 
 Data_Atom *Interpreter::walk_unary_op_node(Scope *scope, Ast_Unary_Op *node) {
@@ -314,7 +327,10 @@ Data_Atom *Interpreter::get_variable(Scope *scope, Ast_Variable *node) {
     Var_With_Success *var = get_var(scope, name);
 
     if (var->was_success) {
-        // Variables stored as maps of string name to string value so need to convert to float
+        // @ROBUSTNESS(HIGH) Getting array variable item
+        if (var->data->data_type == Data_Type::ARRAY) {
+            return ((Array_Atom *)var->data)->items.at(((Num_Atom *)walk_expression(scope, node->index))->value);
+        } 
         return var->data;
     } else {
         report_fatal_error(get_unassigned_variable_error(name), node->token->site);
@@ -403,12 +419,10 @@ void Interpreter::walk_assignment_node(Scope *scope, Ast_Assignment *node) {
     Data_Atom *expr = walk_expression(scope, node->right);
 
     if (node->is_first_assign) {
-        // @HACK(MEDIUM) Interpreter turning variable into array
-        // This check is done here because the variable only stores atom data at parse time,
-        // with whether or not it was an array as a secondary attribute
-        auto left_data_type = node->left->is_array ? Data_Type::ARRAY : node->left->data_type;
+        auto left_data_type = node->left->data_type;
+        auto right_data_type = expr->data_type == Data_Type::ARRAY ? ((Array_Atom *)expr)->atom_type : expr->data_type;
 
-        if (left_data_type != expr->data_type) {
+        if (left_data_type != right_data_type) {
             std::stringstream ss;
             ss << "Tried to assign expression of type '" <<  data_type_to_string(expr->data_type)
                 << "' to variable of type '" << data_type_to_string(node->left->data_type) << "'";

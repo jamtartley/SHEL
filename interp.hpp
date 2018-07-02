@@ -13,6 +13,7 @@ struct Interpreter {
         this->parser = parser;
     }
 
+    Array_Atom *walk_array_node(Scope *scope, Ast_Array *array);
     Data_Atom *walk_block_node(Scope *scope, Ast_Block *root);
     Data_Atom *walk_expression(Scope *scope, Ast_Node *node);
     Data_Atom *walk_binary_op_node(Scope *scope, Ast_Binary_Op *node);

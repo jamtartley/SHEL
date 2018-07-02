@@ -176,8 +176,9 @@ struct Ast_Function_Call : Ast_Node {
 
 struct Ast_Variable : Ast_Node {
     Token *token;
-    bool is_array;
     std::string name;
+    bool is_array;
+    Ast_Node *index;
 
     // This Data_Type will be set at parse time if the variable is on the LHS of
     // an assignment, but will default to UNKNOWN if this node was parsed from
@@ -188,6 +189,7 @@ struct Ast_Variable : Ast_Node {
     Ast_Variable(Token *token) {
         this->token = token;
         this->is_array = false;
+        this->index = NULL;
         this->type = Data_Type::UNKNOWN;
         this->name = token->value;
         this->site = token->site;
@@ -210,7 +212,10 @@ struct Ast_Assignment : Ast_Node {
 };
 
 struct Ast_Array : Ast_Node {
-    Ast_Array(Code_Site *site) {
+    std::vector<Ast_Node *> items;
+
+    Ast_Array(std::vector<Ast_Node *> items, Code_Site *site) {
+        this->items = items;
         this->site = site;
         this->node_type = Ast_Node::Type::ARRAY;
     }

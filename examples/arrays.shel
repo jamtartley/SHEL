@@ -1,1 +1,9 @@
-num arr x = [];
+num bug get_5() {
+    return 5;
+}
+
+num[] x = [2+3, "test", get_5()];
+
+num y = x[2];
+
+print("%", y);

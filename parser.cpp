@@ -74,6 +74,26 @@ Ast_Node *Parser::parse_expression_factor() {
             eat(Token::Type::R_PAREN);
             return node;
         }
+        case Token::Type::L_ARRAY: {
+            eat(Token::Type::L_ARRAY);
+            std::vector<Ast_Node *> items;
+
+            if (current_token->type == Token::Type::R_ARRAY) {
+                eat(Token::Type::R_ARRAY);
+                return new Ast_Array(items, token->site);
+            }
+            
+            items.push_back(parse_expression());
+
+            while (current_token->type == Token::Type::ARGUMENT_SEPARATOR) {
+                eat(Token::Type::ARGUMENT_SEPARATOR);
+                items.push_back(parse_expression());
+            }
+
+            eat(Token::Type::R_ARRAY);
+
+            return new Ast_Array(items, token->site);
+        }
         default:
             return new Ast_Empty(token->site);
     }
@@ -160,6 +180,14 @@ Ast_Variable *Parser::parse_variable() {
     if (current_token->flags & Token::Flags::KEYWORD) report_fatal_error("SHEL keyword used as variable name", current_token->site);
 
     eat(Token::Type::IDENT);
+    
+    // Parsing subscript into array
+    if (current_token->type == Token::Type::L_ARRAY) {
+        eat(Token::Type::L_ARRAY);
+        var->index = parse_expression();
+        var->is_array = true;
+        eat(Token::Type::R_ARRAY);
+    }
 
     return var;
 }
@@ -239,9 +267,10 @@ Ast_Assignment *Parser::parse_assignment(bool is_first_assign) {
             report_fatal_error("Variables must be assigned a data type at the point of declaration", current_token->site);
         }
 
-        if (current_token->type == Token::Type::KEYWORD_ARRAY) {
+        if (current_token->type == Token::Type::L_ARRAY && peek_next_token()->type == Token::Type::R_ARRAY) {
             is_array = true;
-            eat(Token::Type::KEYWORD_ARRAY);
+            eat(Token::Type::L_ARRAY);
+            eat(Token::Type::R_ARRAY);
         }
     } else {
         eat(Token::Type::KEYWORD_REASSIGN_VARIABLE);
@@ -254,15 +283,7 @@ Ast_Assignment *Parser::parse_assignment(bool is_first_assign) {
     Token *ass_token = current_token;
     eat(Token::Type::OP_ASSIGNMENT);
 
-    Ast_Node *right;
-
-    if (is_array) {
-        eat(Token::Type::L_ARRAY);
-        eat(Token::Type::R_ARRAY);
-        right = new Ast_Array(current_token->site);
-    } else {
-        right = parse_expression();
-    }
+    Ast_Node *right = parse_expression();
 
     return new Ast_Assignment(var, right, is_first_assign, ass_token->site);
 }

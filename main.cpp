@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
 
     auto *lexer = new Lexer(in_file_name, file_string);
     lexer->lex();
+    print_tokens(lexer->tokens);
 
     auto *parser = new Parser(lexer->tokens, Token::Type::END_OF_FILE);
 

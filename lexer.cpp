@@ -143,7 +143,6 @@ Token *Lexer::scan_ident(Code_Site *site, const std::string input, const std::re
     else if (raw == "num")    return new Token(Token::Type::KEYWORD_NUM, "num", site, Token::Flags::KEYWORD | Token::Flags::DATA_TYPE);
     else if (raw == "str")    return new Token(Token::Type::KEYWORD_STR, "str", site, Token::Flags::KEYWORD | Token::Flags::DATA_TYPE);
     else if (raw == "bool")   return new Token(Token::Type::KEYWORD_BOOL, "bool", site, Token::Flags::KEYWORD | Token::Flags::DATA_TYPE);
-    else if (raw == "arr")    return new Token(Token::Type::KEYWORD_ARRAY, "arr", site, Token::Flags::KEYWORD | Token::Flags::DATA_TYPE);
     else if (raw == "void")   return new Token(Token::Type::KEYWORD_VOID, "void", site, Token::Flags::KEYWORD | Token::Flags::DATA_TYPE);
     else if (raw == "shel")   return new Token(Token::Type::KEYWORD_STRUCT, "shel", site, Token::Flags::KEYWORD);
     else if (raw == "bug")    return new Token(Token::Type::KEYWORD_FUNCTION, "bug", site, Token::Flags::KEYWORD);
