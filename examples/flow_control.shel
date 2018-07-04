@@ -4,7 +4,7 @@ print("");
 print("--------IF--------");
 print("");
 
-void bug check(a) {
+void bug check(num a) {
     if (a == 1) {
         print("a equals 1");
     } elif (a == 2) {

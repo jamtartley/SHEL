@@ -111,7 +111,7 @@ std::string Lexer::peek_next_char() {
 
 std::string Lexer::scan_string(Code_Site *site, const std::string input, const std::regex end_match) {
     std::string ret = "";
-    int i = 0; // Skip first "
+    int i = 0;
     const size_t input_size = input.size();
 
     while (i < input_size && std::regex_match(std::string(1, input.at(i)), end_match) == false) {
