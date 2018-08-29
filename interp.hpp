@@ -34,8 +34,4 @@ struct Interpreter {
     void interpret();
 };
 
-std::string get_string_from_return_value(Data_Atom *ret);
-bool is_num(std::string str);
-void fail_if_binary_op_invalid(Data_Atom *left, Data_Atom *right, Token *op);
-
 #endif
